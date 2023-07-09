@@ -167,6 +167,100 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="http://example.com/2023/07/09/nlp%E8%87%AA%E5%AD%A61-%E8%AF%8D%E5%85%B8%E5%88%86%E8%AF%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2023/07/09/nlp%E8%87%AA%E5%AD%A61-%E8%AF%8D%E5%85%B8%E5%88%86%E8%AF%8D/" class="post-title-link" itemprop="url">nlp自学1-词典分词</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2023-07-09 14:51:09 / 修改时间：18:22:35" itemprop="dateCreated datePublished" datetime="2023-07-09T14:51:09+08:00">2023-07-09</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="齐夫定理"><a href="#齐夫定理" class="headerlink" title="齐夫定理"></a>齐夫定理</h2><p><strong>一个单词出现的频率与它在频率表里的排序成反比。</strong> </p>
+<p>例如，在英语的 Brown 语料库中，「the」、「of」、「and」是出现频率最高，排序 1、2、3 的单词，分别占整个语料库100万个单词数的 7%、3.6%、2.9%[1]。可见排序第2位「of」的频率大约是第1「the」的1&#x2F;2，第3的「and」是其 1&#x2F;3。以此类推，排序第n单词的频率是最常见频率的1&#x2F;n。最简单的齐夫定律排序遵从一次反比即 1&#x2F;f 关系。由此可以得到它的等价描述：</p>
+<blockquote>
+<p>在给定语料中，对于任意一个单词，其频率（Frequency）与频率排序（Rank）乘积大致是一个常数，即：Rank * Frequency ≈ Constant</p>
+</blockquote>
+<p>因此虽然语言中的词汇数量是无穷的，无法用任何词典完整收录，但将单词词频降序排列，由齐夫定律可得，越靠后词频越小，趋近于0，平时很难碰到，因此可以尝试词典分词。</p>
+<h2 id="切分算法"><a href="#切分算法" class="headerlink" title="切分算法"></a>切分算法</h2><ol>
+<li>完全切分</li>
+<li>正向最长匹配</li>
+<li>逆向最长匹配</li>
+<li>双向最长匹配</li>
+</ol>
+<h2 id="字典树"><a href="#字典树" class="headerlink" title="字典树"></a>字典树</h2><p>匹配算法的瓶颈之一在于如何判断集合(词典)中是否含有字符串。</p>
+<p>字典树中每条边都对应一个字， 从根节点往下的路径构成一个个字符串。字典树并不直接在节点上存储字符串， 而是将词语视作根节点到某节点之间的一条路径，并在终点节点(蓝色) 上做个标记“该节点对应词语的结尾”。字符串就是一 条路径，要查询一个单词，只需顺着这条路径从根节点往下走。如果能走到特殊标记的节点，则说明该字符串在集合中，否则说明不存在。一个典型的字典树如下图所示所示。</p>
+<p><img src="/2023/07/09/nlp%E8%87%AA%E5%AD%A61-%E8%AF%8D%E5%85%B8%E5%88%86%E8%AF%8D/dictree.jpg" alt="dictree"></p>
+<p>字典树也可以实现映射，只需将相应的值悬挂在键的终点节点上即可。</p>
+<p>字典树的增删查改</p>
+<h4 id="首字散列其余二分的字典树"><a href="#首字散列其余二分的字典树" class="headerlink" title="首字散列其余二分的字典树"></a>首字散列其余二分的字典树</h4><h2 id="双数组字典树"><a href="#双数组字典树" class="headerlink" title="双数组字典树"></a>双数组字典树</h2><p>双数组字典树是一种状态转移复杂度为常数的数据结构。</p>
+<p>由base和check两个数组构成(base和check的索引表示一个状态)，缩短状态转移过程的时间。</p>
+<p>具体的，当状态b接受字符c转移到状态p时，满足条件(状态由整数下标表示)：</p>
+<p><strong>state[p] &#x3D; base[state[b]] + index[c]</strong></p>
+<p><strong>check[state[p]] &#x3D;&#x3D;</strong> <strong>state[b]</strong></p>
+<p>若条件不满足则转换失败。</p>
+<p>如：当前状态自然(例如state[自然]&#x3D;1),若想判断是否可以转移到状态自然人，先执行state[自然人] &#x3D; base[state[自然]] + index[人] &#x3D; base[1] + index[人],然后判断check[state[自然人]] &#x3D;&#x3D; state[自然]是否成立即可，仅需一次加法和整数比较就能进行状态转移，转移过程为常数事件。</p>
+<p><img src="/2023/07/09/nlp%E8%87%AA%E5%AD%A61-%E8%AF%8D%E5%85%B8%E5%88%86%E8%AF%8D/doudictree.png" alt="doudictree"></p>
+<p>参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/185832624">手把手教学 | 双数组字典树 - 知乎 (zhihu.com)</a></p>
+<h2 id="AC自动机"><a href="#AC自动机" class="headerlink" title="AC自动机"></a>AC自动机</h2><p>在使用字典树进行全切分时，每次都需要不断挪动起点，发起新的查询，这会显著增加时间复杂度，为了实现一次扫描就查询出所有出现过的单词，发明了AC自动机，它是常用的多模式匹配算法。</p>
+<p>AC自动机使用前缀树来存放所有模式串的前缀，通过失配指针来处理失配的跳转。AC自动机的构建，首先需要构建Trie树，其次需要添加失配指针（fail表），最后需要模式匹配。下图是用单词<strong>her、say、she、shr、he</strong>构成的AC自动机。</p>
+<p><img src="/2023/07/09/nlp%E8%87%AA%E5%AD%A61-%E8%AF%8D%E5%85%B8%E5%88%86%E8%AF%8D/ACauto.png" alt="ACauto"></p>
+<p>参考<a target="_blank" rel="noopener" href="https://zhuanlan.zhihu.com/p/146369212">地铁十分钟 | AC自动机 - 知乎 (zhihu.com)</a></p>
+<h4 id="goto表"><a href="#goto表" class="headerlink" title="goto表"></a>goto表</h4><p>就是一棵前缀树，用来将每个模式串索引到前缀树上</p>
+<h4 id="output表"><a href="#output表" class="headerlink" title="output表"></a>output表</h4><p>给定一个状态，我们需要知道该状态是否对应某个或某些字符串， 以决定是否输出模式串以及对应的值</p>
+<h4 id="fail表"><a href="#fail表" class="headerlink" title="fail表"></a>fail表</h4><p>存储的应该是fail指针，用来存储状态转移失败后应当回退的最佳状态，最佳状态指的是能记住已匹配上的字符串的最长后缀的那个状态。</p>
+<h2 id="基于双数组字典树的AC自动机"><a href="#基于双数组字典树的AC自动机" class="headerlink" title="基于双数组字典树的AC自动机"></a>基于双数组字典树的AC自动机</h2><h2 id="准确度评测"><a href="#准确度评测" class="headerlink" title="准确度评测"></a>准确度评测</h2><h4 id="混淆矩阵"><a href="#混淆矩阵" class="headerlink" title="混淆矩阵"></a>混淆矩阵</h4><p>精确率</p>
+<p>召回率</p>
+<p>F1值</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="http://example.com/2023/06/26/%E7%94%A8python%E7%88%AC%E5%8F%96%E8%B1%86%E7%93%A3%E7%BD%91%E9%A1%B5/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -347,7 +441,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">1</span>
+          <span class="site-state-item-count">2</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
