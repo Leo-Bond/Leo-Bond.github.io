@@ -1,0 +1,717 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Vaswani A, Shazeer N, Parmar N, et al. Attention is all you need[J]. Advances in neural information processing systems, 2017, 30.  Transformer 是现代大模型最核心的基础架构之一。从 BERT、GPT 到如今的大语言模型，几乎都可以看作是在 Transfor">
+<meta property="og:type" content="article">
+<meta property="og:title" content="transformer架构">
+<meta property="og:url" content="https://leo-bond.github.io/2026/03/27/transformer%E6%9E%B6%E6%9E%84/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="Vaswani A, Shazeer N, Parmar N, et al. Attention is all you need[J]. Advances in neural information processing systems, 2017, 30.  Transformer 是现代大模型最核心的基础架构之一。从 BERT、GPT 到如今的大语言模型，几乎都可以看作是在 Transfor">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-27T05:19:42.000Z">
+<meta property="article:modified_time" content="2026-03-27T12:29:12.884Z">
+<meta property="article:author" content="wdy">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/03/27/transformer%E6%9E%B6%E6%9E%84/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>transformer架构 | wdy's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wdy's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="download fa-fw"></i>资源</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/03/27/transformer%E6%9E%B6%E6%9E%84/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          transformer架构
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-03-27 13:19:42 / 修改时间：20:29:12" itemprop="dateCreated datePublished" datetime="2026-03-27T13:19:42+08:00">2026-03-27</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <blockquote>
+<p>Vaswani A, Shazeer N, Parmar N, et al. Attention is all you need[J]. Advances in neural information processing systems, 2017, 30.</p>
+</blockquote>
+<p>Transformer 是现代大模型最核心的基础架构之一。从 BERT、GPT 到如今的大语言模型，几乎都可以看作是在 Transformer 基础上的扩展和变体。</p>
+<p>如果只用一句话概括它的核心思想，那就是：</p>
+<ul>
+<li>不再像 RNN 那样按时间步顺序处理序列</li>
+<li>而是用 self-attention 让每个 token 直接和序列中其他 token 建立联系</li>
+</ul>
+<p>这种设计带来了两个非常重要的优点：</p>
+<ol>
+<li>可以并行计算，训练效率更高</li>
+<li>更容易建模长距离依赖关系</li>
+</ol>
+<p>这篇文章会先把 Transformer 的整体架构讲清楚，再基于练习题中的推导，分析多头自注意力的参数量和计算复杂度。</p>
+<h2 id="一、为什么-Transformer-会出现"><a href="#一、为什么-Transformer-会出现" class="headerlink" title="一、为什么 Transformer 会出现"></a>一、为什么 Transformer 会出现</h2><p>在 Transformer 之前，序列建模主要依赖两类方法：</p>
+<ul>
+<li>RNN &#x2F; LSTM &#x2F; GRU</li>
+<li>CNN 式序列模型</li>
+</ul>
+<p>RNN 的问题在于，它天然是串行计算的。即使一个句子里后面的词和前面的词关系很远，信息也要一层层沿时间步传递。这会带来两个经典问题：</p>
+<ul>
+<li>长距离依赖难学</li>
+<li>训练和推理难以充分并行</li>
+</ul>
+<p>CNN 虽然可以并行，但感受野需要通过堆叠层数逐渐扩大，对于全局依赖的建模仍然不够直接。</p>
+<p>Transformer 的突破在于：让序列中每个位置都能直接“看见”其他所有位置，并根据相关性动态分配注意力权重。</p>
+<p>因此，Transformer 的关键不是“记忆前一个状态”，而是“计算当前位置和其他位置之间的关系”。</p>
+<h2 id="二、整体架构"><a href="#二、整体架构" class="headerlink" title="二、整体架构"></a>二、整体架构</h2><p>原始 Transformer 由两部分组成：</p>
+<ul>
+<li>Encoder</li>
+<li>Decoder</li>
+</ul>
+<p>整体上是一个典型的 seq2seq 结构。</p>
+<h3 id="1-Encoder"><a href="#1-Encoder" class="headerlink" title="1. Encoder"></a>1. Encoder</h3><p>Encoder 由多个相同的编码层堆叠而成。每一层通常包含两个子层：</p>
+<ol>
+<li>Multi-Head Self-Attention</li>
+<li>Position-wise Feed Forward Network</li>
+</ol>
+<p>并且每个子层外面都有：</p>
+<ul>
+<li>Residual Connection</li>
+<li>Layer Normalization</li>
+</ul>
+<p>因此一层 Encoder Block 的计算流程可以简化为：</p>
+<p>$$<br>X \rightarrow \text{Multi-Head Attention} \rightarrow \text{Add &amp; Norm} \rightarrow \text{FFN} \rightarrow \text{Add &amp; Norm}<br>$$</p>
+<h3 id="2-Decoder"><a href="#2-Decoder" class="headerlink" title="2. Decoder"></a>2. Decoder</h3><p>Decoder 同样由多个相同的解码层堆叠而成，但每层会多一个子层：</p>
+<ol>
+<li>Masked Multi-Head Self-Attention</li>
+<li>Cross-Attention</li>
+<li>Position-wise Feed Forward Network</li>
+</ol>
+<p>其中：</p>
+<ul>
+<li>第一层 masked self-attention 保证当前位置只能看到自己和前面的 token，不能偷看未来信息</li>
+<li>第二层 cross-attention 让 decoder 去关注 encoder 输出的表示</li>
+</ul>
+<p>因此 Decoder 比 Encoder 多了一步“从输入序列表示中取信息”的过程。</p>
+<p>如果只讨论 GPT 这类自回归语言模型，那么通常只保留 Decoder 风格的 masked self-attention 结构；如果讨论 BERT，则更接近只用 Encoder。</p>
+<h2 id="三、输入表示"><a href="#三、输入表示" class="headerlink" title="三、输入表示"></a>三、输入表示</h2><p>Transformer 的输入并不是单纯的 one-hot token，而是由两个部分相加得到：</p>
+<ol>
+<li>Token Embedding</li>
+<li>Positional Encoding</li>
+</ol>
+<p>写成公式就是：</p>
+<p>$$<br>X &#x3D; E + P<br>$$</p>
+<p>其中：</p>
+<ul>
+<li>$E$ 表示 token embedding</li>
+<li>$P$ 表示位置编码</li>
+</ul>
+<p>这么做的原因很简单：attention 本身只关心“元素之间的关系”，它并不知道序列顺序。如果不加入位置信息，那么词序就会丢失。</p>
+<h3 id="位置编码为什么重要"><a href="#位置编码为什么重要" class="headerlink" title="位置编码为什么重要"></a>位置编码为什么重要</h3><p>例如下面两个句子：</p>
+<ul>
+<li>dog bites man</li>
+<li>man bites dog</li>
+</ul>
+<p>如果模型完全不知道词的位置，这两个句子在 bag-of-words 意义上可能几乎一样，但语义完全不同。</p>
+<p>因此 Transformer 必须额外注入顺序信息。</p>
+<p>在原始论文中，位置编码使用的是正弦余弦函数：</p>
+<p>$$<br>PE_{(pos, 2i)} &#x3D; \sin\left(\frac{pos}{10000^{2i &#x2F; d_{\text{model}}}}\right)<br>$$</p>
+<p>$$<br>PE_{(pos, 2i+1)} &#x3D; \cos\left(\frac{pos}{10000^{2i &#x2F; d_{\text{model}}}}\right)<br>$$</p>
+<p>它的直觉是：用不同频率的波形来编码位置，使得模型既能区分绝对位置，也能较容易推断相对位置信息。</p>
+<h2 id="四、自注意力机制"><a href="#四、自注意力机制" class="headerlink" title="四、自注意力机制"></a>四、自注意力机制</h2><p>Transformer 的核心就是 attention，尤其是 self-attention。</p>
+<h3 id="1-Q、K、V-的含义"><a href="#1-Q、K、V-的含义" class="headerlink" title="1. Q、K、V 的含义"></a>1. Q、K、V 的含义</h3><p>对于输入表示矩阵 $X \in \mathbb{R}^{n \times d_{\text{model}}}$，模型会分别通过三个线性映射得到：</p>
+<p>$$<br>Q &#x3D; XW^Q,\quad K &#x3D; XW^K,\quad V &#x3D; XW^V<br>$$</p>
+<p>其中：</p>
+<ul>
+<li>$Q$ 是 Query</li>
+<li>$K$ 是 Key</li>
+<li>$V$ 是 Value</li>
+</ul>
+<p>直观地说：</p>
+<ul>
+<li>Query 可以理解为“我现在想找什么信息”</li>
+<li>Key 可以理解为“我这里提供什么信息”</li>
+<li>Value 可以理解为“真正要取出的内容”</li>
+</ul>
+<p>当某个位置的 Query 和另一个位置的 Key 越匹配时，它就应该更多地吸收对方的 Value。</p>
+<h3 id="2-Scaled-Dot-Product-Attention"><a href="#2-Scaled-Dot-Product-Attention" class="headerlink" title="2. Scaled Dot-Product Attention"></a>2. Scaled Dot-Product Attention</h3><p>单头注意力的公式是：</p>
+<p>$$<br>\text{Attention}(Q, K, V) &#x3D; \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V<br>$$</p>
+<p>这个公式可以分成三步理解。</p>
+<p>第一步，计算相关性分数：</p>
+<p>$$<br>S &#x3D; QK^T<br>$$</p>
+<p>这里的 $S_{ij}$ 表示第 $i$ 个 token 对第 $j$ 个 token 的关注程度。</p>
+<p>第二步，进行缩放：</p>
+<p>$$<br>\frac{QK^T}{\sqrt{d_k}}<br>$$</p>
+<p>除以 $\sqrt{d_k}$ 的原因是，当向量维度变大时，点积的数值方差会变大，容易让 softmax 进入非常陡峭的区域，从而导致梯度不稳定。</p>
+<p>第三步，做 softmax 并加权求和：</p>
+<p>$$<br>A &#x3D; \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)<br>$$</p>
+<p>$$<br>O &#x3D; AV<br>$$</p>
+<p>其中 $A$ 是注意力权重矩阵，$O$ 是当前注意力层的输出。</p>
+<h3 id="3-Self-Attention-的含义"><a href="#3-Self-Attention-的含义" class="headerlink" title="3. Self-Attention 的含义"></a>3. Self-Attention 的含义</h3><p>当 $Q,K,V$ 都来自同一个输入序列时，这种 attention 就叫 self-attention。</p>
+<p>它的意义是：序列中的每个 token 都可以根据当前任务需要，从整个序列的其他位置动态收集信息。</p>
+<p>例如在句子：</p>
+<ul>
+<li>The animal didn’t cross the street because it was tired.</li>
+</ul>
+<p>中，词 <code>it</code> 的含义更接近 <code>animal</code>，而不是 <code>street</code>。self-attention 就允许模型直接给 <code>animal</code> 更高权重，而不需要像 RNN 那样跨很多步去传递状态。</p>
+<h2 id="五、多头注意力"><a href="#五、多头注意力" class="headerlink" title="五、多头注意力"></a>五、多头注意力</h2><p>单头注意力只能在一个表示子空间中建模关系，而多头注意力（Multi-Head Attention）希望让模型从多个不同角度同时观察序列。</p>
+<p>设一共有 $h$ 个头，每个头的维度为：</p>
+<p>$$<br>d_k &#x3D; d_v &#x3D; \frac{d_{\text{model}}}{h}<br>$$</p>
+<p>第 $j$ 个头的计算为：</p>
+<p>$$<br>\text{head}_j &#x3D; \text{Attention}(Q_j, K_j, V_j)<br>$$</p>
+<p>最后把所有头拼接起来：</p>
+<p>$$<br>\text{MultiHead}(Q,K,V) &#x3D; \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O<br>$$</p>
+<p>这样做的直觉是：</p>
+<ul>
+<li>有的头可能关注语法关系</li>
+<li>有的头可能关注实体对齐</li>
+<li>有的头可能关注局部上下文</li>
+<li>有的头可能关注长距离依赖</li>
+</ul>
+<p>虽然每个头的维度更小，但多个头并行后，整体表达能力反而更强。</p>
+<h2 id="六、前馈网络、残差连接与-LayerNorm"><a href="#六、前馈网络、残差连接与-LayerNorm" class="headerlink" title="六、前馈网络、残差连接与 LayerNorm"></a>六、前馈网络、残差连接与 LayerNorm</h2><p>Transformer 不只有 attention。每个 block 中还有一个位置独立的前馈网络：</p>
+<p>$$<br>\text{FFN}(x) &#x3D; W_2 \sigma(W_1 x + b_1) + b_2<br>$$</p>
+<p>这个网络对每个位置分别作用，但参数共享。它的作用可以理解为：</p>
+<ul>
+<li>attention 负责“信息交换”</li>
+<li>FFN 负责“对每个位置的表示做非线性变换”</li>
+</ul>
+<p>此外，每个子层后面都会配合残差连接和 LayerNorm：</p>
+<p>$$<br>\text{LayerNorm}(x + \text{Sublayer}(x))<br>$$</p>
+<p>残差连接有助于深层网络训练，LayerNorm 有助于稳定表示分布。</p>
+<h2 id="七、为什么-Transformer-训练得更快"><a href="#七、为什么-Transformer-训练得更快" class="headerlink" title="七、为什么 Transformer 训练得更快"></a>七、为什么 Transformer 训练得更快</h2><p>Transformer 相比 RNN 的一个重大优势是并行性。</p>
+<p>RNN 的状态更新是：</p>
+<ul>
+<li>第 $t$ 步依赖第 $t-1$ 步</li>
+</ul>
+<p>所以天然串行。</p>
+<p>而 Transformer 在训练时可以一次性拿到整个序列，直接并行计算：</p>
+<ul>
+<li>所有位置的 $Q,K,V$</li>
+<li>所有位置之间的相关性矩阵</li>
+<li>所有位置的注意力输出</li>
+</ul>
+<p>因此在 GPU 上训练效率会高很多。</p>
+<p>不过，这种全局两两交互也带来了新的问题：attention 的复杂度会随着序列长度平方增长。</p>
+<p>这正是练习题里重点分析的部分。</p>
+<h2 id="八、多头自注意力的参数量与计算复杂度"><a href="#八、多头自注意力的参数量与计算复杂度" class="headerlink" title="八、多头自注意力的参数量与计算复杂度"></a>八、多头自注意力的参数量与计算复杂度</h2><p>下面基于练习题中的设定，分析一个 encoder 中单个 multi-head self-attention block 的参数量与 FLOPs。</p>
+<p>设：</p>
+<ul>
+<li>序列长度为 $n$</li>
+<li>模型维度为 $d_{\text{model}}$</li>
+<li>头数为 $h$</li>
+<li>每个头的维度为 $d_k &#x3D; d_v &#x3D; d_{\text{model}} &#x2F; h$</li>
+</ul>
+<p>输入张量形状为：</p>
+<p>$$<br>(1, n, d_{\text{model}})<br>$$</p>
+<p>这里默认 batch size 为 1。</p>
+<h3 id="1-参数量"><a href="#1-参数量" class="headerlink" title="1. 参数量"></a>1. 参数量</h3><p>一个多头注意力块中，主要有四个线性投影矩阵：</p>
+<ul>
+<li>$W^Q \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$</li>
+<li>$W^K \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$</li>
+<li>$W^V \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$</li>
+<li>$W^O \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$</li>
+</ul>
+<p>因此：</p>
+<p>$$<br>\mathrm{Params} &#x3D; 4 d_{\text{model}}^2<br>$$</p>
+<p>这个结果和头数 $h$ 无关。原因在于，多头拆分本质上只是 reshape，参数仍然集中存在于这四个总投影矩阵中。</p>
+<h3 id="2-FLOPs-推导"><a href="#2-FLOPs-推导" class="headerlink" title="2. FLOPs 推导"></a>2. FLOPs 推导</h3><p>下面只看前向传播的主要计算量，并采用题目中的近似规则：</p>
+<ul>
+<li>一个 $m \times k$ 与 $k \times p$ 的矩阵乘法，记为 $2mkp$ FLOPs</li>
+<li>softmax、缩放等逐元素操作近似记为低阶项</li>
+</ul>
+<h4 id="第一步：计算-Q、K、V-投影"><a href="#第一步：计算-Q、K、V-投影" class="headerlink" title="第一步：计算 Q、K、V 投影"></a>第一步：计算 Q、K、V 投影</h4><p>输入 $X$ 的形状是 $(n, d_{\text{model}})$，乘上投影矩阵 $(d_{\text{model}}, d_{\text{model}})$。</p>
+<p>每次投影代价为：</p>
+<p>$$<br>2 n d_{\text{model}}^2<br>$$</p>
+<p>三次投影合计：</p>
+<p>$$<br>6 n d_{\text{model}}^2<br>$$</p>
+<h4 id="第二步：计算注意力分数-QK-T"><a href="#第二步：计算注意力分数-QK-T" class="headerlink" title="第二步：计算注意力分数 $QK^T$"></a>第二步：计算注意力分数 $QK^T$</h4><p>对于每个头，$Q_{\text{head}}$ 的形状为 $(n, d_k)$，$K_{\text{head}}^T$ 的形状为 $(d_k, n)$。</p>
+<p>每个头的代价为：</p>
+<p>$$<br>2 n^2 d_k<br>$$</p>
+<p>一共有 $h$ 个头，因此总代价为：</p>
+<p>$$<br>h \cdot 2 n^2 d_k &#x3D; h \cdot 2 n^2 \frac{d_{\text{model}}}{h} &#x3D; 2 n^2 d_{\text{model}}<br>$$</p>
+<h4 id="第三步：缩放和-softmax"><a href="#第三步：缩放和-softmax" class="headerlink" title="第三步：缩放和 softmax"></a>第三步：缩放和 softmax</h4><p>这一部分作用在 $(n,n,h)$ 的注意力分数张量上，近似记作：</p>
+<p>$$<br>O(n^2 h)<br>$$</p>
+<h4 id="第四步：注意力权重与-V-相乘"><a href="#第四步：注意力权重与-V-相乘" class="headerlink" title="第四步：注意力权重与 V 相乘"></a>第四步：注意力权重与 V 相乘</h4><p>对于每个头，注意力矩阵形状为 $(n,n)$，$V_{\text{head}}$ 形状为 $(n,d_k)$。</p>
+<p>每个头的代价为：</p>
+<p>$$<br>2 n^2 d_k<br>$$</p>
+<p>所有头加起来：</p>
+<p>$$<br>2 n^2 d_{\text{model}}<br>$$</p>
+<h4 id="第五步：输出投影"><a href="#第五步：输出投影" class="headerlink" title="第五步：输出投影"></a>第五步：输出投影</h4><p>拼接所有头之后，输出形状回到 $(n,d_{\text{model}})$，再乘上 $W^O$，代价为：</p>
+<p>$$<br>2 n d_{\text{model}}^2<br>$$</p>
+<h3 id="3-总-FLOPs"><a href="#3-总-FLOPs" class="headerlink" title="3. 总 FLOPs"></a>3. 总 FLOPs</h3><p>把各部分加起来：</p>
+<p>$$<br>6 n d_{\text{model}}^2 + 2 n^2 d_{\text{model}} + O(n^2 h) + 2 n^2 d_{\text{model}} + 2 n d_{\text{model}}^2<br>$$</p>
+<p>整理得到：</p>
+<p>$$<br>8 n d_{\text{model}}^2 + 4 n^2 d_{\text{model}} + O(n^2 h)<br>$$</p>
+<p>如果忽略低阶项，那么主要复杂度就是：</p>
+<p>$$<br>8 n d_{\text{model}}^2 + 4 n^2 d_{\text{model}}<br>$$</p>
+<h3 id="4-哪一部分是瓶颈"><a href="#4-哪一部分是瓶颈" class="headerlink" title="4. 哪一部分是瓶颈"></a>4. 哪一部分是瓶颈</h3><p>从上式可以看出，多头自注意力中主要有两类大头开销：</p>
+<ol>
+<li>线性投影相关的 $n d_{\text{model}}^2$</li>
+<li>注意力相关的 $n^2 d_{\text{model}}$</li>
+</ol>
+<p>因此瓶颈取决于：</p>
+<ul>
+<li>是 $d_{\text{model}}$ 更大</li>
+<li>还是序列长度 $n$ 更大</li>
+</ul>
+<h4 id="当-d-text-model-gg-n-时"><a href="#当-d-text-model-gg-n-时" class="headerlink" title="当 $d_{\text{model}} \gg n$ 时"></a>当 $d_{\text{model}} \gg n$ 时</h4><p>线性投影更贵，因为：</p>
+<p>$$<br>n d_{\text{model}}^2<br>$$</p>
+<p>会显著大于：</p>
+<p>$$<br>n^2 d_{\text{model}}<br>$$</p>
+<p>例如中等长度序列、但模型宽度很大时，Q&#x2F;K&#x2F;V 和输出投影往往是主要成本。</p>
+<h4 id="当-n-gg-d-text-model-时"><a href="#当-n-gg-d-text-model-时" class="headerlink" title="当 $n \gg d_{\text{model}}$ 时"></a>当 $n \gg d_{\text{model}}$ 时</h4><p>注意力分数计算和 attention 与 V 的矩阵乘法会成为瓶颈，因为它们都含有：</p>
+<p>$$<br>n^2 d_{\text{model}}<br>$$</p>
+<p>这也是为什么超长上下文会让 Transformer 的计算和显存开销迅速爆炸。</p>
+<p>所以 Transformer 的核心效率问题，本质上就在于：</p>
+<ul>
+<li>模型宽度决定了投影层成本</li>
+<li>序列长度决定了 attention 的平方复杂度成本</li>
+</ul>
+<h2 id="九、Transformer-的优点与局限"><a href="#九、Transformer-的优点与局限" class="headerlink" title="九、Transformer 的优点与局限"></a>九、Transformer 的优点与局限</h2><h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
+<li>可以高效并行训练</li>
+<li>更容易建模长距离依赖</li>
+<li>架构统一，扩展性非常强</li>
+<li>self-attention 的交互方式非常灵活</li>
+</ul>
+<h3 id="局限"><a href="#局限" class="headerlink" title="局限"></a>局限</h3><ul>
+<li>attention 对长序列是平方复杂度</li>
+<li>显存消耗大</li>
+<li>对训练数据和算力依赖较强</li>
+<li>原始位置编码方式并不一定最适合所有任务</li>
+</ul>
+<p>也正因为这些问题，后续出现了大量改进方向，例如：</p>
+<ul>
+<li>稀疏注意力</li>
+<li>线性注意力</li>
+<li>相对位置编码</li>
+<li>FlashAttention</li>
+<li>MoE 结构</li>
+</ul>
+<p>但无论具体怎么改，很多工作依然是在 Transformer 主干上演化。</p>
+<h2 id="十、小结"><a href="#十、小结" class="headerlink" title="十、小结"></a>十、小结</h2><p>Transformer 的核心不是“把 RNN 换成更深的网络”，而是重新定义了序列建模的基本方式：</p>
+<ul>
+<li>用 self-attention 代替递归状态传递</li>
+<li>用多头机制在不同子空间中并行建模关系</li>
+<li>用残差连接、LayerNorm 和 FFN 组成稳定的堆叠结构</li>
+</ul>
+<p>从这次练习题里的复杂度推导也可以看到，Transformer 的成功并不意味着它没有代价。它一方面通过并行计算大幅提升了训练效率，另一方面也因为 attention 的全局两两交互，引入了明显的平方复杂度瓶颈。</p>
+<p>所以理解 Transformer，不能只停留在“attention 很强”这句话上，而要真正理解三件事：</p>
+<ol>
+<li>它为什么能替代 RNN</li>
+<li>它的每个模块到底在做什么</li>
+<li>它的计算瓶颈到底来自哪里</li>
+</ol>
+<p>这三点想明白之后，再去看 BERT、GPT、ViT 或各种高效注意力变体，就会容易很多。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/27/%E6%A2%AF%E5%BA%A6%E6%8F%90%E5%8D%87%E6%A0%91%EF%BC%88GBDT%EF%BC%89/" rel="prev" title="梯度提升树（GBDT）">
+      <i class="fa fa-chevron-left"></i> 梯度提升树（GBDT）
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88-Transformer-%E4%BC%9A%E5%87%BA%E7%8E%B0"><span class="nav-number">1.</span> <span class="nav-text">一、为什么 Transformer 会出现</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E6%95%B4%E4%BD%93%E6%9E%B6%E6%9E%84"><span class="nav-number">2.</span> <span class="nav-text">二、整体架构</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Encoder"><span class="nav-number">2.1.</span> <span class="nav-text">1. Encoder</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Decoder"><span class="nav-number">2.2.</span> <span class="nav-text">2. Decoder</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81%E8%BE%93%E5%85%A5%E8%A1%A8%E7%A4%BA"><span class="nav-number">3.</span> <span class="nav-text">三、输入表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BD%8D%E7%BD%AE%E7%BC%96%E7%A0%81%E4%B8%BA%E4%BB%80%E4%B9%88%E9%87%8D%E8%A6%81"><span class="nav-number">3.1.</span> <span class="nav-text">位置编码为什么重要</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9C%BA%E5%88%B6"><span class="nav-number">4.</span> <span class="nav-text">四、自注意力机制</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Q%E3%80%81K%E3%80%81V-%E7%9A%84%E5%90%AB%E4%B9%89"><span class="nav-number">4.1.</span> <span class="nav-text">1. Q、K、V 的含义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Scaled-Dot-Product-Attention"><span class="nav-number">4.2.</span> <span class="nav-text">2. Scaled Dot-Product Attention</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Self-Attention-%E7%9A%84%E5%90%AB%E4%B9%89"><span class="nav-number">4.3.</span> <span class="nav-text">3. Self-Attention 的含义</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81%E5%A4%9A%E5%A4%B4%E6%B3%A8%E6%84%8F%E5%8A%9B"><span class="nav-number">5.</span> <span class="nav-text">五、多头注意力</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E5%89%8D%E9%A6%88%E7%BD%91%E7%BB%9C%E3%80%81%E6%AE%8B%E5%B7%AE%E8%BF%9E%E6%8E%A5%E4%B8%8E-LayerNorm"><span class="nav-number">6.</span> <span class="nav-text">六、前馈网络、残差连接与 LayerNorm</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E4%B8%BA%E4%BB%80%E4%B9%88-Transformer-%E8%AE%AD%E7%BB%83%E5%BE%97%E6%9B%B4%E5%BF%AB"><span class="nav-number">7.</span> <span class="nav-text">七、为什么 Transformer 训练得更快</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E5%A4%9A%E5%A4%B4%E8%87%AA%E6%B3%A8%E6%84%8F%E5%8A%9B%E7%9A%84%E5%8F%82%E6%95%B0%E9%87%8F%E4%B8%8E%E8%AE%A1%E7%AE%97%E5%A4%8D%E6%9D%82%E5%BA%A6"><span class="nav-number">8.</span> <span class="nav-text">八、多头自注意力的参数量与计算复杂度</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%8F%82%E6%95%B0%E9%87%8F"><span class="nav-number">8.1.</span> <span class="nav-text">1. 参数量</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-FLOPs-%E6%8E%A8%E5%AF%BC"><span class="nav-number">8.2.</span> <span class="nav-text">2. FLOPs 推导</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%B8%80%E6%AD%A5%EF%BC%9A%E8%AE%A1%E7%AE%97-Q%E3%80%81K%E3%80%81V-%E6%8A%95%E5%BD%B1"><span class="nav-number">8.2.1.</span> <span class="nav-text">第一步：计算 Q、K、V 投影</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%BA%8C%E6%AD%A5%EF%BC%9A%E8%AE%A1%E7%AE%97%E6%B3%A8%E6%84%8F%E5%8A%9B%E5%88%86%E6%95%B0-QK-T"><span class="nav-number">8.2.2.</span> <span class="nav-text">第二步：计算注意力分数 $QK^T$</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%B8%89%E6%AD%A5%EF%BC%9A%E7%BC%A9%E6%94%BE%E5%92%8C-softmax"><span class="nav-number">8.2.3.</span> <span class="nav-text">第三步：缩放和 softmax</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E5%9B%9B%E6%AD%A5%EF%BC%9A%E6%B3%A8%E6%84%8F%E5%8A%9B%E6%9D%83%E9%87%8D%E4%B8%8E-V-%E7%9B%B8%E4%B9%98"><span class="nav-number">8.2.4.</span> <span class="nav-text">第四步：注意力权重与 V 相乘</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E7%AC%AC%E4%BA%94%E6%AD%A5%EF%BC%9A%E8%BE%93%E5%87%BA%E6%8A%95%E5%BD%B1"><span class="nav-number">8.2.5.</span> <span class="nav-text">第五步：输出投影</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%80%BB-FLOPs"><span class="nav-number">8.3.</span> <span class="nav-text">3. 总 FLOPs</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E5%93%AA%E4%B8%80%E9%83%A8%E5%88%86%E6%98%AF%E7%93%B6%E9%A2%88"><span class="nav-number">8.4.</span> <span class="nav-text">4. 哪一部分是瓶颈</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BD%93-d-text-model-gg-n-%E6%97%B6"><span class="nav-number">8.4.1.</span> <span class="nav-text">当 $d_{\text{model}} \gg n$ 时</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#%E5%BD%93-n-gg-d-text-model-%E6%97%B6"><span class="nav-number">8.4.2.</span> <span class="nav-text">当 $n \gg d_{\text{model}}$ 时</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%9D%E3%80%81Transformer-%E7%9A%84%E4%BC%98%E7%82%B9%E4%B8%8E%E5%B1%80%E9%99%90"><span class="nav-number">9.</span> <span class="nav-text">九、Transformer 的优点与局限</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E7%82%B9"><span class="nav-number">9.1.</span> <span class="nav-text">优点</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%B1%80%E9%99%90"><span class="nav-number">9.2.</span> <span class="nav-text">局限</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%81%E3%80%81%E5%B0%8F%E7%BB%93"><span class="nav-number">10.</span> <span class="nav-text">十、小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wdy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script color='' opacity='' zIndex='' count='' src="/lib/canvas-nest/canvas-nest-nomobile.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

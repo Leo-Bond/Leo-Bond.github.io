@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="上一篇主要讨论了词典分词。词典分词可以解决“字符串能否成词”的问题，但无法很好处理切分歧义。例如“研究生命起源”既可以切成“研究 &#x2F; 生命 &#x2F; 起源”，也可以切成“研究生 &#x2F; 命 &#x2F; 起源”。两条路径可能都能在词典中找到对应词语，因此还需要一个标准来判断哪一种切分更合理。 二元语法模型（Bigram Language Model）正是这种标准中最基础的一种。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="nlp自学2-二元语法与中文分词">
+<meta property="og:url" content="https://leo-bond.github.io/2023/07/09/nlp%E8%87%AA%E5%AD%A62-%E4%BA%8C%E5%85%83%E8%AF%AD%E6%B3%95%E4%B8%8E%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="上一篇主要讨论了词典分词。词典分词可以解决“字符串能否成词”的问题，但无法很好处理切分歧义。例如“研究生命起源”既可以切成“研究 &#x2F; 生命 &#x2F; 起源”，也可以切成“研究生 &#x2F; 命 &#x2F; 起源”。两条路径可能都能在词典中找到对应词语，因此还需要一个标准来判断哪一种切分更合理。 二元语法模型（Bigram Language Model）正是这种标准中最基础的一种。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2023-07-09T10:26:16.000Z">
+<meta property="article:modified_time" content="2026-03-26T10:17:14.915Z">
+<meta property="article:author" content="wdy">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://leo-bond.github.io/2023/07/09/nlp%E8%87%AA%E5%AD%A62-%E4%BA%8C%E5%85%83%E8%AF%AD%E6%B3%95%E4%B8%8E%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>nlp自学2-二元语法与中文分词 | wdy's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wdy's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="download fa-fw"></i>资源</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2023/07/09/nlp%E8%87%AA%E5%AD%A62-%E4%BA%8C%E5%85%83%E8%AF%AD%E6%B3%95%E4%B8%8E%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          nlp自学2-二元语法与中文分词
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2023-07-09 18:26:16" itemprop="dateCreated datePublished" datetime="2023-07-09T18:26:16+08:00">2023-07-09</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-26 18:17:14" itemprop="dateModified" datetime="2026-03-26T18:17:14+08:00">2026-03-26</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>上一篇主要讨论了词典分词。词典分词可以解决“字符串能否成词”的问题，但无法很好处理切分歧义。例如“研究生命起源”既可以切成“研究 &#x2F; 生命 &#x2F; 起源”，也可以切成“研究生 &#x2F; 命 &#x2F; 起源”。两条路径可能都能在词典中找到对应词语，因此还需要一个标准来判断哪一种切分更合理。</p>
+<p>二元语法模型（Bigram Language Model）正是这种标准中最基础的一种。它利用相邻两个词的共现概率，对候选切分路径进行打分。</p>
+<h2 id="问题定义"><a href="#问题定义" class="headerlink" title="问题定义"></a>问题定义</h2><p>设一句话对应的分词结果为：</p>
+<p><code>W = w1, w2, ..., wn</code></p>
+<p>理想情况下，我们希望选择概率最大的那条切分路径：</p>
+<p><code>W* = arg max P(W)</code></p>
+<p>其中 <code>P(W)</code> 表示该词序列作为自然语言出现的概率。</p>
+<p>但直接估计：</p>
+<p><code>P(w1, w2, ..., wn)</code></p>
+<p>几乎不可行，因为词序列空间过大，语料中很难覆盖所有组合。因此需要对联合概率进行近似建模。</p>
+<h2 id="马尔可夫假设与二元语法"><a href="#马尔可夫假设与二元语法" class="headerlink" title="马尔可夫假设与二元语法"></a>马尔可夫假设与二元语法</h2><p>由链式法则可得：</p>
+<p><code>P(w1, w2, ..., wn) = P(w1) P(w2|w1) P(w3|w1,w2) ... P(wn|w1,...,wn-1)</code></p>
+<p>若采用一阶马尔可夫假设，即认为当前词只依赖于前一个词，则有：</p>
+<p><code>P(wi|w1,...,wi-1) ≈ P(wi|wi-1)</code></p>
+<p>于是整句概率近似为：</p>
+<p><code>P(W) ≈ P(w1) ∏(i=2..n) P(wi|wi-1)</code></p>
+<p>这就是二元语法模型。它的核心在于估计条件概率 <code>P(wi|wi-1)</code>。</p>
+<h2 id="参数估计"><a href="#参数估计" class="headerlink" title="参数估计"></a>参数估计</h2><p>设：</p>
+<ul>
+<li><code>C(wi-1, wi)</code> 表示二元词对 <code>(wi-1, wi)</code> 在语料中的出现次数</li>
+<li><code>C(wi-1)</code> 表示词 <code>wi-1</code> 在语料中的出现次数</li>
+</ul>
+<p>则最大似然估计为：</p>
+<p><code>P(wi|wi-1) = C(wi-1, wi) / C(wi-1)</code></p>
+<p>句首词的概率可以写为：</p>
+<p><code>P(w1) = C(w1) / N</code></p>
+<p>其中 <code>N</code> 为语料中的总词数，或者也可以显式加入句子起始标记 <code>&lt;BOS&gt;</code>，把首词概率改写为：</p>
+<p><code>P(w1|&lt;BOS&gt;)</code></p>
+<p>在实现中，加入 <code>&lt;BOS&gt;</code> 和 <code>&lt;EOS&gt;</code> 往往更统一，也更方便写动态规划。</p>
+<h2 id="为什么二元语法适合中文分词"><a href="#为什么二元语法适合中文分词" class="headerlink" title="为什么二元语法适合中文分词"></a>为什么二元语法适合中文分词</h2><p>中文分词的本质，是在一个句子对应的多条候选切分路径中找到最优路径。词典告诉我们“哪些片段可能是词”，二元语法告诉我们“哪些词连接在一起更自然”。</p>
+<p>例如句子：</p>
+<p><code>南京市长江大桥</code></p>
+<p>候选切分可以写成：</p>
+<ol>
+<li><code>南京市 / 长江大桥</code></li>
+<li><code>南京 / 市长 / 江大桥</code></li>
+</ol>
+<p>若单看词典，第二条路径未必在形式上完全非法；但从统计语言模型角度看：</p>
+<p><code>P(长江大桥|南京市)</code></p>
+<p>通常远大于：</p>
+<p><code>P(市长|南京) * P(江大桥|市长)</code></p>
+<p>因此第一条路径会获得更高得分。</p>
+<h2 id="分词中的打分函数"><a href="#分词中的打分函数" class="headerlink" title="分词中的打分函数"></a>分词中的打分函数</h2><p>在中文分词任务中，我们最终想求的是：</p>
+<p><code>W* = arg max [P(w1) ∏(i=2..n) P(wi|wi-1)]</code></p>
+<p>由于多个小概率连乘容易造成数值下溢，实际中通常取对数：</p>
+<p><code>W* = arg max [log P(w1) + Σ(i=2..n) log P(wi|wi-1)]</code></p>
+<p>等价地，也可以写成最小化负对数形式：</p>
+<p><code>W* = arg min [-log P(w1) - Σ(i=2..n) log P(wi|wi-1)]</code></p>
+<p>这样一来，中文分词就转化成了一个路径搜索问题：</p>
+<ol>
+<li>节点表示候选词</li>
+<li>边表示相邻词之间的转移</li>
+<li>边权由 <code>-log P(wi|wi-1)</code> 给出</li>
+<li>最终寻找总代价最小的路径</li>
+</ol>
+<p>这个过程可以结合 DAG、动态规划或 Viterbi 算法来完成。</p>
+<h2 id="一个简单例题"><a href="#一个简单例题" class="headerlink" title="一个简单例题"></a>一个简单例题</h2><p>考虑句子：</p>
+<p><code>商品和服务</code></p>
+<p>假设词典给出的两条候选路径为：</p>
+<ol>
+<li><code>商品 / 和 / 服务</code></li>
+<li><code>商 / 品和 / 服务</code></li>
+</ol>
+<p>进一步假设语料统计如下：</p>
+<ul>
+<li><code>C(商品) = 100</code></li>
+<li><code>C(和) = 200</code></li>
+<li><code>C(服务) = 150</code></li>
+<li><code>C(商品, 和) = 80</code></li>
+<li><code>C(和, 服务) = 120</code></li>
+<li><code>C(商, 品和) = 1</code></li>
+<li><code>C(品和, 服务) = 0</code></li>
+</ul>
+<p>则有：</p>
+<p><code>P(和|商品) = 80 / 100 = 0.8</code></p>
+<p><code>P(服务|和) = 120 / 200 = 0.6</code></p>
+<p>于是路径 1 的条件概率部分约为：</p>
+<p><code>0.8 * 0.6 = 0.48</code></p>
+<p>而路径 2 中，由于：</p>
+<p><code>P(服务|品和) = 0</code></p>
+<p>所以整条路径概率直接变为 0。可见二元语法会明显偏向第一种更自然的切分结果。</p>
+<h2 id="平滑"><a href="#平滑" class="headerlink" title="平滑"></a>平滑</h2><p>上述估计有一个经典问题：数据稀疏。若某个二元词对没有在训练语料中出现，则最大似然估计给出的概率为 0：</p>
+<p><code>P(wi|wi-1) = 0</code></p>
+<p>这会导致只要路径中有一条未见过的转移，整条路径概率就归零。为了缓解这个问题，需要做平滑。</p>
+<p>最简单的方式是加一平滑：</p>
+<p><code>P(wi|wi-1) = (C(wi-1, wi) + 1) / (C(wi-1) + |V|)</code></p>
+<p>其中 <code>|V|</code> 表示词表大小。</p>
+<p>虽然加一平滑并不是最优方法，但在课程练习或入门实现里，它足够直观。更常见、效果更好的方法还包括：</p>
+<ol>
+<li>Good-Turing</li>
+<li>Katz Backoff</li>
+<li>Kneser-Ney</li>
+</ol>
+<h2 id="与词典分词的结合"><a href="#与词典分词的结合" class="headerlink" title="与词典分词的结合"></a>与词典分词的结合</h2><p>在工程实现中，二元语法通常不会单独工作，而是和词典匹配一起使用。一个典型流程如下：</p>
+<ol>
+<li>使用词典或 Trie 枚举所有可能词语</li>
+<li>构建句子的候选词图</li>
+<li>用二元语法为相邻候选词赋予转移概率</li>
+<li>使用动态规划寻找最优路径</li>
+</ol>
+<p>因此可以把整个分词器理解为两层：</p>
+<ol>
+<li>词典层负责“召回候选词”</li>
+<li>语言模型层负责“排序候选路径”</li>
+</ol>
+<p>上一篇偏重第一层，这一篇偏重第二层。</p>
+<h2 id="局限性"><a href="#局限性" class="headerlink" title="局限性"></a>局限性</h2><p>二元语法模型虽然简单有效，但它有明显的表达上限。</p>
+<ol>
+<li>只考虑前一个词，无法建模更长距离的依赖</li>
+<li>对语料规模较敏感，小语料下统计不稳定</li>
+<li>对未登录词仍然不够友好</li>
+</ol>
+<p>例如有些歧义需要结合更长上下文才能解决，这时二元语法往往不够，需要进一步引入：</p>
+<ol>
+<li>三元语法</li>
+<li>HMM</li>
+<li>CRF</li>
+<li>神经网络语言模型</li>
+</ol>
+<h2 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h2><p>二元语法的核心思想可以概括为一句话：用相邻词的共现概率来近似刻画整条分词路径的合理性。</p>
+<p>其基本公式为：</p>
+<p><code>P(W) ≈ P(w1) ∏(i=2..n) P(wi|wi-1)</code></p>
+<p>在中文分词中，我们并不是单纯判断“某个片段是不是词”，而是在所有候选切分路径中寻找概率最大的那一条。因此，二元语法实际上把中文分词从“字符串匹配问题”推进成了“统计建模 + 路径搜索问题”。</p>
+<p>继续往后学习时，一个自然的问题就是：如何把二元语法与 Viterbi 解码结合，真正实现一个可运行的统计分词器。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2023/07/09/nlp%E8%87%AA%E5%AD%A61-%E8%AF%8D%E5%85%B8%E5%88%86%E8%AF%8D/" rel="prev" title="nlp自学1-词典分词">
+      <i class="fa fa-chevron-left"></i> nlp自学1-词典分词
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2023/07/12/%E8%AF%BB%E8%AE%BA%E6%96%87-%E9%9D%A2%E5%90%91%E8%BD%A6%E8%81%94%E7%BD%91%E7%8E%AF%E5%A2%83%E7%9A%84%E5%BC%82%E5%B8%B8%E8%A1%8C%E4%B8%BA%E6%A3%80%E6%B5%8B%E6%9C%BA%E5%88%B6/" rel="next" title="读论文-面向车联网环境的异常行为检测机制">
+      读论文-面向车联网环境的异常行为检测机制 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%97%AE%E9%A2%98%E5%AE%9A%E4%B9%89"><span class="nav-number">1.</span> <span class="nav-text">问题定义</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E9%A9%AC%E5%B0%94%E5%8F%AF%E5%A4%AB%E5%81%87%E8%AE%BE%E4%B8%8E%E4%BA%8C%E5%85%83%E8%AF%AD%E6%B3%95"><span class="nav-number">2.</span> <span class="nav-text">马尔可夫假设与二元语法</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E6%95%B0%E4%BC%B0%E8%AE%A1"><span class="nav-number">3.</span> <span class="nav-text">参数估计</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%BA%E4%BB%80%E4%B9%88%E4%BA%8C%E5%85%83%E8%AF%AD%E6%B3%95%E9%80%82%E5%90%88%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D"><span class="nav-number">4.</span> <span class="nav-text">为什么二元语法适合中文分词</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%88%86%E8%AF%8D%E4%B8%AD%E7%9A%84%E6%89%93%E5%88%86%E5%87%BD%E6%95%B0"><span class="nav-number">5.</span> <span class="nav-text">分词中的打分函数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E4%B8%AA%E7%AE%80%E5%8D%95%E4%BE%8B%E9%A2%98"><span class="nav-number">6.</span> <span class="nav-text">一个简单例题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B9%B3%E6%BB%91"><span class="nav-number">7.</span> <span class="nav-text">平滑</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%8E%E8%AF%8D%E5%85%B8%E5%88%86%E8%AF%8D%E7%9A%84%E7%BB%93%E5%90%88"><span class="nav-number">8.</span> <span class="nav-text">与词典分词的结合</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B1%80%E9%99%90%E6%80%A7"><span class="nav-number">9.</span> <span class="nav-text">局限性</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%B0%8F%E7%BB%93"><span class="nav-number">10.</span> <span class="nav-text">小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">10</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wdy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script color='' opacity='' zIndex='' count='' src="/lib/canvas-nest/canvas-nest-nomobile.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
