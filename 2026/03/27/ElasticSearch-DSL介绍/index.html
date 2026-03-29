@@ -1,0 +1,656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="Elasticsearch 最强大的地方，不只是它能“存数据”和“搜数据”，而是它提供了一套非常灵活的查询语言，也就是 DSL。 很多人第一次接触 Elasticsearch 时，会觉得它和 SQL 很不一样。SQL 更像是面向“表”的查询，而 Elasticsearch DSL 更像是面向“文档”和“倒排索引”的检索描述语言。 这篇文章想讲清楚几个最常用的问题：  什么是 Elasticsear">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ElasticSearch DSL介绍">
+<meta property="og:url" content="https://leo-bond.github.io/2026/03/27/ElasticSearch-DSL%E4%BB%8B%E7%BB%8D/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="Elasticsearch 最强大的地方，不只是它能“存数据”和“搜数据”，而是它提供了一套非常灵活的查询语言，也就是 DSL。 很多人第一次接触 Elasticsearch 时，会觉得它和 SQL 很不一样。SQL 更像是面向“表”的查询，而 Elasticsearch DSL 更像是面向“文档”和“倒排索引”的检索描述语言。 这篇文章想讲清楚几个最常用的问题：  什么是 Elasticsear">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-03-27T14:09:37.000Z">
+<meta property="article:modified_time" content="2026-03-27T22:29:02.138Z">
+<meta property="article:author" content="wdy">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/03/27/ElasticSearch-DSL%E4%BB%8B%E7%BB%8D/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>ElasticSearch DSL介绍 | wdy's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wdy's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="download fa-fw"></i>资源</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/03/27/ElasticSearch-DSL%E4%BB%8B%E7%BB%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          ElasticSearch DSL介绍
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2026-03-27 22:09:37" itemprop="dateCreated datePublished" datetime="2026-03-27T22:09:37+08:00">2026-03-27</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-28 06:29:02" itemprop="dateModified" datetime="2026-03-28T06:29:02+08:00">2026-03-28</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>Elasticsearch 最强大的地方，不只是它能“存数据”和“搜数据”，而是它提供了一套非常灵活的查询语言，也就是 DSL。</p>
+<p>很多人第一次接触 Elasticsearch 时，会觉得它和 SQL 很不一样。SQL 更像是面向“表”的查询，而 Elasticsearch DSL 更像是面向“文档”和“倒排索引”的检索描述语言。</p>
+<p>这篇文章想讲清楚几个最常用的问题：</p>
+<ul>
+<li>什么是 Elasticsearch DSL</li>
+<li><code>match</code>、<code>term</code>、<code>bool</code> 分别怎么用</li>
+<li>查询和过滤有什么区别</li>
+<li>排序、分页、聚合应该怎么写</li>
+<li>平时最容易踩哪些坑</li>
+</ul>
+<h2 id="一、什么是-DSL"><a href="#一、什么是-DSL" class="headerlink" title="一、什么是 DSL"></a>一、什么是 DSL</h2><p>DSL 全称是 Domain Specific Language，也就是“领域特定语言”。</p>
+<p>在 Elasticsearch 中，DSL 本质上就是一段 JSON，用来描述：</p>
+<ul>
+<li>我要查哪些文档</li>
+<li>条件是什么</li>
+<li>怎么排序</li>
+<li>怎么分页</li>
+<li>是否要做聚合统计</li>
+</ul>
+<p>例如最简单的一条查询：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这段 DSL 的含义就是：</p>
+<ul>
+<li>在 <code>product</code> 索引中搜索</li>
+<li>查找 <code>title</code> 字段中和 <code>iphone</code> 相关的文档</li>
+</ul>
+<p>所以可以把 DSL 理解成 Elasticsearch 的查询描述语言。</p>
+<h2 id="二、一个完整搜索请求通常包含什么"><a href="#二、一个完整搜索请求通常包含什么" class="headerlink" title="二、一个完整搜索请求通常包含什么"></a>二、一个完整搜索请求通常包含什么</h2><p>一个典型的 Elasticsearch 搜索请求，通常由下面几部分组成：</p>
+<ul>
+<li><code>query</code>：查询条件</li>
+<li><code>sort</code>：排序规则</li>
+<li><code>from</code> &#x2F; <code>size</code>：分页</li>
+<li><code>_source</code>：返回哪些字段</li>
+<li><code>aggs</code>：聚合分析</li>
+</ul>
+<p>例如：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;_source&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;title&quot;</span><span class="punctuation">,</span> <span class="string">&quot;price&quot;</span><span class="punctuation">,</span> <span class="string">&quot;brand&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;brand.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Apple&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="number">5000</span><span class="punctuation">,</span> <span class="attr">&quot;lte&quot;</span><span class="punctuation">:</span> <span class="number">10000</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sort&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="string">&quot;asc&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;from&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">10</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这一条请求已经很接近真实业务了：</p>
+<ul>
+<li>关键词搜索 <code>iphone</code></li>
+<li>只看 Apple 品牌</li>
+<li>只要 5000 到 10000 的商品</li>
+<li>按价格升序排序</li>
+<li>返回前 10 条</li>
+</ul>
+<h2 id="三、Query-和-Filter-的区别"><a href="#三、Query-和-Filter-的区别" class="headerlink" title="三、Query 和 Filter 的区别"></a>三、Query 和 Filter 的区别</h2><p>这是 Elasticsearch DSL 最值得先理解的地方。</p>
+<p>虽然它们看起来都在“筛选文档”，但语义完全不同。</p>
+<h3 id="1-Query"><a href="#1-Query" class="headerlink" title="1. Query"></a>1. Query</h3><p><code>query</code> 更强调“相关性”。</p>
+<p>它通常会计算 <code>_score</code>，也就是相关性得分。例如：</p>
+<ul>
+<li>关键词是否命中</li>
+<li>命中了几个词</li>
+<li>词频如何</li>
+<li>文档是否更接近查询意图</li>
+</ul>
+<p>所以 <code>query</code> 适合全文检索场景，例如：</p>
+<ul>
+<li>搜文章标题</li>
+<li>搜商品名称</li>
+<li>搜评论内容</li>
+</ul>
+<h3 id="2-Filter"><a href="#2-Filter" class="headerlink" title="2. Filter"></a>2. Filter</h3><p><code>filter</code> 更强调“条件过滤”。</p>
+<p>它只关心：</p>
+<ul>
+<li>满足</li>
+<li>或不满足</li>
+</ul>
+<p>而不会参与相关性评分，通常也更高效，很多情况下还能利用缓存。</p>
+<p>所以 <code>filter</code> 更适合结构化条件，例如：</p>
+<ul>
+<li>品牌是否等于 Apple</li>
+<li>价格是否大于 5000</li>
+<li>状态是否为已上架</li>
+<li>时间是否在某个区间内</li>
+</ul>
+<p>一句话总结：</p>
+<ul>
+<li>需要相关性计算，用 <code>query</code></li>
+<li>只是精确筛选，用 <code>filter</code></li>
+</ul>
+<h2 id="四、最常用的查询类型"><a href="#四、最常用的查询类型" class="headerlink" title="四、最常用的查询类型"></a>四、最常用的查询类型</h2><h3 id="1-match"><a href="#1-match" class="headerlink" title="1. match"></a>1. <code>match</code></h3><p><code>match</code> 是最常见的全文检索查询。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /article/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;深度学习推荐系统&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>它会对查询词进行分词，再基于倒排索引检索。</p>
+<p>适合字段：</p>
+<ul>
+<li><code>text</code></li>
+</ul>
+<p>不适合字段：</p>
+<ul>
+<li><code>keyword</code></li>
+<li>数值字段</li>
+<li>日期字段</li>
+</ul>
+<h3 id="2-term"><a href="#2-term" class="headerlink" title="2. term"></a>2. <code>term</code></h3><p><code>term</code> 用于精确匹配，不做分词。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;brand.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Apple&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>适合场景：</p>
+<ul>
+<li>ID</li>
+<li>枚举值</li>
+<li>状态字段</li>
+<li><code>keyword</code> 类型字段</li>
+</ul>
+<p>这是最常见的坑之一：</p>
+<ul>
+<li>对 <code>text</code> 字段做全文搜索，不该用 <code>term</code></li>
+<li>对精确值做过滤，通常不该用 <code>match</code></li>
+</ul>
+<h3 id="3-terms"><a href="#3-terms" class="headerlink" title="3. terms"></a>3. <code>terms</code></h3><p><code>terms</code> 相当于 SQL 里的 <code>IN</code>。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;terms&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;category_id&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">2</span><span class="punctuation">,</span> <span class="number">3</span><span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-range"><a href="#4-range" class="headerlink" title="4. range"></a>4. <code>range</code></h3><p><code>range</code> 用于范围查询。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="number">5000</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;lte&quot;</span><span class="punctuation">:</span> <span class="number">10000</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>常见关键字：</p>
+<ul>
+<li><code>gt</code>：大于</li>
+<li><code>gte</code>：大于等于</li>
+<li><code>lt</code>：小于</li>
+<li><code>lte</code>：小于等于</li>
+</ul>
+<h3 id="5-match-phrase"><a href="#5-match-phrase" class="headerlink" title="5. match_phrase"></a>5. <code>match_phrase</code></h3><p><code>match_phrase</code> 用于短语匹配，强调词序。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /article/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match_phrase&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;推荐系统 架构&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>适合需要“连续短语命中”的场景。</p>
+<h2 id="五、bool-查询"><a href="#五、bool-查询" class="headerlink" title="五、bool 查询"></a>五、<code>bool</code> 查询</h2><p>实际业务中，查询条件往往不会只有一个。Elasticsearch 里最常用的组合方式就是 <code>bool</code>。</p>
+<p><code>bool</code> 最常见的四个子句是：</p>
+<ul>
+<li><code>must</code></li>
+<li><code>should</code></li>
+<li><code>filter</code></li>
+<li><code>must_not</code></li>
+</ul>
+<h3 id="1-must"><a href="#1-must" class="headerlink" title="1. must"></a>1. <code>must</code></h3><p>必须满足，并参与评分。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-filter"><a href="#2-filter" class="headerlink" title="2. filter"></a>2. <code>filter</code></h3><p>必须满足，但不参与评分。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;brand.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Apple&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-should"><a href="#3-should" class="headerlink" title="3. should"></a>3. <code>should</code></h3><p>最好满足，相当于加分项。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;should&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pro&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;max&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="4-must-not"><a href="#4-must-not" class="headerlink" title="4. must_not"></a>4. <code>must_not</code></h3><p>必须不满足。</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;must_not&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;offline&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="5-一个完整示例"><a href="#5-一个完整示例" class="headerlink" title="5. 一个完整示例"></a>5. 一个完整示例</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;brand.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Apple&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="number">5000</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;must_not&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;offline&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;should&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pro&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h2 id="六、排序和分页"><a href="#六、排序和分页" class="headerlink" title="六、排序和分页"></a>六、排序和分页</h2><h3 id="1-排序"><a href="#1-排序" class="headerlink" title="1. 排序"></a>1. 排序</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sort&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;_score&quot;</span><span class="punctuation">:</span> <span class="string">&quot;desc&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="string">&quot;asc&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>常见排序字段：</p>
+<ul>
+<li><code>_score</code></li>
+<li>数值字段</li>
+<li>日期字段</li>
+<li><code>keyword</code> 字段</li>
+</ul>
+<p>如果对 <code>text</code> 字段排序，通常会有问题，一般要排序对应的 <code>.keyword</code> 子字段。</p>
+<h3 id="2-分页"><a href="#2-分页" class="headerlink" title="2. 分页"></a>2. 分页</h3><p>最常见的分页方式是：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;from&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">10</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match_all&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>含义是：</p>
+<ul>
+<li>从第 0 条开始</li>
+<li>返回 10 条</li>
+</ul>
+<p>但需要注意，<code>from + size</code> 很大时，深分页性能会明显变差。</p>
+<p>如果是深分页场景，通常更推荐：</p>
+<ul>
+<li><code>search_after</code></li>
+<li><code>scroll</code></li>
+</ul>
+<p>其中：</p>
+<ul>
+<li><code>scroll</code> 更适合离线导出</li>
+<li><code>search_after</code> 更适合在线翻页</li>
+</ul>
+<h2 id="七、聚合查询-aggs"><a href="#七、聚合查询-aggs" class="headerlink" title="七、聚合查询 aggs"></a>七、聚合查询 <code>aggs</code></h2><p>Elasticsearch 不只是搜索引擎，它也很擅长做统计分析。这个能力主要通过 <code>aggs</code> 来实现。</p>
+<h3 id="1-terms-聚合"><a href="#1-terms-聚合" class="headerlink" title="1. terms 聚合"></a>1. <code>terms</code> 聚合</h3><p>统计每个品牌下有多少文档：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;brand_count&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;terms&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;brand.keyword&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这里 <code>size: 0</code> 的意思是：</p>
+<ul>
+<li>不返回具体文档</li>
+<li>只返回聚合结果</li>
+</ul>
+<h3 id="2-avg-聚合"><a href="#2-avg-聚合" class="headerlink" title="2. avg 聚合"></a>2. <code>avg</code> 聚合</h3><p>统计平均价格：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;avg_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;avg&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;price&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-分组后再统计"><a href="#3-分组后再统计" class="headerlink" title="3. 分组后再统计"></a>3. 分组后再统计</h3><p>先按品牌分组，再统计每个品牌的平均价格：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;brand_group&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;terms&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;brand.keyword&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;avg_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;avg&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;price&quot;</span></span><br><span class="line">          <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这是报表和分析场景里非常常见的写法。</p>
+<h2 id="八、几个常见业务场景"><a href="#八、几个常见业务场景" class="headerlink" title="八、几个常见业务场景"></a>八、几个常见业务场景</h2><h3 id="1-全文搜索-条件过滤"><a href="#1-全文搜索-条件过滤" class="headerlink" title="1. 全文搜索 + 条件过滤"></a>1. 全文搜索 + 条件过滤</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">GET /article/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Elasticsearch&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;published&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;publish_time&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2026-01-01&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="2-精确筛选"><a href="#2-精确筛选" class="headerlink" title="2. 精确筛选"></a>2. 精确筛选</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /order/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> <span class="number">1001</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;paid&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<h3 id="3-搜索-聚合"><a href="#3-搜索-聚合" class="headerlink" title="3. 搜索 + 聚合"></a>3. 搜索 + 聚合</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;手机&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;brand_group&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;terms&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;brand.keyword&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>这种写法在搜索页做筛选面板时特别常见。</p>
+<h2 id="九、最容易踩的坑"><a href="#九、最容易踩的坑" class="headerlink" title="九、最容易踩的坑"></a>九、最容易踩的坑</h2><h3 id="1-match-和-term-用反了"><a href="#1-match-和-term-用反了" class="headerlink" title="1. match 和 term 用反了"></a>1. <code>match</code> 和 <code>term</code> 用反了</h3><p>这是最常见的问题。</p>
+<ul>
+<li>搜 <code>text</code> 字段，通常用 <code>match</code></li>
+<li>查 ID、状态、枚举值，通常用 <code>term</code></li>
+</ul>
+<h3 id="2-对-text-字段做聚合或排序"><a href="#2-对-text-字段做聚合或排序" class="headerlink" title="2. 对 text 字段做聚合或排序"></a>2. 对 <code>text</code> 字段做聚合或排序</h3><p>很多人会发现：</p>
+<ul>
+<li>排序报错</li>
+<li>聚合结果不符合预期</li>
+</ul>
+<p>原因通常是字段类型是 <code>text</code>，会被分词。</p>
+<p>这时一般要用：</p>
+<ul>
+<li><code>field.keyword</code></li>
+</ul>
+<h3 id="3-深分页性能差"><a href="#3-深分页性能差" class="headerlink" title="3. 深分页性能差"></a>3. 深分页性能差</h3><p>如果 <code>from</code> 很大，Elasticsearch 会越来越慢。</p>
+<p>所以不是所有分页都适合一直用 <code>from + size</code>。</p>
+<h3 id="4-把过滤条件写进-must"><a href="#4-把过滤条件写进-must" class="headerlink" title="4. 把过滤条件写进 must"></a>4. 把过滤条件写进 <code>must</code></h3><p>如果某个条件只是单纯筛选，而不是为了影响相关性评分，那么它更适合写进 <code>filter</code>。</p>
+<h2 id="十、一个综合示例"><a href="#十、一个综合示例" class="headerlink" title="十、一个综合示例"></a>十、一个综合示例</h2><p>下面是一个比较完整的搜索 DSL：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;_source&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;title&quot;</span><span class="punctuation">,</span> <span class="string">&quot;brand&quot;</span><span class="punctuation">,</span> <span class="string">&quot;price&quot;</span><span class="punctuation">,</span> <span class="string">&quot;category&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;from&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">10</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;brand.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Apple&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="number">5000</span><span class="punctuation">,</span> <span class="attr">&quot;lte&quot;</span><span class="punctuation">:</span> <span class="number">10000</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;must_not&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;offline&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;should&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pro&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sort&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;_score&quot;</span><span class="punctuation">:</span> <span class="string">&quot;desc&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="string">&quot;asc&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;category_group&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;terms&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;category.keyword&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>如果把它翻译成人话，就是：</p>
+<ul>
+<li>搜索标题里和 <code>iphone</code> 相关的商品</li>
+<li>品牌必须是 Apple</li>
+<li>价格在 5000 到 10000 之间</li>
+<li>不要下架商品</li>
+<li>命中 <code>pro</code> 的结果优先级更高</li>
+<li>按相关性和价格排序</li>
+<li>同时统计不同分类下的分布</li>
+</ul>
+<h2 id="十一、小结"><a href="#十一、小结" class="headerlink" title="十一、小结"></a>十一、小结</h2><p>ElasticSearch DSL 最重要的不是死记语法，而是先建立一套正确的使用习惯：</p>
+<ol>
+<li>全文搜索优先考虑 <code>match</code></li>
+<li>精确过滤优先考虑 <code>term</code> &#x2F; <code>range</code> &#x2F; <code>filter</code></li>
+<li>复杂逻辑用 <code>bool</code> 来组织</li>
+<li>统计分析用 <code>aggs</code></li>
+</ol>
+<p>如果把 Elasticsearch DSL 理解成“倒排索引上的 JSON 查询语法树”，很多看起来复杂的写法其实都会变得很自然。</p>
+<p>真正写多了之后，你会发现最常用的其实就是这几类：</p>
+<ul>
+<li><code>match</code></li>
+<li><code>term</code></li>
+<li><code>bool</code></li>
+<li><code>range</code></li>
+<li><code>sort</code></li>
+<li><code>aggs</code></li>
+</ul>
+<p>把这些掌握住，日常绝大多数 Elasticsearch 查询需求基本就能覆盖了。</p>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/03/27/FM%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E7%BB%93%E5%90%88/" rel="prev" title="FM与深度学习模型的结合">
+      <i class="fa fa-chevron-left"></i> FM与深度学习模型的结合
+    </a></div>
+      <div class="post-nav-item">
+    <a href="/2026/03/28/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84embedding%E6%96%B9%E6%B3%95/" rel="next" title="推荐系统中的embedding方法">
+      推荐系统中的embedding方法 <i class="fa fa-chevron-right"></i>
+    </a></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%80%E3%80%81%E4%BB%80%E4%B9%88%E6%98%AF-DSL"><span class="nav-number">1.</span> <span class="nav-text">一、什么是 DSL</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%8C%E3%80%81%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E6%90%9C%E7%B4%A2%E8%AF%B7%E6%B1%82%E9%80%9A%E5%B8%B8%E5%8C%85%E5%90%AB%E4%BB%80%E4%B9%88"><span class="nav-number">2.</span> <span class="nav-text">二、一个完整搜索请求通常包含什么</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%89%E3%80%81Query-%E5%92%8C-Filter-%E7%9A%84%E5%8C%BA%E5%88%AB"><span class="nav-number">3.</span> <span class="nav-text">三、Query 和 Filter 的区别</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Query"><span class="nav-number">3.1.</span> <span class="nav-text">1. Query</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Filter"><span class="nav-number">3.2.</span> <span class="nav-text">2. Filter</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9B%9B%E3%80%81%E6%9C%80%E5%B8%B8%E7%94%A8%E7%9A%84%E6%9F%A5%E8%AF%A2%E7%B1%BB%E5%9E%8B"><span class="nav-number">4.</span> <span class="nav-text">四、最常用的查询类型</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-match"><span class="nav-number">4.1.</span> <span class="nav-text">1. match</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-term"><span class="nav-number">4.2.</span> <span class="nav-text">2. term</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-terms"><span class="nav-number">4.3.</span> <span class="nav-text">3. terms</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-range"><span class="nav-number">4.4.</span> <span class="nav-text">4. range</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-match-phrase"><span class="nav-number">4.5.</span> <span class="nav-text">5. match_phrase</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%BA%94%E3%80%81bool-%E6%9F%A5%E8%AF%A2"><span class="nav-number">5.</span> <span class="nav-text">五、bool 查询</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-must"><span class="nav-number">5.1.</span> <span class="nav-text">1. must</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-filter"><span class="nav-number">5.2.</span> <span class="nav-text">2. filter</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-should"><span class="nav-number">5.3.</span> <span class="nav-text">3. should</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-must-not"><span class="nav-number">5.4.</span> <span class="nav-text">4. must_not</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4%E7%A4%BA%E4%BE%8B"><span class="nav-number">5.5.</span> <span class="nav-text">5. 一个完整示例</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AD%E3%80%81%E6%8E%92%E5%BA%8F%E5%92%8C%E5%88%86%E9%A1%B5"><span class="nav-number">6.</span> <span class="nav-text">六、排序和分页</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%8E%92%E5%BA%8F"><span class="nav-number">6.1.</span> <span class="nav-text">1. 排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%88%86%E9%A1%B5"><span class="nav-number">6.2.</span> <span class="nav-text">2. 分页</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B8%83%E3%80%81%E8%81%9A%E5%90%88%E6%9F%A5%E8%AF%A2-aggs"><span class="nav-number">7.</span> <span class="nav-text">七、聚合查询 aggs</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-terms-%E8%81%9A%E5%90%88"><span class="nav-number">7.1.</span> <span class="nav-text">1. terms 聚合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-avg-%E8%81%9A%E5%90%88"><span class="nav-number">7.2.</span> <span class="nav-text">2. avg 聚合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%88%86%E7%BB%84%E5%90%8E%E5%86%8D%E7%BB%9F%E8%AE%A1"><span class="nav-number">7.3.</span> <span class="nav-text">3. 分组后再统计</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%85%AB%E3%80%81%E5%87%A0%E4%B8%AA%E5%B8%B8%E8%A7%81%E4%B8%9A%E5%8A%A1%E5%9C%BA%E6%99%AF"><span class="nav-number">8.</span> <span class="nav-text">八、几个常见业务场景</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%85%A8%E6%96%87%E6%90%9C%E7%B4%A2-%E6%9D%A1%E4%BB%B6%E8%BF%87%E6%BB%A4"><span class="nav-number">8.1.</span> <span class="nav-text">1. 全文搜索 + 条件过滤</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%B2%BE%E7%A1%AE%E7%AD%9B%E9%80%89"><span class="nav-number">8.2.</span> <span class="nav-text">2. 精确筛选</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%90%9C%E7%B4%A2-%E8%81%9A%E5%90%88"><span class="nav-number">8.3.</span> <span class="nav-text">3. 搜索 + 聚合</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E4%B9%9D%E3%80%81%E6%9C%80%E5%AE%B9%E6%98%93%E8%B8%A9%E7%9A%84%E5%9D%91"><span class="nav-number">9.</span> <span class="nav-text">九、最容易踩的坑</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-match-%E5%92%8C-term-%E7%94%A8%E5%8F%8D%E4%BA%86"><span class="nav-number">9.1.</span> <span class="nav-text">1. match 和 term 用反了</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E5%AF%B9-text-%E5%AD%97%E6%AE%B5%E5%81%9A%E8%81%9A%E5%90%88%E6%88%96%E6%8E%92%E5%BA%8F"><span class="nav-number">9.2.</span> <span class="nav-text">2. 对 text 字段做聚合或排序</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E6%B7%B1%E5%88%86%E9%A1%B5%E6%80%A7%E8%83%BD%E5%B7%AE"><span class="nav-number">9.3.</span> <span class="nav-text">3. 深分页性能差</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E6%8A%8A%E8%BF%87%E6%BB%A4%E6%9D%A1%E4%BB%B6%E5%86%99%E8%BF%9B-must"><span class="nav-number">9.4.</span> <span class="nav-text">4. 把过滤条件写进 must</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%81%E3%80%81%E4%B8%80%E4%B8%AA%E7%BB%BC%E5%90%88%E7%A4%BA%E4%BE%8B"><span class="nav-number">10.</span> <span class="nav-text">十、一个综合示例</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8D%81%E4%B8%80%E3%80%81%E5%B0%8F%E7%BB%93"><span class="nav-number">11.</span> <span class="nav-text">十一、小结</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wdy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script color='' opacity='' zIndex='' count='' src="/lib/canvas-nest/canvas-nest-nomobile.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  
+
+  
+
+</body>
+</html>
