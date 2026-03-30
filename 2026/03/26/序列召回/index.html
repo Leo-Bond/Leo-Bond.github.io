@@ -22,17 +22,22 @@
     var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="MINDSDM">
+  <meta name="description" content="MIND Li C, Liu Z, Wu M, et al. Multi-interest network with dynamic routing for recommendation at Tmall[C]&#x2F;&#x2F;Proceedings of the 28th ACM international conference on information and knowledge m">
 <meta property="og:type" content="article">
 <meta property="og:title" content="序列召回">
 <meta property="og:url" content="https://leo-bond.github.io/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/index.html">
 <meta property="og:site_name" content="wdy&#39;s blog">
-<meta property="og:description" content="MINDSDM">
+<meta property="og:description" content="MIND Li C, Liu Z, Wu M, et al. Multi-interest network with dynamic routing for recommendation at Tmall[C]&#x2F;&#x2F;Proceedings of the 28th ACM international conference on information and knowledge m">
 <meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://leo-bond.github.io/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/1.png">
+<meta property="og:image" content="https://leo-bond.github.io/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/3.png">
+<meta property="og:image" content="https://leo-bond.github.io/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/2.png">
+<meta property="og:image" content="https://leo-bond.github.io/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/4.png">
 <meta property="article:published_time" content="2026-03-26T15:06:19.000Z">
-<meta property="article:modified_time" content="2026-03-29T19:58:55.664Z">
+<meta property="article:modified_time" content="2026-03-30T14:21:28.476Z">
 <meta property="article:author" content="wdy">
 <meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://leo-bond.github.io/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/1.png">
 
 <link rel="canonical" href="https://leo-bond.github.io/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/">
 
@@ -202,7 +207,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-03-30 03:58:55" itemprop="dateModified" datetime="2026-03-30T03:58:55+08:00">2026-03-30</time>
+                <time title="修改时间：2026-03-30 22:21:28" itemprop="dateModified" datetime="2026-03-30T22:21:28+08:00">2026-03-30</time>
               </span>
 
           
@@ -216,7 +221,116 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        <h2 id="MIND"><a href="#MIND" class="headerlink" title="MIND"></a>MIND</h2><h2 id="SDM"><a href="#SDM" class="headerlink" title="SDM"></a>SDM</h2>
+        <h2 id="MIND"><a href="#MIND" class="headerlink" title="MIND"></a>MIND</h2><blockquote>
+<p>Li C, Liu Z, Wu M, et al. Multi-interest network with dynamic routing for recommendation at Tmall[C]&#x2F;&#x2F;Proceedings of the 28th ACM international conference on information and knowledge management. 2019: 2615-2623.</p>
+</blockquote>
+<p>传统召回模型通常把用户压成一个向量，但单向量很难表达用户的多兴趣结构。MIND 的核心做法是：把用户历史行为映射成多个兴趣向量，再让目标 item 选择最相关的那个兴趣参与训练。</p>
+<img src="/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/1.png" alt="MIND">
+
+<h3 id="胶囊网络介绍"><a href="#胶囊网络介绍" class="headerlink" title="胶囊网络介绍"></a>胶囊网络介绍</h3><img src="/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/3.png" alt="capsule network0">
+
+<p>MIND 借鉴了胶囊网络里的动态路由思想。这里可以把：</p>
+<ul>
+<li>用户历史行为向量看成低层 capsule</li>
+<li>用户兴趣向量看成高层 capsule</li>
+</ul>
+<p>动态路由的目标不是简单 pooling，而是把行为向量自适应地分配到不同兴趣上。</p>
+<img src="/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/2.png" alt="capsule network">
+
+<h3 id="多兴趣提取层"><a href="#多兴趣提取层" class="headerlink" title="多兴趣提取层"></a>多兴趣提取层</h3><p>设用户行为序列对应的 item embedding 为：</p>
+<p>$$<br>E &#x3D; {e_1, e_2, \ldots, e_n}<br>$$</p>
+<p>MIND 希望从中提取出 $K$ 个兴趣向量：</p>
+<p>$$<br>V &#x3D; {v_1, v_2, \ldots, v_K}<br>$$</p>
+<p>其中 $v_j \in \mathbb{R}^d$ 表示第 $j$ 个兴趣 capsule。</p>
+<p>先把行为向量做线性映射：</p>
+<p>$$<br>\hat{e}_{ij} &#x3D; W_j e_i<br>$$</p>
+<p>其中 $W_j$ 是第 $j$ 个兴趣 capsule 对应的变换矩阵。</p>
+<p>然后通过 routing logit $b_{ij}$ 计算行为 $i$ 分配给兴趣 $j$ 的权重：</p>
+<p>$$<br>c_{ij} &#x3D; \frac{\exp(b_{ij})}{\sum_{k&#x3D;1}^{K}\exp(b_{ik})}<br>$$</p>
+<p>接着聚合得到第 $j$ 个兴趣 capsule 的输入：</p>
+<p>$$<br>s_j &#x3D; \sum_{i&#x3D;1}^{n} c_{ij}\hat{e}_{ij}<br>$$</p>
+<p>再经过 squash 函数得到兴趣向量：</p>
+<p>$$<br>v_j &#x3D; \mathrm{squash}(s_j)<br>&#x3D; \frac{|s_j|^2}{1+|s_j|^2}\frac{s_j}{|s_j|}<br>$$</p>
+<p>最后根据 agreement 更新 routing logit：</p>
+<p>$$<br>b_{ij} \leftarrow b_{ij} + \hat{e}_{ij}^{\top} v_j<br>$$</p>
+<p>重复若干轮后，相似行为会被分到同一个兴趣 capsule 中。</p>
+<h3 id="Label-Aware-注意力层"><a href="#Label-Aware-注意力层" class="headerlink" title="Label-Aware 注意力层"></a>Label-Aware 注意力层</h3><p>设目标 item embedding 为 $e_t$。MIND 用目标 item 和多个兴趣向量计算注意力权重，从而选出和当前目标最相关的兴趣。</p>
+<p>先计算相似度分数：</p>
+<p>$$<br>g_j &#x3D; v_j^{\top} e_t<br>$$</p>
+<p>再通过幂指数放大差异：</p>
+<p>$$<br>a_j &#x3D; \frac{\exp(g_j^p)}{\sum_{k&#x3D;1}^{K}\exp(g_k^p)}<br>$$</p>
+<p>其中 $p$ 是可调超参数。$p$ 越大，注意力越接近 hard attention。</p>
+<p>最后得到与目标 item 对齐的用户表示：</p>
+<p>$$<br>u &#x3D; \sum_{j&#x3D;1}^{K} a_j v_j<br>$$</p>
+<p>这一步的作用是：训练时不再让一个目标 item 同时对齐所有兴趣，而是重点更新最相关的那个兴趣表示。</p>
+<h3 id="训练流程"><a href="#训练流程" class="headerlink" title="训练流程"></a>训练流程</h3><p>训练时，先用动态路由得到多个兴趣向量，再用目标 item 通过 Label-Aware Attention 得到用户表示 $u$。随后计算用户和目标 item 的匹配分数：</p>
+<p>$$<br>z &#x3D; u^{\top} e_t<br>$$</p>
+<p>如果采用 sampled softmax，训练目标可以写成：</p>
+<p>$$<br>P(i_t \mid u) &#x3D; \frac{\exp(u^{\top} e_t)}{\sum_{i \in \mathcal{I}}\exp(u^{\top} e_i)}<br>$$</p>
+<p>$$<br>\mathcal{L} &#x3D; - \log P(i_t \mid u)<br>$$</p>
+<p>在线召回时，用户最终不再对应一个向量，而是对应多个兴趣向量 $v_1, \ldots, v_K$。可以让每个兴趣向量分别去检索候选 item，再把结果合并。这样比单向量用户表示更容易覆盖用户的多样化兴趣。</p>
+<h2 id="SDM"><a href="#SDM" class="headerlink" title="SDM"></a>SDM</h2><blockquote>
+<p>Lv F, Jin T, Yu C, et al. SDM: Sequential deep matching model for online large-scale recommender system[C]&#x2F;&#x2F;Proceedings of the 28th ACM international conference on information and knowledge management. 2019: 2635-2643.</p>
+</blockquote>
+<p>MIND解决了兴趣“广度”的问题，但新的问题随之而来：时间。 用户兴趣不仅是多元的，还是动态演化的。一个用户在一次购物会话中的行为，往往比他一个月前的行为更能预示他下一刻的需求。MIND虽然能捕捉多个兴趣，但并未在结构上显式地区分它们的时效性。序列深度匹配模型（SDM） 正是为了解决这一问题而提出的。SDM模型的核心思想是分别建模用户的短期即时兴趣和长期稳定偏好，然后智能地融合它们。</p>
+<img src="/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/4.png" alt="SDM">
+
+<h3 id="捕捉短期兴趣"><a href="#捕捉短期兴趣" class="headerlink" title="捕捉短期兴趣"></a>捕捉短期兴趣</h3><p>SDM 用用户最近的一段行为序列来建模短期兴趣。根据图中的结构，短期路径由 <code>LSTM + Multi-head Self-Attention + AttnNet</code> 组成。设最近 $T$ 个行为对应的 item embedding 为：</p>
+<p>$$<br>S &#x3D; {e_1, e_2, \ldots, e_T}<br>$$</p>
+<p>先用 LSTM 编码顺序信息，第 $t$ 步隐状态为：</p>
+<p>$$<br>h_t &#x3D; \mathrm{LSTM}(e_t, h_{t-1})<br>$$</p>
+<p>然后用多头自注意力进一步建模行为之间的依赖关系。若记</p>
+<p>$$<br>H &#x3D; [h_1, h_2, \ldots, h_T]<br>$$</p>
+<p>则自注意力输出可以写成：</p>
+<p>$$<br>\tilde{H} &#x3D; \mathrm{MultiHead}(H, H, H)<br>$$</p>
+<p>其中 $\tilde{H} &#x3D; [\tilde{h}_1, \tilde{h}_2, \ldots, \tilde{h}_T]$。</p>
+<p>接下来，图中的 AttnNet 会使用查询向量 $e_u$ 对这些时序表示做注意力汇聚。其打分形式可以写成：</p>
+<p>$$<br>r_t &#x3D; \mathrm{score}(\tilde{h}_t, e_u)<br>$$</p>
+<p>$$<br>\alpha_t &#x3D; \frac{\exp(r_t)}{\sum_{j&#x3D;1}^{T}\exp(r_j)}<br>$$</p>
+<p>最终得到短期兴趣表示：</p>
+<p>$$<br> s_t^u &#x3D; \sum_{t&#x3D;1}^{T}\alpha_t \tilde{h}_t<br>$$</p>
+<p>其中 $e_u$ 可以理解为当前匹配任务对应的查询向量，AttnNet 会让和当前目标更相关的近期行为获得更大的权重。</p>
+<h3 id="捕捉长期兴趣"><a href="#捕捉长期兴趣" class="headerlink" title="捕捉长期兴趣"></a>捕捉长期兴趣</h3><p>短期兴趣描述“此刻想买什么”，长期兴趣描述“这个人稳定偏好什么”。从图里可以看到，SDM 的长期兴趣并不是直接从长序列中提，而是从多路用户画像特征中提取，包括：</p>
+<ul>
+<li>user id</li>
+<li>leaf</li>
+<li>cate</li>
+<li>brand</li>
+<li>shop</li>
+</ul>
+<p>记这些特征集合分别为 <code>L_id^u</code>、<code>L_leaf^u</code>、<code>L_cate^u</code>、<code>L_brand^u</code> 和 <code>L_shop^u</code>。</p>
+<p>每一路特征都会经过一个 AttnNet，并共享查询向量 $e_u$。以第 $m$ 路特征集合 $L_m^u &#x3D; {x_1^m, x_2^m, \ldots, x_{N_m}^m}$ 为例，其注意力权重为：</p>
+<p>$$<br>\beta_i^m &#x3D; \frac{\exp(\mathrm{score}(x_i^m, e_u))}{\sum_{j&#x3D;1}^{N_m}\exp(\mathrm{score}(x_j^m, e_u))}<br>$$</p>
+<p>对应的第 $m$ 路长期偏好表示为：</p>
+<p>$$<br>p_m^u &#x3D; \sum_{i&#x3D;1}^{N_m} \beta_i^m x_i^m<br>$$</p>
+<p>最后把多路画像表示拼接后经过一层全连接，得到长期兴趣表示：</p>
+<p>$$<br>p^u &#x3D; \phi\left(W_p [p_{id}^u; p_{leaf}^u; p_{cate}^u; p_{brand}^u; p_{shop}^u] + b_p\right)<br>$$</p>
+<p>其中 $\phi(\cdot)$ 表示图中的 Dense 层变换。</p>
+<h3 id="长短期兴趣融合"><a href="#长短期兴趣融合" class="headerlink" title="长短期兴趣融合"></a>长短期兴趣融合</h3><p>有了短期兴趣 $s_t^u$ 和长期兴趣 $p^u$ 之后，SDM 使用 fusion gate 做自适应融合，而不是固定加权。</p>
+<p>从图里可以看出，门控值 $G_t^u$ 同时依赖：</p>
+<ul>
+<li>长期兴趣 $p^u$</li>
+<li>短期兴趣 $s_t^u$</li>
+<li>查询向量 $e_u$</li>
+</ul>
+<p>因此可以写成：</p>
+<p>$$<br>G_t^u &#x3D; \sigma\left(W_g [p^u; s_t^u; e_u] + b_g\right)<br>$$</p>
+<p>其中 $G_t^u \in (0,1)^d$ 表示逐维门控权重。根据图中的 <code>1-</code>、逐元素乘法和逐元素加法，最终输出表示为：</p>
+<p>$$<br>o_t^u &#x3D; G_t^u \odot s_t^u + (1 - G_t^u) \odot p^u<br>$$</p>
+<p>其中 $\odot$ 表示逐元素乘法。</p>
+<p>得到最终用户表示 $o_t^u$ 后，就可以和目标 item 做匹配。若目标 item 向量记作 $v_i$，则打分函数可以写成：</p>
+<p>$$<br>z_i &#x3D; {o_t^u}^{\top} v_i<br>$$</p>
+<p>如果采用 softmax 形式训练，则目标概率为：</p>
+<p>$$<br>P(i_t \mid o_t^u) &#x3D; \frac{\exp({o_t^u}^{\top} v_{i_t})}{\sum_{i \in \mathcal{I}} \exp({o_t^u}^{\top} v_i)}<br>$$</p>
+<p>对应损失函数为：</p>
+<p>$$<br>\mathcal{L} &#x3D; -\log P(i_t \mid o_t^u)<br>$$</p>
+<p>所以 SDM 的核心可以概括成：</p>
+<ul>
+<li>短期路径刻画最近行为的时序依赖</li>
+<li>长期路径从多路画像特征中提取稳定偏好</li>
+<li>fusion gate 根据当前查询向量动态平衡短期和长期兴趣</li>
+</ul>
+
     </div>
 
     
@@ -231,8 +345,8 @@
         
     <div class="post-nav">
       <div class="post-nav-item">
-    <a href="/2026/03/26/%E5%9B%A0%E5%AD%90%E5%88%86%E8%A7%A3%E6%9C%BA/" rel="prev" title="因子分解机">
-      <i class="fa fa-chevron-left"></i> 因子分解机
+    <a href="/2026/02/18/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84embedding%E6%96%B9%E6%B3%95/" rel="prev" title="推荐系统中的embedding方法">
+      <i class="fa fa-chevron-left"></i> 推荐系统中的embedding方法
     </a></div>
       <div class="post-nav-item">
     <a href="/2026/03/27/%E6%A2%AF%E5%BA%A6%E6%8F%90%E5%8D%87%E6%A0%91%EF%BC%88GBDT%EF%BC%89/" rel="next" title="梯度提升树（GBDT）">
@@ -296,7 +410,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#MIND"><span class="nav-number">1.</span> <span class="nav-text">MIND</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SDM"><span class="nav-number">2.</span> <span class="nav-text">SDM</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#MIND"><span class="nav-number">1.</span> <span class="nav-text">MIND</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%83%B6%E5%9B%8A%E7%BD%91%E7%BB%9C%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.1.</span> <span class="nav-text">胶囊网络介绍</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E5%A4%9A%E5%85%B4%E8%B6%A3%E6%8F%90%E5%8F%96%E5%B1%82"><span class="nav-number">1.2.</span> <span class="nav-text">多兴趣提取层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#Label-Aware-%E6%B3%A8%E6%84%8F%E5%8A%9B%E5%B1%82"><span class="nav-number">1.3.</span> <span class="nav-text">Label-Aware 注意力层</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B"><span class="nav-number">1.4.</span> <span class="nav-text">训练流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#SDM"><span class="nav-number">2.</span> <span class="nav-text">SDM</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%95%E6%8D%89%E7%9F%AD%E6%9C%9F%E5%85%B4%E8%B6%A3"><span class="nav-number">2.1.</span> <span class="nav-text">捕捉短期兴趣</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E6%8D%95%E6%8D%89%E9%95%BF%E6%9C%9F%E5%85%B4%E8%B6%A3"><span class="nav-number">2.2.</span> <span class="nav-text">捕捉长期兴趣</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E9%95%BF%E7%9F%AD%E6%9C%9F%E5%85%B4%E8%B6%A3%E8%9E%8D%E5%90%88"><span class="nav-number">2.3.</span> <span class="nav-text">长短期兴趣融合</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -310,7 +424,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">15</span>
+          <span class="site-state-item-count">16</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -398,6 +512,59 @@
   
 
   
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
 
