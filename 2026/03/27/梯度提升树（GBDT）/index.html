@@ -22,13 +22,15 @@
     var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta property="og:type" content="article">
+  <meta name="description" content="提升树提升树（Boosting Tree）本质上是一类加法模型。它不是只训练一棵树，而是按轮次训练很多棵弱学习器，并把它们逐步叠加起来。 如果把第 $m$ 轮训练得到的树记作 $h_m(x)$，那么最终模型可以写成： $$F_M(x) &#x3D; \sum_{m&#x3D;1}^{M} \alpha_m h_m(x)$$ 其中：  $h_m(x)$ 表示第 $m$ 棵树 $\alpha_m$ 表">
+<meta property="og:type" content="article">
 <meta property="og:title" content="梯度提升树（GBDT）">
 <meta property="og:url" content="https://leo-bond.github.io/2026/03/27/%E6%A2%AF%E5%BA%A6%E6%8F%90%E5%8D%87%E6%A0%91%EF%BC%88GBDT%EF%BC%89/index.html">
 <meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="提升树提升树（Boosting Tree）本质上是一类加法模型。它不是只训练一棵树，而是按轮次训练很多棵弱学习器，并把它们逐步叠加起来。 如果把第 $m$ 轮训练得到的树记作 $h_m(x)$，那么最终模型可以写成： $$F_M(x) &#x3D; \sum_{m&#x3D;1}^{M} \alpha_m h_m(x)$$ 其中：  $h_m(x)$ 表示第 $m$ 棵树 $\alpha_m$ 表">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-03-27T04:26:08.000Z">
-<meta property="article:modified_time" content="2026-03-27T11:26:08.423Z">
+<meta property="article:modified_time" content="2026-03-31T22:38:25.754Z">
 <meta property="article:author" content="wdy">
 <meta name="twitter:card" content="summary">
 
@@ -192,10 +194,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2026-03-27 12:26:08 / 修改时间：19:26:08" itemprop="dateCreated datePublished" datetime="2026-03-27T12:26:08+08:00">2026-03-27</time>
+              <time title="创建时间：2026-03-27 12:26:08" itemprop="dateCreated datePublished" datetime="2026-03-27T12:26:08+08:00">2026-03-27</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-04-01 06:38:25" itemprop="dateModified" datetime="2026-04-01T06:38:25+08:00">2026-04-01</time>
+              </span>
 
           
 
@@ -208,7 +216,224 @@
     <div class="post-body" itemprop="articleBody">
 
       
-        
+        <h2 id="提升树"><a href="#提升树" class="headerlink" title="提升树"></a>提升树</h2><p>提升树（Boosting Tree）本质上是一类加法模型。它不是只训练一棵树，而是按轮次训练很多棵弱学习器，并把它们逐步叠加起来。</p>
+<p>如果把第 $m$ 轮训练得到的树记作 $h_m(x)$，那么最终模型可以写成：</p>
+<p>$$<br>F_M(x) &#x3D; \sum_{m&#x3D;1}^{M} \alpha_m h_m(x)<br>$$</p>
+<p>其中：</p>
+<ul>
+<li>$h_m(x)$ 表示第 $m$ 棵树</li>
+<li>$\alpha_m$ 表示该树的权重</li>
+<li>$F_M(x)$ 表示最终集成后的预测函数</li>
+</ul>
+<p>提升方法的核心不是“一次把问题学完”，而是：</p>
+<ul>
+<li>先训练一个较弱的模型</li>
+<li>观察当前模型还没学好的部分</li>
+<li>再让下一轮模型去修正前一轮的误差</li>
+</ul>
+<p>如果是平方损失回归问题，当前模型 $F_{m-1}(x)$ 在样本 $x_i$ 上的残差为：</p>
+<p>$$<br>r_{im} &#x3D; y_i - F_{m-1}(x_i)<br>$$</p>
+<p>于是第 $m$ 轮训练的树，就是去逼近这些残差：</p>
+<p>$$<br>h_m(x) \approx r_{im}<br>$$</p>
+<p>模型更新为：</p>
+<p>$$<br>F_m(x) &#x3D; F_{m-1}(x) + \alpha_m h_m(x)<br>$$</p>
+<p>所以提升树可以理解成一种“逐轮纠错”的方法。前面的树先把大体结构学出来，后面的树不断补充前面没拟合好的部分。</p>
+<h2 id="梯度提升树"><a href="#梯度提升树" class="headerlink" title="梯度提升树"></a>梯度提升树</h2><p>GBDT（Gradient Boosting Decision Tree）是在提升树上的进一步推广。它最关键的地方在于：</p>
+<ul>
+<li>不再局限于直接拟合残差</li>
+<li>而是统一地去拟合损失函数对当前模型输出的负梯度</li>
+</ul>
+<p>这样一来，GBDT 就不只适用于平方损失回归，也能自然用于分类、排序等任务。</p>
+<h3 id="1-加法模型"><a href="#1-加法模型" class="headerlink" title="1. 加法模型"></a>1. 加法模型</h3><p>GBDT 仍然采用加法模型。设第 $m$ 轮新增的树为 $h_m(x)$，则：</p>
+<p>$$<br>F_M(x) &#x3D; F_0(x) + \sum_{m&#x3D;1}^{M} \nu \gamma_m h_m(x)<br>$$</p>
+<p>其中：</p>
+<ul>
+<li>$F_0(x)$ 是初始模型</li>
+<li>$h_m(x)$ 是第 $m$ 轮训练得到的回归树</li>
+<li>$\gamma_m$ 是该轮步长</li>
+<li>$\nu \in (0,1]$ 是学习率，也叫 shrinkage</li>
+</ul>
+<h3 id="2-优化目标"><a href="#2-优化目标" class="headerlink" title="2. 优化目标"></a>2. 优化目标</h3><p>给定训练集 ${(x_i, y_i)}_{i&#x3D;1}^{N}$，GBDT 希望最小化经验风险：</p>
+<p>$$<br>\mathcal{L} &#x3D; \sum_{i&#x3D;1}^{N} L(y_i, F(x_i))<br>$$</p>
+<p>这里 $L(y_i, F(x_i))$ 是单样本损失。</p>
+<p>由于模型是逐步加出来的，所以第 $m$ 轮就是在已有模型 $F_{m-1}(x)$ 的基础上，再增加一个新函数，使总损失下降：</p>
+<p>$$<br>F_m(x) &#x3D; F_{m-1}(x) + \nu \gamma_m h_m(x)<br>$$</p>
+<h3 id="3-负梯度思想"><a href="#3-负梯度思想" class="headerlink" title="3. 负梯度思想"></a>3. 负梯度思想</h3><p>在函数空间里做梯度下降时，当前样本的负梯度定义为：</p>
+<p>$$<br>g_{im} &#x3D; - \frac{\partial L(y_i, F(x_i))}{\partial F(x_i)}, \quad \text{其中 } F(x)&#x3D;F_{m-1}(x)<br>$$</p>
+<p>GBDT 每一轮的关键动作就是：</p>
+<ul>
+<li>先计算所有样本在当前模型下的负梯度 $g_{im}$</li>
+<li>再用一棵回归树去拟合这些负梯度</li>
+</ul>
+<p>也就是说，第 $m$ 轮不是直接去拟合标签 $y_i$，而是拟合：</p>
+<p>$$<br>h_m(x) \approx g_{im}<br>$$</p>
+<p>这就是“梯度提升”的本质。</p>
+<h3 id="4-为什么平方损失下等价于拟合残差"><a href="#4-为什么平方损失下等价于拟合残差" class="headerlink" title="4. 为什么平方损失下等价于拟合残差"></a>4. 为什么平方损失下等价于拟合残差</h3><p>如果损失函数使用平方误差：</p>
+<p>$$<br>L(y_i, F(x_i)) &#x3D; \frac{1}{2}(y_i - F(x_i))^2<br>$$</p>
+<p>那么对 $F(x_i)$ 求导可得：</p>
+<p>$$<br>\frac{\partial L(y_i, F(x_i))}{\partial F(x_i)} &#x3D; F(x_i) - y_i<br>$$</p>
+<p>于是负梯度就是：</p>
+<p>$$<br>g_{im} &#x3D; y_i - F_{m-1}(x_i)<br>$$</p>
+<p>这正好就是残差。所以普通的“拟合残差的提升树”，其实可以看成是 GBDT 在平方损失下的一个特例。</p>
+<h3 id="5-每轮训练流程"><a href="#5-每轮训练流程" class="headerlink" title="5. 每轮训练流程"></a>5. 每轮训练流程</h3><p>GBDT 一轮训练可以拆成下面几步：</p>
+<ol>
+<li>给定当前模型 $F_{m-1}(x)$</li>
+<li>计算每个样本的伪残差，也就是负梯度</li>
+</ol>
+<p>$$<br>g_{im} &#x3D; - \frac{\partial L(y_i, F(x_i))}{\partial F(x_i)}, \quad \text{其中 } F(x)&#x3D;F_{m-1}(x)<br>$$</p>
+<ol start="3">
+<li>用样本对 $(x_i, g_{im})$，$i&#x3D;1,2,\ldots,N$ 拟合一棵回归树，得到若干叶子区域 $R_{jm}, j&#x3D;1,\dots,J$</li>
+<li>对每个叶子区域求最优输出值</li>
+</ol>
+<p>$$<br>\gamma_{jm} &#x3D; \arg\min_{\gamma} \sum_{x_i \in R_{jm}} L\big(y_i, F_{m-1}(x_i) + \gamma\big)<br>$$</p>
+<ol start="5">
+<li>更新模型</li>
+</ol>
+<p>$$<br>F_m(x) &#x3D; F_{m-1}(x) + \nu \sum_{j&#x3D;1}^{J} \gamma_{jm} I(x \in R_{jm})<br>$$</p>
+<p>其中 $I(\cdot)$ 是示性函数，表示样本是否落在第 $j$ 个叶子区域。</p>
+<h3 id="6-初始模型"><a href="#6-初始模型" class="headerlink" title="6. 初始模型"></a>6. 初始模型</h3><p>GBDT 通常先用一个常数作为初始模型：</p>
+<p>$$<br>F_0(x) &#x3D; \arg\min_{\gamma} \sum_{i&#x3D;1}^{N} L(y_i, \gamma)<br>$$</p>
+<p>它的含义是：在还没有任何树之前，先找一个能让整体损失最小的常数起点。</p>
+<p>常见情况下：</p>
+<ul>
+<li>平方损失回归时，$F_0$ 一般是样本均值</li>
+<li>二分类对数损失时，$F_0$ 一般对应正样本比例的 logit</li>
+</ul>
+<h3 id="7-二分类中的-GBDT"><a href="#7-二分类中的-GBDT" class="headerlink" title="7. 二分类中的 GBDT"></a>7. 二分类中的 GBDT</h3><p>在二分类中，常见损失是 logistic loss。若标签 $y_i \in {0,1}$，设：</p>
+<p>$$<br>p_i &#x3D; \sigma(F(x_i)) &#x3D; \frac{1}{1 + e^{-F(x_i)}}<br>$$</p>
+<p>则交叉熵损失可写为：</p>
+<p>$$<br>L(y_i, F(x_i)) &#x3D; -\big[y_i \log p_i + (1-y_i)\log(1-p_i)\big]<br>$$</p>
+<p>其对模型输出的导数为：</p>
+<p>$$<br>\frac{\partial L}{\partial F(x_i)} &#x3D; p_i - y_i<br>$$</p>
+<p>所以负梯度为：</p>
+<p>$$<br>g_{im} &#x3D; y_i - p_i<br>$$</p>
+<p>这里的形式仍然很像残差，但它表示的是“真实标签与当前预测概率之间的差距”。</p>
+<h3 id="8-GBDT-的特点"><a href="#8-GBDT-的特点" class="headerlink" title="8. GBDT 的特点"></a>8. GBDT 的特点</h3><p>GBDT 在表格数据上长期非常强，原因主要有：</p>
+<ul>
+<li>能处理非线性关系</li>
+<li>能自动学习特征组合</li>
+<li>对特征尺度不太敏感</li>
+<li>对数值特征和离散特征都比较友好</li>
+</ul>
+<p>它的缺点也很明显：</p>
+<ul>
+<li>Boosting 是串行训练，训练速度通常不如 bagging 系模型容易并行</li>
+<li>参数较多，比如树深、树数、叶子数、学习率</li>
+<li>树太深或迭代轮数太多时容易过拟合</li>
+</ul>
+<p>一个常见经验是：</p>
+<ul>
+<li>学习率调小一些</li>
+<li>树的数量加多一些</li>
+<li>再配合样本采样和特征采样</li>
+</ul>
+<p>通常会比“大步快跑”的配置更稳。</p>
+<h2 id="用GBDT-LR进行粗排"><a href="#用GBDT-LR进行粗排" class="headerlink" title="用GBDT+LR进行粗排"></a>用GBDT+LR进行粗排</h2><p><code>GBDT + LR</code> 是推荐和广告系统里非常经典的一种粗排方案。它的核心思路是：</p>
+<ul>
+<li>用 GBDT 自动挖掘非线性特征组合</li>
+<li>再把这些组合特征交给 LR 做最终打分</li>
+</ul>
+<h3 id="1-为什么要结合-LR"><a href="#1-为什么要结合-LR" class="headerlink" title="1. 为什么要结合 LR"></a>1. 为什么要结合 LR</h3><p>逻辑回归的形式很简单：</p>
+<p>$$<br>\hat y &#x3D; \sigma(w^\top x + b)<br>$$</p>
+<p>它非常擅长处理高维稀疏特征，但天然是线性的。如果要让 LR 学到复杂交叉，通常只能依赖人工做特征工程。</p>
+<p>而 GBDT 很擅长把特征空间切成很多局部区域。一条从根节点到叶子节点的路径，本质上就是一组规则的组合，例如：</p>
+<ul>
+<li><code>年龄 &lt; 25</code></li>
+<li><code>近7天点击次数 &gt; 3</code></li>
+<li><code>品类 = 数码</code></li>
+</ul>
+<p>当样本落入某个叶子节点时，就说明它满足了一组非线性条件。所以“叶子节点”本身就可以看成自动学习得到的组合特征。</p>
+<h3 id="2-特征转换方式"><a href="#2-特征转换方式" class="headerlink" title="2. 特征转换方式"></a>2. 特征转换方式</h3><p>假设训练好的 GBDT 一共有 $M$ 棵树，第 $m$ 棵树有 $J_m$ 个叶子节点。对于一个样本 $x$，它在第 $m$ 棵树中只会落入一个叶子。</p>
+<p>于是可以把第 $m$ 棵树的输出编码成 one-hot 向量：</p>
+<p>$$<br>\phi_m(x) \in {0,1}^{J_m}<br>$$</p>
+<p>并且满足：</p>
+<p>$$<br>\sum_{j&#x3D;1}^{J_m} \phi_{mj}(x) &#x3D; 1<br>$$</p>
+<p>把所有树的叶子 one-hot 拼接起来，得到新的稀疏特征：</p>
+<p>$$<br>\phi(x) &#x3D; [\phi_1(x), \phi_2(x), \ldots, \phi_M(x)]<br>$$</p>
+<p>然后再把它送给 LR：</p>
+<p>$$<br>\hat y &#x3D; \sigma(w^\top \phi(x) + b)<br>$$</p>
+<h3 id="3-它为什么有效"><a href="#3-它为什么有效" class="headerlink" title="3. 它为什么有效"></a>3. 它为什么有效</h3><p>因为每一个叶子节点都代表了一种局部模式，所以 <code>GBDT + LR</code> 相当于：</p>
+<ul>
+<li>先用 GBDT 做自动分桶和高阶交叉</li>
+<li>再用 LR 对这些交叉模式做线性组合</li>
+</ul>
+<p>这比人工枚举交叉特征要省很多工作量，而且在工业场景里通常更稳定。</p>
+<h3 id="4-训练流程"><a href="#4-训练流程" class="headerlink" title="4. 训练流程"></a>4. 训练流程</h3><p>工程上常见的流程如下：</p>
+<ol>
+<li>用原始特征训练一个 GBDT</li>
+<li>对每个样本，取它在每棵树上的叶子编号</li>
+<li>把所有叶子编号展开成 one-hot 稀疏向量</li>
+<li>用这个新的稀疏向量训练 LR</li>
+</ol>
+<p>如果总叶子数为 $\sum_{m&#x3D;1}^{M} J_m$，那么 LR 的参数维度就是：</p>
+<p>$$<br>w \in \mathbb{R}^{\sum_{m&#x3D;1}^{M} J_m}<br>$$</p>
+<h3 id="5-为什么适合粗排"><a href="#5-为什么适合粗排" class="headerlink" title="5. 为什么适合粗排"></a>5. 为什么适合粗排</h3><p>粗排阶段通常希望：</p>
+<ul>
+<li>比纯 LR 有更强的非线性能力</li>
+<li>在线推断又不能太重</li>
+</ul>
+<p><code>GBDT + LR</code> 很符合这个诉求。因为：</p>
+<ul>
+<li>GBDT 可以离线完成复杂模式学习</li>
+<li>在线阶段只需要走树拿叶子，再做一次稀疏 LR 打分</li>
+</ul>
+<p>虽然现在很多系统会进一步升级到 <code>FM / DeepFM / DCN</code> 这类模型，但 <code>GBDT + LR</code> 依然是理解工业排序模型演化路径时非常重要的一环。</p>
+<h2 id="用-LightGBM-的-LambdaRank-方法进行粗排"><a href="#用-LightGBM-的-LambdaRank-方法进行粗排" class="headerlink" title="用 LightGBM 的 LambdaRank 方法进行粗排"></a>用 LightGBM 的 LambdaRank 方法进行粗排</h2><p>如果任务目标不是点估计 CTR，而是对一个候选列表做排序，那么普通的 pointwise 分类目标往往不够。因为排序任务真正关心的是：</p>
+<ul>
+<li>哪些样本应该排在前面</li>
+<li>把两个样本交换位置之后，排序指标会变化多少</li>
+</ul>
+<p>LambdaRank 就是为这种目标设计的一类排序方法，而 <code>LightGBM</code> 提供了非常成熟的 <code>lambdarank</code> 实现。</p>
+<h3 id="1-排序问题的本质"><a href="#1-排序问题的本质" class="headerlink" title="1. 排序问题的本质"></a>1. 排序问题的本质</h3><p>对于同一个 query 或同一个用户请求下的一组候选样本，设模型对第 $i$ 个样本输出分数 $s_i$。最终排序就是按这些分数从大到小排列。</p>
+<p>排序指标如 <code>NDCG@K</code> 更关心前几位是否排对，因此它和普通分类损失的关注点并不一致。</p>
+<p>LambdaRank 的核心思想是：</p>
+<ul>
+<li>不直接只看单个样本</li>
+<li>而是看样本对 $(i, j)$ 的相对顺序</li>
+<li>如果样本 $i$ 应该排在 $j$ 前面，就推动 $s_i &gt; s_j$</li>
+<li>并且这种推动力度要和排序指标收益相关</li>
+</ul>
+<h3 id="2-pairwise-概率形式"><a href="#2-pairwise-概率形式" class="headerlink" title="2. pairwise 概率形式"></a>2. pairwise 概率形式</h3><p>若在同一个 group 中，样本 $i$ 的相关性高于样本 $j$，则希望：</p>
+<p>$$<br>s_i &gt; s_j<br>$$</p>
+<p>RankNet 中常见的 pairwise 概率写法为：</p>
+<p>$$<br>P_{ij} &#x3D; \sigma(s_i - s_j) &#x3D; \frac{1}{1 + e^{-(s_i - s_j)}}<br>$$</p>
+<p>对应的 pairwise loss 可以写成：</p>
+<p>$$<br>L_{ij} &#x3D; \log\big(1 + e^{-(s_i - s_j)}\big)<br>$$</p>
+<p>如果只优化这个损失，本质上只是做成对排序，还没有显式考虑 <code>NDCG</code>。</p>
+<h3 id="3-Lambda-的核心思想"><a href="#3-Lambda-的核心思想" class="headerlink" title="3. Lambda 的核心思想"></a>3. Lambda 的核心思想</h3><p>LambdaRank 的关键是：如果交换样本 $i$ 和 $j$ 的位置会带来更大的指标变化，那么这对样本在训练时就应该被赋予更大的梯度权重。</p>
+<p>设交换它们后带来的指标变化为：</p>
+<p>$$<br>\Delta \mathrm{NDCG}_{ij}<br>$$</p>
+<p>那么常见的 lambda 形式可以写成：</p>
+<p>$$<br>\lambda_{ij} &#x3D; - \frac{\partial L_{ij}}{\partial s_i} \cdot |\Delta \mathrm{NDCG}_{ij}|<br>$$</p>
+<p>先看导数本身：</p>
+<p>$$<br>\frac{\partial L_{ij}}{\partial s_i} &#x3D; -\frac{1}{1 + e^{s_i - s_j}}<br>$$</p>
+<p>因此负导数为：</p>
+<p>$$<br>-\frac{\partial L_{ij}}{\partial s_i} &#x3D; \frac{1}{1 + e^{s_i - s_j}}<br>$$</p>
+<p>所以可以写成：</p>
+<p>$$<br>\lambda_{ij} &#x3D; \frac{|\Delta \mathrm{NDCG}_{ij}|}{1 + e^{s_i - s_j}}<br>$$</p>
+<p>对于样本 $i$，它最终接收到的梯度信号可以理解成相关样本对贡献的加总：</p>
+<p>$$<br>\lambda_i &#x3D; \sum_{j:(i,j)} \lambda_{ij} - \sum_{j:(j,i)} \lambda_{ji}<br>$$</p>
+<p>LightGBM 在 <code>lambdarank</code> 训练时，本质上就是利用这些 lambda 值来构造树的分裂和更新方向。</p>
+<h3 id="4-为什么适合粗排"><a href="#4-为什么适合粗排" class="headerlink" title="4. 为什么适合粗排"></a>4. 为什么适合粗排</h3><p>推荐和搜索里的粗排，常常更关心：</p>
+<ul>
+<li>top-k 的结果是否尽量靠前</li>
+<li>强相关内容有没有被压到后面</li>
+</ul>
+<p><code>lambdarank</code> 的优势就在于：</p>
+<ul>
+<li>它优化目标更接近实际线上排序指标</li>
+<li>它关注列表内部的相对顺序，而不是单点分类误差</li>
+<li>它会更重视那些影响前排结果的样本对</li>
+</ul>
+<h3 id="5-LightGBM-中的数据组织"><a href="#5-LightGBM-中的数据组织" class="headerlink" title="5. LightGBM 中的数据组织"></a>5. LightGBM 中的数据组织</h3><p>使用 <code>LightGBM</code> 的 <code>lambdarank</code> 时，训练数据一般按 group 组织：</p>
+<ul>
+<li>每个 group 对应一个 query、一次搜索请求，或一次推荐曝光集合</li>
+<li>group 内部样本一起参与排序损失计算</li>
+</ul>
+<p>如果共有 $Q$ 个 group，第 $q$ 个 group 的样本集合为 $\mathcal{G}_q$，那么整体目标可以理解为：</p>
+<p>$$<br>\mathcal{L} &#x3D; \sum_{q&#x3D;1}^{Q} \mathcal{L}_{rank}(\mathcal{G}_q)<br>$$</p>
+<p>其中每个 group 内部再基于样本对和 <code>NDCG</code> 增益计算 lambda。</p>
+
     </div>
 
     
@@ -288,6 +513,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%8F%90%E5%8D%87%E6%A0%91"><span class="nav-number">1.</span> <span class="nav-text">提升树</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%A2%AF%E5%BA%A6%E6%8F%90%E5%8D%87%E6%A0%91"><span class="nav-number">2.</span> <span class="nav-text">梯度提升树</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E5%8A%A0%E6%B3%95%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.1.</span> <span class="nav-text">1. 加法模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E4%BC%98%E5%8C%96%E7%9B%AE%E6%A0%87"><span class="nav-number">2.2.</span> <span class="nav-text">2. 优化目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E8%B4%9F%E6%A2%AF%E5%BA%A6%E6%80%9D%E6%83%B3"><span class="nav-number">2.3.</span> <span class="nav-text">3. 负梯度思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%B9%B3%E6%96%B9%E6%8D%9F%E5%A4%B1%E4%B8%8B%E7%AD%89%E4%BB%B7%E4%BA%8E%E6%8B%9F%E5%90%88%E6%AE%8B%E5%B7%AE"><span class="nav-number">2.4.</span> <span class="nav-text">4. 为什么平方损失下等价于拟合残差</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E6%AF%8F%E8%BD%AE%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B"><span class="nav-number">2.5.</span> <span class="nav-text">5. 每轮训练流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-%E5%88%9D%E5%A7%8B%E6%A8%A1%E5%9E%8B"><span class="nav-number">2.6.</span> <span class="nav-text">6. 初始模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-%E4%BA%8C%E5%88%86%E7%B1%BB%E4%B8%AD%E7%9A%84-GBDT"><span class="nav-number">2.7.</span> <span class="nav-text">7. 二分类中的 GBDT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-GBDT-%E7%9A%84%E7%89%B9%E7%82%B9"><span class="nav-number">2.8.</span> <span class="nav-text">8. GBDT 的特点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8GBDT-LR%E8%BF%9B%E8%A1%8C%E7%B2%97%E6%8E%92"><span class="nav-number">3.</span> <span class="nav-text">用GBDT+LR进行粗排</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E7%BB%93%E5%90%88-LR"><span class="nav-number">3.1.</span> <span class="nav-text">1. 为什么要结合 LR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-%E7%89%B9%E5%BE%81%E8%BD%AC%E6%8D%A2%E6%96%B9%E5%BC%8F"><span class="nav-number">3.2.</span> <span class="nav-text">2. 特征转换方式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%AE%83%E4%B8%BA%E4%BB%80%E4%B9%88%E6%9C%89%E6%95%88"><span class="nav-number">3.3.</span> <span class="nav-text">3. 它为什么有效</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B"><span class="nav-number">3.4.</span> <span class="nav-text">4. 训练流程</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%82%E5%90%88%E7%B2%97%E6%8E%92"><span class="nav-number">3.5.</span> <span class="nav-text">5. 为什么适合粗排</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%94%A8-LightGBM-%E7%9A%84-LambdaRank-%E6%96%B9%E6%B3%95%E8%BF%9B%E8%A1%8C%E7%B2%97%E6%8E%92"><span class="nav-number">4.</span> <span class="nav-text">用 LightGBM 的 LambdaRank 方法进行粗排</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E6%8E%92%E5%BA%8F%E9%97%AE%E9%A2%98%E7%9A%84%E6%9C%AC%E8%B4%A8"><span class="nav-number">4.1.</span> <span class="nav-text">1. 排序问题的本质</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-pairwise-%E6%A6%82%E7%8E%87%E5%BD%A2%E5%BC%8F"><span class="nav-number">4.2.</span> <span class="nav-text">2. pairwise 概率形式</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-Lambda-%E7%9A%84%E6%A0%B8%E5%BF%83%E6%80%9D%E6%83%B3"><span class="nav-number">4.3.</span> <span class="nav-text">3. Lambda 的核心思想</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%82%E5%90%88%E7%B2%97%E6%8E%92"><span class="nav-number">4.4.</span> <span class="nav-text">4. 为什么适合粗排</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-LightGBM-%E4%B8%AD%E7%9A%84%E6%95%B0%E6%8D%AE%E7%BB%84%E7%BB%87"><span class="nav-number">4.5.</span> <span class="nav-text">5. LightGBM 中的数据组织</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -389,6 +615,59 @@
   
 
   
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
 
