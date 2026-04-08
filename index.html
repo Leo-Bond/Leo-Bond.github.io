@@ -167,6 +167,316 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/04/07/%E6%B7%B1%E5%BA%A6%E5%85%B4%E8%B6%A3%E7%BD%91%E7%BB%9C%EF%BC%88DIN%EF%BC%89%E5%8F%8A%E5%85%B6%E6%BC%94%E5%8C%96/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2026/04/07/%E6%B7%B1%E5%BA%A6%E5%85%B4%E8%B6%A3%E7%BD%91%E7%BB%9C%EF%BC%88DIN%EF%BC%89%E5%8F%8A%E5%85%B6%E6%BC%94%E5%8C%96/" class="post-title-link" itemprop="url">深度兴趣网络（DIN）及其演化</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-04-08 01:10:32 / 修改时间：21:23:07" itemprop="dateCreated datePublished" datetime="2026-04-08T01:10:32+08:00">2026-04-08</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <h2 id="DIN"><a href="#DIN" class="headerlink" title="DIN"></a>DIN</h2><p>在推荐系统里，用户兴趣并不是一个固定不变的向量，而是会随着候选物品的不同而表现出不同侧面。</p>
+<p>例如同一个用户既买过母婴用品，也看过数码产品。当我们要预测他是否会点击一款婴儿车时，历史里的母婴行为显然更重要；而在预测他是否会购买耳机时，数码相关行为又更有参考价值。</p>
+<p>传统的 Embedding + MLP 排序模型，通常会把用户历史行为池化成一个固定长度向量，例如平均池化或求和池化：</p>
+<p>$$<br>v_u &#x3D; \frac{1}{T}\sum_{i&#x3D;1}^{T} e_i<br>$$</p>
+<p>其中：</p>
+<ul>
+<li>$e_i$ 表示第 $i$ 个历史行为 item 的 embedding</li>
+<li>$T$ 表示行为序列长度</li>
+<li>$v_u$ 表示汇总后的用户兴趣表示</li>
+</ul>
+<p>这种做法虽然简单，但问题也很明显：</p>
+<ul>
+<li>所有历史行为被一视同仁</li>
+<li>用户兴趣被压缩成单一静态向量</li>
+<li>无法根据当前候选广告或商品动态调整关注重点</li>
+</ul>
+<p>DIN（Deep Interest Network）提出的核心思想就是：</p>
+<ul>
+<li>不预先生成一个固定的用户兴趣向量</li>
+<li>而是针对当前候选 item，自适应地从历史行为里挑选更相关的兴趣信号</li>
+</ul>
+<img src="/2026/04/07/%E6%B7%B1%E5%BA%A6%E5%85%B4%E8%B6%A3%E7%BD%91%E7%BB%9C%EF%BC%88DIN%EF%BC%89%E5%8F%8A%E5%85%B6%E6%BC%94%E5%8C%96/1.png" alt="DIN">
+
+<h3 id="1-核心动机"><a href="#1-核心动机" class="headerlink" title="1. 核心动机"></a>1. 核心动机</h3><p>DIN 最重要的观察是：<strong>用户兴趣是局部激活的</strong>。</p>
+<p>也就是说，用户并不是始终对所有兴趣都保持同样强度，而是在面对某个候选 item 时，只会激活与它相关的那部分历史兴趣。</p>
+<p>因此，DIN 不再简单做平均池化，而是引入注意力机制，让候选 item 作为 query，历史行为作为 key&#x2F;value，计算不同历史行为对当前目标的相关程度。</p>
+<h3 id="2-兴趣激活单元"><a href="#2-兴趣激活单元" class="headerlink" title="2. 兴趣激活单元"></a>2. 兴趣激活单元</h3><p>设当前候选 item 的 embedding 为 $e_a$，用户历史行为序列为：</p>
+<p>$$<br>{e_1,e_2,\ldots,e_T}<br>$$</p>
+<p>DIN 会先计算每个历史行为和候选 item 之间的匹配分数：</p>
+<p>$$<br>w_i &#x3D; f(e_i, e_a)<br>$$</p>
+<p>这里的 $f(\cdot)$ 通常是一个前馈网络，输入可能包括：</p>
+<ul>
+<li>$e_i$</li>
+<li>$e_a$</li>
+<li>$e_i - e_a$</li>
+<li>$e_i \odot e_a$</li>
+</ul>
+<p>其中 $\odot$ 表示逐元素乘积。</p>
+<p>得到权重后，对历史行为做加权汇总：</p>
+<p>$$<br>v_u(e_a) &#x3D; \sum_{i&#x3D;1}^{T} w_i e_i<br>$$</p>
+<p>注意这里的 $v_u(e_a)$ 不再是一个固定的用户向量，而是<strong>和候选 item 相关的兴趣表示</strong>。</p>
+<p>这就是 DIN 相比传统 pooling 的本质区别。</p>
+<h3 id="3-模型结构"><a href="#3-模型结构" class="headerlink" title="3. 模型结构"></a>3. 模型结构</h3><p>DIN 的整体流程可以理解为下面几步：</p>
+<ol>
+<li>对用户画像、上下文特征、候选 item、历史行为序列分别做 embedding</li>
+<li>用候选 item 对历史行为序列做 attention，生成与当前目标相关的兴趣表示</li>
+<li>将兴趣表示与其他特征拼接</li>
+<li>输入多层感知机（MLP）输出点击率或转化率</li>
+</ol>
+<p>因此，从结构上看，DIN 仍然属于 CTR 预估中的深度排序模型，只不过它在“用户兴趣建模”这一层引入了目标感知的注意力机制。</p>
+<h3 id="4-DIN-解决了什么问题"><a href="#4-DIN-解决了什么问题" class="headerlink" title="4. DIN 解决了什么问题"></a>4. DIN 解决了什么问题</h3><p>DIN 相比早期的 Wide &amp; Deep、DeepFM 一类模型，主要改进在于：</p>
+<ul>
+<li>从静态兴趣建模转向动态兴趣激活</li>
+<li>让历史行为不再等权参与预测</li>
+<li>显式建模“候选 item 和历史行为是否相关”</li>
+</ul>
+<p>对于电商场景尤其有效，因为用户的浏览、点击、加购、购买行为天然带有强烈的多兴趣特征。</p>
+<h3 id="5-感知-mini-batch-的正则化"><a href="#5-感知-mini-batch-的正则化" class="headerlink" title="5. 感知 mini-batch 的正则化"></a>5. 感知 mini-batch 的正则化</h3><p>除了兴趣激活单元本身，DIN 论文里还提到了一个比较工程化、但很实用的训练技巧：mini-batch aware regularization。</p>
+<p>CTR 模型里大量参数来自 embedding，尤其是用户、item、类目等高维稀疏特征。若直接对全部 embedding 参数做普通 $L_2$ 正则：</p>
+<p>$$<br>\lambda \lVert \theta \rVert_2^2<br>$$</p>
+<p>虽然形式上很简单，但在工业场景里会遇到一个问题：</p>
+<ul>
+<li>参数规模极大</li>
+<li>每个 mini-batch 实际只访问其中很小一部分 embedding</li>
+<li>如果每一步都对全量参数做正则，计算和存储代价都很高</li>
+</ul>
+<p>DIN 的做法是：只对当前 mini-batch 里真正出现过的稀疏特征参数施加正则约束。</p>
+<p>直观理解就是：</p>
+<ul>
+<li>这一批样本没有出现的 embedding，就不在这一轮额外计算正则</li>
+<li>这一批样本访问到的 embedding，才参与当前 batch 的惩罚项</li>
+</ul>
+<p>这样做的好处是：</p>
+<ul>
+<li>更适合超大规模稀疏参数训练</li>
+<li>降低无意义的全量正则计算开销</li>
+<li>在工程上更容易和稀疏更新框架结合</li>
+</ul>
+<h3 id="6-数据自适应激活函数"><a href="#6-数据自适应激活函数" class="headerlink" title="6. 数据自适应激活函数"></a>6. 数据自适应激活函数</h3><img src="/2026/04/07/%E6%B7%B1%E5%BA%A6%E5%85%B4%E8%B6%A3%E7%BD%91%E7%BB%9C%EF%BC%88DIN%EF%BC%89%E5%8F%8A%E5%85%B6%E6%BC%94%E5%8C%96/2.png" alt="DICE">
+
+<p>DIN 里另一个常被提到的技巧，是数据自适应激活函数 DICE（Data Adaptive Activation Function）。</p>
+<p>在普通 MLP 里，常见激活函数是 ReLU：</p>
+<p>$$<br>\mathrm{ReLU}(x) &#x3D; \max(0, x)<br>$$</p>
+<p>但 CTR 场景有一个特点：</p>
+<ul>
+<li>不同层、不同特征维度的输入分布差异很大</li>
+<li>同一层神经元在不同 batch 下的激活分布也可能不断变化</li>
+</ul>
+<p>固定形状的激活函数，有时不能很好适应这种分布漂移。</p>
+<p>DICE 的核心思想是：</p>
+<ul>
+<li>不再用固定阈值把输入简单切成正半轴和负半轴</li>
+<li>而是根据当前数据分布，自适应地决定激活函数在不同区域的响应强度</li>
+</ul>
+<p>可以把它理解成一种带数据感知能力的 PReLU。它会先结合输入的均值、方差做归一化判断，再用一个可学习参数控制负半区保留多少信息。</p>
+<p>从直觉上说：</p>
+<ul>
+<li>如果某个神经元当前输入大多偏大，激活边界就应随之调整</li>
+<li>如果输入大多偏小，激活函数也不应死板地直接截断</li>
+</ul>
+<p>这个技巧对 CTR 模型很有帮助，因为推荐场景里的特征分布往往高度非平稳，激活函数如果能随数据分布自适应变化，通常会比固定 ReLU 更灵活。</p>
+<p>所以从工程角度看，DIN 的贡献不只是提出了兴趣激活机制，还包括：</p>
+<ul>
+<li>在稀疏大规模参数场景下，引入更实用的 mini-batch aware regularization</li>
+<li>在深层非线性建模里，引入更适合 CTR 分布特点的 DICE 激活函数</li>
+</ul>
+<h3 id="7-DIN-的局限"><a href="#7-DIN-的局限" class="headerlink" title="7. DIN 的局限"></a>7. DIN 的局限</h3><p>DIN 虽然把“相关兴趣激活”做出来了，但它仍然有两个重要限制：</p>
+<ul>
+<li>只关注当前候选 item 与历史行为的相关性，没有显式建模兴趣随时间的演化过程</li>
+<li>历史行为之间彼此独立参与 attention，缺少对序列依赖关系的建模</li>
+</ul>
+<p>换句话说，DIN 更像是在回答：</p>
+<ul>
+<li>哪些历史行为与当前候选 item 更相关</li>
+</ul>
+<p>但还没有很好回答：</p>
+<ul>
+<li>用户兴趣是如何一步步演变到现在的</li>
+</ul>
+<p>这也是后续 DIEN 出现的原因。</p>
+<h2 id="DIEN"><a href="#DIEN" class="headerlink" title="DIEN"></a>DIEN</h2><p>DIEN（Deep Interest Evolution Network）是在 DIN 基础上的进一步发展。它认为，仅仅做“兴趣激活”还不够，因为用户行为本身是一个时间序列，兴趣会不断形成、强化、衰减和转移。</p>
+<p>因此，DIEN 想解决的是两个问题：</p>
+<ul>
+<li>如何从原始行为序列中提取更合理的“兴趣状态”</li>
+<li>如何建模这些兴趣状态随时间的演化过程</li>
+</ul>
+<h3 id="1-为什么-DIN-还不够"><a href="#1-为什么-DIN-还不够" class="headerlink" title="1. 为什么 DIN 还不够"></a>1. 为什么 DIN 还不够</h3><p>在 DIN 中，历史行为 embedding 基本直接拿来和目标 item 做匹配。这样做默认了一个假设：</p>
+<ul>
+<li>单个行为 embedding 就足以代表用户在那个时刻的兴趣</li>
+</ul>
+<p>但实际并不总是如此。</p>
+<p>例如用户连续看了很多手机壳、充电头、数据线，这种连续行为共同表达的可能是“正在为新手机配件做选购”，单独看某一次点击并不能完整体现这一意图。</p>
+<p>所以，DIEN 先用序列模型对行为进行编码，把“行为”提升成“兴趣状态”。</p>
+<h3 id="2-Interest-Extractor-Layer"><a href="#2-Interest-Extractor-Layer" class="headerlink" title="2. Interest Extractor Layer"></a>2. Interest Extractor Layer</h3><p>DIEN 的第一层关键结构是 Interest Extractor Layer，通常使用 GRU 来编码用户行为序列：</p>
+<p>$$<br>h_t &#x3D; \mathrm{GRU}(e_t, h_{t-1})<br>$$</p>
+<p>其中：</p>
+<ul>
+<li>$e_t$ 是第 $t$ 个行为 item 的 embedding</li>
+<li>$h_t$ 是第 $t$ 时刻提取出的兴趣状态</li>
+</ul>
+<p>这样一来，$h_t$ 不再只是单个行为的表示，而是融合了前序上下文的信息，更接近“用户此刻的兴趣”。</p>
+<p>DIEN 还引入了辅助损失（auxiliary loss）来增强兴趣提取效果。直观理解是：</p>
+<ul>
+<li>用当前兴趣状态去预测下一个真实行为</li>
+<li>同时区分真实下一个行为和负采样行为</li>
+</ul>
+<p>辅助损失让中间层的兴趣状态拥有更明确的监督信号，而不是只靠最终 CTR 标签反向传播。</p>
+<h3 id="3-Interest-Evolving-Layer"><a href="#3-Interest-Evolving-Layer" class="headerlink" title="3. Interest Evolving Layer"></a>3. Interest Evolving Layer</h3><p>提取出兴趣状态后，DIEN 还需要进一步回答：</p>
+<ul>
+<li>哪些兴趣状态会持续演化到当前目标相关的兴趣</li>
+</ul>
+<p>因此它在第二层又使用了一次基于 GRU 的演化建模，并把目标 item 的注意力信息融入其中。</p>
+<p>设从第一层得到兴趣状态序列：</p>
+<p>$$<br>{\mathbf{h}_1,\mathbf{h}_2,\ldots,\mathbf{h}_T}<br>$$</p>
+<p>先计算每个兴趣状态和候选 item 的相关性：</p>
+<p>$$<br>\alpha_t &#x3D; \mathrm{Att}(\mathbf{h}_t, \mathbf{e}_a)<br>$$</p>
+<p>然后再把这些注意力分数注入到兴趣演化过程里，从而让演化网络更关注与目标相关的兴趣轨迹。</p>
+<p>论文中提出了几种 attention 与 GRU 结合的方式，其中最常被提到的是 AUGRU（Attentional Update Gate GRU）。它的直观含义是：</p>
+<ul>
+<li>如果某个时刻的兴趣状态和目标 item 更相关，就让 GRU 更新得更明显</li>
+<li>如果相关性较弱，就减小该时刻对最终兴趣表示的影响</li>
+</ul>
+<h3 id="4-DIEN-相比-DIN-的提升"><a href="#4-DIEN-相比-DIN-的提升" class="headerlink" title="4. DIEN 相比 DIN 的提升"></a>4. DIEN 相比 DIN 的提升</h3><p>DIEN 相比 DIN，实质上多做了两件事：</p>
+<ul>
+<li>把“历史行为”升级成“兴趣状态序列”</li>
+<li>把“静态相关性加权”升级成“目标感知的兴趣演化建模”</li>
+</ul>
+<p>因此，DIN 更像是：</p>
+<ul>
+<li>从历史里挑出和当前候选相关的行为</li>
+</ul>
+<p>而 DIEN 更像是：</p>
+<ul>
+<li>先理解用户兴趣是如何形成的</li>
+<li>再挑出那条与当前目标最相关的兴趣演化路径</li>
+</ul>
+<h3 id="5-DIEN-的价值与不足"><a href="#5-DIEN-的价值与不足" class="headerlink" title="5. DIEN 的价值与不足"></a>5. DIEN 的价值与不足</h3><p>DIEN 很适合行为序列较长、兴趣变化较快的场景，因为它比 DIN 更强调时间顺序和状态转移。</p>
+<p>但它依然有一个局限：</p>
+<ul>
+<li>它主要把用户行为看成一条线性的时间序列</li>
+</ul>
+<p>在很多场景中，用户会在一天内反复切换兴趣，比如上午看零食，中午看耳机，晚上又回来看零食。单纯按时间顺序压成一条长序列，有时并不能很好刻画这种多会话、多兴趣跳转行为。</p>
+<p>这就引出了 DSIN。</p>
+<h2 id="DSIN"><a href="#DSIN" class="headerlink" title="DSIN"></a>DSIN</h2><p>DSIN（Deep Session Interest Network）进一步强调：用户的行为并不只是一个长序列，还天然带有会话（session）结构。</p>
+<p>例如在一次连续浏览中，用户可能集中关注某一类商品；而过了一段时间后再打开 App，又进入了另一段新的兴趣会话。把这些行为全都平铺到一条长序列里，可能会稀释局部兴趣模式。</p>
+<h3 id="1-核心动机-1"><a href="#1-核心动机-1" class="headerlink" title="1. 核心动机"></a>1. 核心动机</h3><p>DSIN 的出发点是：</p>
+<ul>
+<li>用户在短时间内的一组连续行为，往往反映一个较稳定的局部兴趣</li>
+<li>不同 session 之间，兴趣可能发生切换</li>
+</ul>
+<p>因此，DSIN 会先把用户行为划分为多个 session，再分别建模 session 内部兴趣与 session 之间的关系。</p>
+<h3 id="2-Session-划分"><a href="#2-Session-划分" class="headerlink" title="2. Session 划分"></a>2. Session 划分</h3><p>DSIN 通常会根据时间间隔把用户行为切成多个 session。例如：</p>
+<ul>
+<li>如果两次行为间隔较短，则认为属于同一次浏览会话</li>
+<li>如果间隔较长，则切到新的 session</li>
+</ul>
+<p>于是原始行为序列：</p>
+<p>$$<br>{\mathbf{e}_1,\mathbf{e}_2,\ldots,\mathbf{e}_T}<br>$$</p>
+<p>会被划分为：</p>
+<p>$$<br>\mathcal{S}_1,\mathcal{S}_2,\ldots,\mathcal{S}_K<br>$$</p>
+<p>其中每个 $\mathcal{S}_k$ 表示一个局部会话。</p>
+<h3 id="3-Session-内兴趣建模"><a href="#3-Session-内兴趣建模" class="headerlink" title="3. Session 内兴趣建模"></a>3. Session 内兴趣建模</h3><p>在每个 session 内，DSIN 会利用 self-attention 或类似机制，对该 session 中的多个行为进行建模，抽取局部兴趣表示。</p>
+<p>直观理解是：</p>
+<ul>
+<li>同一个 session 内的行为通常主题更集中</li>
+<li>因此更适合在局部范围内做兴趣聚合</li>
+</ul>
+<p>如果第 $k$ 个 session 的输出表示记为 $\mathbf{s}_k$，那么最终会得到一个 session 兴趣序列：</p>
+<p>$$<br>{\mathbf{s}_1,\mathbf{s}_2,\ldots,\mathbf{s}_K}<br>$$</p>
+<p>这一步的意义是：先把原始的 item 级行为压缩成 session 级兴趣单元。</p>
+<h3 id="4-Session-间演化"><a href="#4-Session-间演化" class="headerlink" title="4. Session 间演化"></a>4. Session 间演化</h3><p>得到多个 session 表示后，DSIN 再使用序列模型（如 Bi-LSTM）去建模 session 之间的依赖关系，从而捕捉用户兴趣在多个会话之间的变化。</p>
+<p>随后，再结合当前候选 item 做 attention，挑出和目标最相关的 session 兴趣：</p>
+<p>$$<br>\beta_k &#x3D; \mathrm{Att}(\mathbf{s}_k, \mathbf{e}_a)<br>$$</p>
+<p>再对 session 兴趣加权汇总，得到最终用户表示。</p>
+<p>与 DIN 相比，DSIN 不再直接在 item 级别做一次全局 attention；与 DIEN 相比，它也不只是沿单一行为链路建模，而是显式利用了 session 结构。</p>
+<h3 id="5-DSIN-适合什么场景"><a href="#5-DSIN-适合什么场景" class="headerlink" title="5. DSIN 适合什么场景"></a>5. DSIN 适合什么场景</h3><p>DSIN 特别适合：</p>
+<ul>
+<li>用户访问具有明显会话特征的场景</li>
+<li>用户兴趣切换频繁的电商或信息流场景</li>
+<li>长行为序列下需要降低噪声、突出局部兴趣模式的任务</li>
+</ul>
+<p>因为把行为先分 session，可以减少“不同兴趣片段互相干扰”的问题。</p>
+<h3 id="6-从-DIN-到-DIEN-再到-DSIN"><a href="#6-从-DIN-到-DIEN-再到-DSIN" class="headerlink" title="6. 从 DIN 到 DIEN 再到 DSIN"></a>6. 从 DIN 到 DIEN 再到 DSIN</h3><p>这三类模型的演进逻辑可以概括成下面一条主线：</p>
+<ul>
+<li>DIN：解决“历史行为不是等权的”，引入目标感知注意力</li>
+<li>DIEN：解决“兴趣不是静态的”，引入兴趣提取与兴趣演化</li>
+<li>DSIN：解决“行为不是单纯长序列的”，引入会话级兴趣结构</li>
+</ul>
+<p>如果从建模粒度来看：</p>
+<ul>
+<li>DIN 主要在 item 行为级别做目标相关建模</li>
+<li>DIEN 在 item 行为级别上进一步建模时间演化</li>
+<li>DSIN 则提升到 session 级别建模局部兴趣和跨会话迁移</li>
+</ul>
+<h3 id="7-总结"><a href="#7-总结" class="headerlink" title="7. 总结"></a>7. 总结</h3><p>DIN 及其后续演化，本质上都围绕一个核心问题展开：</p>
+<ul>
+<li>如何更真实地表示用户兴趣</li>
+</ul>
+<p>早期做法往往把用户兴趣压缩成一个固定向量，而从 DIN 开始，推荐模型逐步意识到：</p>
+<ul>
+<li>兴趣是和目标相关的</li>
+<li>兴趣是动态变化的</li>
+<li>兴趣还可能具有分段、分会话的结构</li>
+</ul>
+<p>因此，这条演进路线并不是简单地把模型做深，而是在一步步逼近真实用户行为的生成机制。</p>
+<p>在实际工程里如何选择，也可以粗略理解为：</p>
+<ul>
+<li>如果重点是快速引入目标感知兴趣建模，DIN 是一个经典起点</li>
+<li>如果更关心兴趣随时间的连续演化，DIEN 更合适</li>
+<li>如果场景里 session 结构明显，DSIN 往往更有表达力</li>
+</ul>
+<p>从这个角度看，DIN 系列模型的价值，不只是提升离线指标，更在于它们把“用户兴趣”从一个静态特征，逐步建模成了一个与目标、时间和会话结构都相关的动态对象。</p>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/03/30/%E8%AF%BB%E8%AE%BA%E6%96%87-OneRec%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -2875,321 +3185,6 @@
   
   
 
-      
-  
-  
-  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
-    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2025/12/11/ElasticSearch-DSL%E4%BB%8B%E7%BB%8D/">
-
-    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
-      <meta itemprop="image" content="/images/avatar.gif">
-      <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
-    </span>
-
-    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-      <meta itemprop="name" content="wdy's blog">
-    </span>
-      <header class="post-header">
-        <h2 class="post-title" itemprop="name headline">
-          
-            <a href="/2025/12/11/ElasticSearch-DSL%E4%BB%8B%E7%BB%8D/" class="post-title-link" itemprop="url">ElasticSearch DSL介绍</a>
-        </h2>
-
-        <div class="post-meta">
-            <span class="post-meta-item">
-              <span class="post-meta-item-icon">
-                <i class="far fa-calendar"></i>
-              </span>
-              <span class="post-meta-item-text">发表于</span>
-
-              <time title="创建时间：2025-12-11 22:09:37" itemprop="dateCreated datePublished" datetime="2025-12-11T22:09:37+08:00">2025-12-11</time>
-            </span>
-              <span class="post-meta-item">
-                <span class="post-meta-item-icon">
-                  <i class="far fa-calendar-check"></i>
-                </span>
-                <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-03-30 22:10:37" itemprop="dateModified" datetime="2026-03-30T22:10:37+08:00">2026-03-30</time>
-              </span>
-
-          
-
-        </div>
-      </header>
-
-    
-    
-    
-    <div class="post-body" itemprop="articleBody">
-
-      
-          <p>Elasticsearch 最强大的地方，不只是它能“存数据”和“搜数据”，而是它提供了一套非常灵活的查询语言，也就是 DSL。</p>
-<p>很多人第一次接触 Elasticsearch 时，会觉得它和 SQL 很不一样。SQL 更像是面向“表”的查询，而 Elasticsearch DSL 更像是面向“文档”和“倒排索引”的检索描述语言。</p>
-<p>这篇文章想讲清楚几个最常用的问题：</p>
-<ul>
-<li>什么是 Elasticsearch DSL</li>
-<li><code>match</code>、<code>term</code>、<code>bool</code> 分别怎么用</li>
-<li>查询和过滤有什么区别</li>
-<li>排序、分页、聚合应该怎么写</li>
-<li>平时最容易踩哪些坑</li>
-</ul>
-<h2 id="一、什么是-DSL"><a href="#一、什么是-DSL" class="headerlink" title="一、什么是 DSL"></a>一、什么是 DSL</h2><p>DSL 全称是 Domain Specific Language，也就是“领域特定语言”。</p>
-<p>在 Elasticsearch 中，DSL 本质上就是一段 JSON，用来描述：</p>
-<ul>
-<li>我要查哪些文档</li>
-<li>条件是什么</li>
-<li>怎么排序</li>
-<li>怎么分页</li>
-<li>是否要做聚合统计</li>
-</ul>
-<p>例如最简单的一条查询：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>这段 DSL 的含义就是：</p>
-<ul>
-<li>在 <code>product</code> 索引中搜索</li>
-<li>查找 <code>title</code> 字段中和 <code>iphone</code> 相关的文档</li>
-</ul>
-<p>所以可以把 DSL 理解成 Elasticsearch 的查询描述语言。</p>
-<h2 id="二、一个完整搜索请求通常包含什么"><a href="#二、一个完整搜索请求通常包含什么" class="headerlink" title="二、一个完整搜索请求通常包含什么"></a>二、一个完整搜索请求通常包含什么</h2><p>一个典型的 Elasticsearch 搜索请求，通常由下面几部分组成：</p>
-<ul>
-<li><code>query</code>：查询条件</li>
-<li><code>sort</code>：排序规则</li>
-<li><code>from</code> &#x2F; <code>size</code>：分页</li>
-<li><code>_source</code>：返回哪些字段</li>
-<li><code>aggs</code>：聚合分析</li>
-</ul>
-<p>例如：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;_source&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;title&quot;</span><span class="punctuation">,</span> <span class="string">&quot;price&quot;</span><span class="punctuation">,</span> <span class="string">&quot;brand&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;brand.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Apple&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="number">5000</span><span class="punctuation">,</span> <span class="attr">&quot;lte&quot;</span><span class="punctuation">:</span> <span class="number">10000</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sort&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="string">&quot;asc&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;from&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">10</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>这一条请求已经很接近真实业务了：</p>
-<ul>
-<li>关键词搜索 <code>iphone</code></li>
-<li>只看 Apple 品牌</li>
-<li>只要 5000 到 10000 的商品</li>
-<li>按价格升序排序</li>
-<li>返回前 10 条</li>
-</ul>
-<h2 id="三、Query-和-Filter-的区别"><a href="#三、Query-和-Filter-的区别" class="headerlink" title="三、Query 和 Filter 的区别"></a>三、Query 和 Filter 的区别</h2><p>这是 Elasticsearch DSL 最值得先理解的地方。</p>
-<p>虽然它们看起来都在“筛选文档”，但语义完全不同。</p>
-<h3 id="1-Query"><a href="#1-Query" class="headerlink" title="1. Query"></a>1. Query</h3><p><code>query</code> 更强调“相关性”。</p>
-<p>它通常会计算 <code>_score</code>，也就是相关性得分。例如：</p>
-<ul>
-<li>关键词是否命中</li>
-<li>命中了几个词</li>
-<li>词频如何</li>
-<li>文档是否更接近查询意图</li>
-</ul>
-<p>所以 <code>query</code> 适合全文检索场景，例如：</p>
-<ul>
-<li>搜文章标题</li>
-<li>搜商品名称</li>
-<li>搜评论内容</li>
-</ul>
-<h3 id="2-Filter"><a href="#2-Filter" class="headerlink" title="2. Filter"></a>2. Filter</h3><p><code>filter</code> 更强调“条件过滤”。</p>
-<p>它只关心：</p>
-<ul>
-<li>满足</li>
-<li>或不满足</li>
-</ul>
-<p>而不会参与相关性评分，通常也更高效，很多情况下还能利用缓存。</p>
-<p>所以 <code>filter</code> 更适合结构化条件，例如：</p>
-<ul>
-<li>品牌是否等于 Apple</li>
-<li>价格是否大于 5000</li>
-<li>状态是否为已上架</li>
-<li>时间是否在某个区间内</li>
-</ul>
-<p>一句话总结：</p>
-<ul>
-<li>需要相关性计算，用 <code>query</code></li>
-<li>只是精确筛选，用 <code>filter</code></li>
-</ul>
-<h2 id="四、最常用的查询类型"><a href="#四、最常用的查询类型" class="headerlink" title="四、最常用的查询类型"></a>四、最常用的查询类型</h2><h3 id="1-match"><a href="#1-match" class="headerlink" title="1. match"></a>1. <code>match</code></h3><p><code>match</code> 是最常见的全文检索查询。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /article/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;深度学习推荐系统&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>它会对查询词进行分词，再基于倒排索引检索。</p>
-<p>适合字段：</p>
-<ul>
-<li><code>text</code></li>
-</ul>
-<p>不适合字段：</p>
-<ul>
-<li><code>keyword</code></li>
-<li>数值字段</li>
-<li>日期字段</li>
-</ul>
-<h3 id="2-term"><a href="#2-term" class="headerlink" title="2. term"></a>2. <code>term</code></h3><p><code>term</code> 用于精确匹配，不做分词。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;brand.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Apple&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>适合场景：</p>
-<ul>
-<li>ID</li>
-<li>枚举值</li>
-<li>状态字段</li>
-<li><code>keyword</code> 类型字段</li>
-</ul>
-<p>这是最常见的坑之一：</p>
-<ul>
-<li>对 <code>text</code> 字段做全文搜索，不该用 <code>term</code></li>
-<li>对精确值做过滤，通常不该用 <code>match</code></li>
-</ul>
-<h3 id="3-terms"><a href="#3-terms" class="headerlink" title="3. terms"></a>3. <code>terms</code></h3><p><code>terms</code> 相当于 SQL 里的 <code>IN</code>。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;terms&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;category_id&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="number">1</span><span class="punctuation">,</span> <span class="number">2</span><span class="punctuation">,</span> <span class="number">3</span><span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="4-range"><a href="#4-range" class="headerlink" title="4. range"></a>4. <code>range</code></h3><p><code>range</code> 用于范围查询。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="number">5000</span><span class="punctuation">,</span></span><br><span class="line">        <span class="attr">&quot;lte&quot;</span><span class="punctuation">:</span> <span class="number">10000</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>常见关键字：</p>
-<ul>
-<li><code>gt</code>：大于</li>
-<li><code>gte</code>：大于等于</li>
-<li><code>lt</code>：小于</li>
-<li><code>lte</code>：小于等于</li>
-</ul>
-<h3 id="5-match-phrase"><a href="#5-match-phrase" class="headerlink" title="5. match_phrase"></a>5. <code>match_phrase</code></h3><p><code>match_phrase</code> 用于短语匹配，强调词序。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /article/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match_phrase&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;推荐系统 架构&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>适合需要“连续短语命中”的场景。</p>
-<h2 id="五、bool-查询"><a href="#五、bool-查询" class="headerlink" title="五、bool 查询"></a>五、<code>bool</code> 查询</h2><p>实际业务中，查询条件往往不会只有一个。Elasticsearch 里最常用的组合方式就是 <code>bool</code>。</p>
-<p><code>bool</code> 最常见的四个子句是：</p>
-<ul>
-<li><code>must</code></li>
-<li><code>should</code></li>
-<li><code>filter</code></li>
-<li><code>must_not</code></li>
-</ul>
-<h3 id="1-must"><a href="#1-must" class="headerlink" title="1. must"></a>1. <code>must</code></h3><p>必须满足，并参与评分。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="2-filter"><a href="#2-filter" class="headerlink" title="2. filter"></a>2. <code>filter</code></h3><p>必须满足，但不参与评分。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;brand.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Apple&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="3-should"><a href="#3-should" class="headerlink" title="3. should"></a>3. <code>should</code></h3><p>最好满足，相当于加分项。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;should&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pro&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;max&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="4-must-not"><a href="#4-must-not" class="headerlink" title="4. must_not"></a>4. <code>must_not</code></h3><p>必须不满足。</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="attr">&quot;must_not&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">  <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;offline&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">]</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="5-一个完整示例"><a href="#5-一个完整示例" class="headerlink" title="5. 一个完整示例"></a>5. 一个完整示例</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;brand.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Apple&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="number">5000</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;must_not&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;offline&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;should&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pro&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h2 id="六、排序和分页"><a href="#六、排序和分页" class="headerlink" title="六、排序和分页"></a>六、排序和分页</h2><h3 id="1-排序"><a href="#1-排序" class="headerlink" title="1. 排序"></a>1. 排序</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sort&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;_score&quot;</span><span class="punctuation">:</span> <span class="string">&quot;desc&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="string">&quot;asc&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>常见排序字段：</p>
-<ul>
-<li><code>_score</code></li>
-<li>数值字段</li>
-<li>日期字段</li>
-<li><code>keyword</code> 字段</li>
-</ul>
-<p>如果对 <code>text</code> 字段排序，通常会有问题，一般要排序对应的 <code>.keyword</code> 子字段。</p>
-<h3 id="2-分页"><a href="#2-分页" class="headerlink" title="2. 分页"></a>2. 分页</h3><p>最常见的分页方式是：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;from&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">10</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match_all&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span><span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>含义是：</p>
-<ul>
-<li>从第 0 条开始</li>
-<li>返回 10 条</li>
-</ul>
-<p>但需要注意，<code>from + size</code> 很大时，深分页性能会明显变差。</p>
-<p>如果是深分页场景，通常更推荐：</p>
-<ul>
-<li><code>search_after</code></li>
-<li><code>scroll</code></li>
-</ul>
-<p>其中：</p>
-<ul>
-<li><code>scroll</code> 更适合离线导出</li>
-<li><code>search_after</code> 更适合在线翻页</li>
-</ul>
-<h2 id="七、聚合查询-aggs"><a href="#七、聚合查询-aggs" class="headerlink" title="七、聚合查询 aggs"></a>七、聚合查询 <code>aggs</code></h2><p>Elasticsearch 不只是搜索引擎，它也很擅长做统计分析。这个能力主要通过 <code>aggs</code> 来实现。</p>
-<h3 id="1-terms-聚合"><a href="#1-terms-聚合" class="headerlink" title="1. terms 聚合"></a>1. <code>terms</code> 聚合</h3><p>统计每个品牌下有多少文档：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;brand_count&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;terms&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;brand.keyword&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>这里 <code>size: 0</code> 的意思是：</p>
-<ul>
-<li>不返回具体文档</li>
-<li>只返回聚合结果</li>
-</ul>
-<h3 id="2-avg-聚合"><a href="#2-avg-聚合" class="headerlink" title="2. avg 聚合"></a>2. <code>avg</code> 聚合</h3><p>统计平均价格：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;avg_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;avg&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;price&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="3-分组后再统计"><a href="#3-分组后再统计" class="headerlink" title="3. 分组后再统计"></a>3. 分组后再统计</h3><p>先按品牌分组，再统计每个品牌的平均价格：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;brand_group&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;terms&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;brand.keyword&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;avg_price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">          <span class="attr">&quot;avg&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">            <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;price&quot;</span></span><br><span class="line">          <span class="punctuation">&#125;</span></span><br><span class="line">        <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>这是报表和分析场景里非常常见的写法。</p>
-<h2 id="八、几个常见业务场景"><a href="#八、几个常见业务场景" class="headerlink" title="八、几个常见业务场景"></a>八、几个常见业务场景</h2><h3 id="1-全文搜索-条件过滤"><a href="#1-全文搜索-条件过滤" class="headerlink" title="1. 全文搜索 + 条件过滤"></a>1. 全文搜索 + 条件过滤</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">GET /article/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Elasticsearch&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;published&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;publish_time&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="string">&quot;2026-01-01&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="2-精确筛选"><a href="#2-精确筛选" class="headerlink" title="2. 精确筛选"></a>2. 精确筛选</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">GET /order/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;user_id&quot;</span><span class="punctuation">:</span> <span class="number">1001</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;paid&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<h3 id="3-搜索-聚合"><a href="#3-搜索-聚合" class="headerlink" title="3. 搜索 + 聚合"></a>3. 搜索 + 聚合</h3><figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;手机&quot;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;brand_group&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;terms&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;brand.keyword&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>这种写法在搜索页做筛选面板时特别常见。</p>
-<h2 id="九、最容易踩的坑"><a href="#九、最容易踩的坑" class="headerlink" title="九、最容易踩的坑"></a>九、最容易踩的坑</h2><h3 id="1-match-和-term-用反了"><a href="#1-match-和-term-用反了" class="headerlink" title="1. match 和 term 用反了"></a>1. <code>match</code> 和 <code>term</code> 用反了</h3><p>这是最常见的问题。</p>
-<ul>
-<li>搜 <code>text</code> 字段，通常用 <code>match</code></li>
-<li>查 ID、状态、枚举值，通常用 <code>term</code></li>
-</ul>
-<h3 id="2-对-text-字段做聚合或排序"><a href="#2-对-text-字段做聚合或排序" class="headerlink" title="2. 对 text 字段做聚合或排序"></a>2. 对 <code>text</code> 字段做聚合或排序</h3><p>很多人会发现：</p>
-<ul>
-<li>排序报错</li>
-<li>聚合结果不符合预期</li>
-</ul>
-<p>原因通常是字段类型是 <code>text</code>，会被分词。</p>
-<p>这时一般要用：</p>
-<ul>
-<li><code>field.keyword</code></li>
-</ul>
-<h3 id="3-深分页性能差"><a href="#3-深分页性能差" class="headerlink" title="3. 深分页性能差"></a>3. 深分页性能差</h3><p>如果 <code>from</code> 很大，Elasticsearch 会越来越慢。</p>
-<p>所以不是所有分页都适合一直用 <code>from + size</code>。</p>
-<h3 id="4-把过滤条件写进-must"><a href="#4-把过滤条件写进-must" class="headerlink" title="4. 把过滤条件写进 must"></a>4. 把过滤条件写进 <code>must</code></h3><p>如果某个条件只是单纯筛选，而不是为了影响相关性评分，那么它更适合写进 <code>filter</code>。</p>
-<h2 id="十、一个综合示例"><a href="#十、一个综合示例" class="headerlink" title="十、一个综合示例"></a>十、一个综合示例</h2><p>下面是一个比较完整的搜索 DSL：</p>
-<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br></pre></td><td class="code"><pre><span class="line">GET /product/_search</span><br><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;_source&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span><span class="string">&quot;title&quot;</span><span class="punctuation">,</span> <span class="string">&quot;brand&quot;</span><span class="punctuation">,</span> <span class="string">&quot;price&quot;</span><span class="punctuation">,</span> <span class="string">&quot;category&quot;</span><span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;from&quot;</span><span class="punctuation">:</span> <span class="number">0</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;size&quot;</span><span class="punctuation">:</span> <span class="number">10</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;query&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;bool&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;must&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;iphone&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;filter&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;brand.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;Apple&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;range&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;gte&quot;</span><span class="punctuation">:</span> <span class="number">5000</span><span class="punctuation">,</span> <span class="attr">&quot;lte&quot;</span><span class="punctuation">:</span> <span class="number">10000</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;must_not&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;term&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;status.keyword&quot;</span><span class="punctuation">:</span> <span class="string">&quot;offline&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">      <span class="attr">&quot;should&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">        <span class="punctuation">&#123;</span> <span class="attr">&quot;match&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span> <span class="attr">&quot;title&quot;</span><span class="punctuation">:</span> <span class="string">&quot;pro&quot;</span> <span class="punctuation">&#125;</span> <span class="punctuation">&#125;</span></span><br><span class="line">      <span class="punctuation">]</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;sort&quot;</span><span class="punctuation">:</span> <span class="punctuation">[</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;_score&quot;</span><span class="punctuation">:</span> <span class="string">&quot;desc&quot;</span> <span class="punctuation">&#125;</span><span class="punctuation">,</span></span><br><span class="line">    <span class="punctuation">&#123;</span> <span class="attr">&quot;price&quot;</span><span class="punctuation">:</span> <span class="string">&quot;asc&quot;</span> <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">]</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;aggs&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">    <span class="attr">&quot;category_group&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">      <span class="attr">&quot;terms&quot;</span><span class="punctuation">:</span> <span class="punctuation">&#123;</span></span><br><span class="line">        <span class="attr">&quot;field&quot;</span><span class="punctuation">:</span> <span class="string">&quot;category.keyword&quot;</span></span><br><span class="line">      <span class="punctuation">&#125;</span></span><br><span class="line">    <span class="punctuation">&#125;</span></span><br><span class="line">  <span class="punctuation">&#125;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
-
-<p>如果把它翻译成人话，就是：</p>
-<ul>
-<li>搜索标题里和 <code>iphone</code> 相关的商品</li>
-<li>品牌必须是 Apple</li>
-<li>价格在 5000 到 10000 之间</li>
-<li>不要下架商品</li>
-<li>命中 <code>pro</code> 的结果优先级更高</li>
-<li>按相关性和价格排序</li>
-<li>同时统计不同分类下的分布</li>
-</ul>
-<h2 id="十一、小结"><a href="#十一、小结" class="headerlink" title="十一、小结"></a>十一、小结</h2><p>ElasticSearch DSL 最重要的不是死记语法，而是先建立一套正确的使用习惯：</p>
-<ol>
-<li>全文搜索优先考虑 <code>match</code></li>
-<li>精确过滤优先考虑 <code>term</code> &#x2F; <code>range</code> &#x2F; <code>filter</code></li>
-<li>复杂逻辑用 <code>bool</code> 来组织</li>
-<li>统计分析用 <code>aggs</code></li>
-</ol>
-<p>如果把 Elasticsearch DSL 理解成“倒排索引上的 JSON 查询语法树”，很多看起来复杂的写法其实都会变得很自然。</p>
-<p>真正写多了之后，你会发现最常用的其实就是这几类：</p>
-<ul>
-<li><code>match</code></li>
-<li><code>term</code></li>
-<li><code>bool</code></li>
-<li><code>range</code></li>
-<li><code>sort</code></li>
-<li><code>aggs</code></li>
-</ul>
-<p>把这些掌握住，日常绝大多数 Elasticsearch 查询需求基本就能覆盖了。</p>
-
-      
-    </div>
-
-    
-    
-    
-      <footer class="post-footer">
-        <div class="post-eof"></div>
-      </footer>
-  </article>
-  
-  
-  
-
 
   
   <nav class="pagination">
@@ -3259,7 +3254,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">16</span>
+          <span class="site-state-item-count">17</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
