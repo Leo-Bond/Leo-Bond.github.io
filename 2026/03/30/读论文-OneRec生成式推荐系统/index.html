@@ -22,15 +22,15 @@
     var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment[J]. arXiv preprint arXiv:2502.18965, 2025.">
+  <meta name="description" content="Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment[J]. arXiv preprint arXiv:2502.18965, 2025.  方法介绍本文提出 OneRec，一个端到端的单阶段生成">
 <meta property="og:type" content="article">
 <meta property="og:title" content="读论文-OneRec生成式推荐系统">
 <meta property="og:url" content="https://leo-bond.github.io/2026/03/30/%E8%AF%BB%E8%AE%BA%E6%96%87-OneRec%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/index.html">
 <meta property="og:site_name" content="wdy&#39;s blog">
-<meta property="og:description" content="Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment[J]. arXiv preprint arXiv:2502.18965, 2025.">
+<meta property="og:description" content="Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment[J]. arXiv preprint arXiv:2502.18965, 2025.  方法介绍本文提出 OneRec，一个端到端的单阶段生成">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-03-30T08:39:23.000Z">
-<meta property="article:modified_time" content="2026-03-30T14:41:31.111Z">
+<meta property="article:modified_time" content="2026-04-11T21:16:41.192Z">
 <meta property="article:author" content="wdy">
 <meta name="twitter:card" content="summary">
 
@@ -199,10 +199,16 @@
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2026-03-30 16:39:23 / 修改时间：22:41:31" itemprop="dateCreated datePublished" datetime="2026-03-30T16:39:23+08:00">2026-03-30</time>
+              <time title="创建时间：2026-03-30 16:39:23" itemprop="dateCreated datePublished" datetime="2026-03-30T16:39:23+08:00">2026-03-30</time>
             </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-04-12 05:16:41" itemprop="dateModified" datetime="2026-04-12T05:16:41+08:00">2026-04-12</time>
+              </span>
 
           
 
@@ -218,6 +224,96 @@
         <blockquote>
 <p>Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment[J]. arXiv preprint arXiv:2502.18965, 2025.</p>
 </blockquote>
+<h2 id="方法介绍"><a href="#方法介绍" class="headerlink" title="方法介绍"></a>方法介绍</h2><p>本文提出 <strong>OneRec</strong>，一个端到端的单阶段生成式推荐框架，其目标是直接根据用户历史行为生成目标 session，而不再采用传统的多阶段级联排序流程。设用户历史行为序列为</p>
+<p>$$ H_u&#x3D;{v_1^h,v_2^h,\dots,v_n^h} $$  </p>
+<p>其中，$v_i^h$ 表示用户产生过有效正反馈的视频，$n$ 表示历史行为长度。模型输出为一个 session 级推荐列表</p>
+<p>$$ S&#x3D;{v_1,v_2,\dots,v_m} $$  </p>
+<p>其中，$m$ 表示该 session 中的视频个数。</p>
+<p>从整体上看，OneRec 可以表示为一个从用户历史序列到目标 session 的映射函数：</p>
+<p>$$ S :&#x3D; M(H_u) $$</p>
+<p>OneRec 的方法主要由三部分构成：语义表示构建、session 级生成建模，以及基于奖励模型的迭代偏好对齐。</p>
+<h3 id="1-语义表示构建"><a href="#1-语义表示构建" class="headerlink" title="1. 语义表示构建"></a>1. 语义表示构建</h3><p>对于每个视频 $v_i$，首先利用多模态表示学习得到其连续向量表示</p>
+<p>$$ e_i \in \mathbb{R}^d $$</p>
+<p>为了让生成模型能够像生成文本 token 一样生成推荐结果，OneRec 不直接生成原始 item id，而是将每个视频 embedding 离散化为多层语义 ID。具体地，采用多层 residual quantization。第 1 层的初始残差定义为</p>
+<p>$$ r_i^1 &#x3D; e_i $$</p>
+<p>在第 $l$ 层，设码本为</p>
+<p>$$ C_l&#x3D;{c_1^l,c_2^l,\dots,c_K^l} $$</p>
+<p>其中，$K$ 为该层 codebook 大小。则第 $l$ 层所选取的语义 token 索引为</p>
+<p>$$ s_i^l&#x3D;\arg\min_k \lVert r_i^l-c_k^l \rVert_2^2 $$</p>
+<p>随后，将该层选中的聚类中心从残差中扣除，得到下一层残差：</p>
+<p>$$ r_i^{l+1}&#x3D;r_i^l-c_{s_i^l}^l $$</p>
+<p>因此，多层语义 ID 的生成过程可以写为</p>
+<p>$$ s_i^1 &#x3D; \arg\min_k \lVert r_i^1-c_k^1 \rVert_2^2,\qquad r_i^2 &#x3D; r_i^1-c_{s_i^1}^1 $$</p>
+<p>$$ s_i^2 &#x3D; \arg\min_k \lVert r_i^2-c_k^2 \rVert_2^2,\qquad r_i^3 &#x3D; r_i^2-c_{s_i^2}^2 $$</p>
+<p>$$ \cdots $$</p>
+<p>$$ s_i^L &#x3D; \arg\min_k \lVert r_i^L-c_k^L \rVert_2^2 $$</p>
+<p>最终，每个视频被表示为一个由 $L$ 层 token 构成的语义 ID：</p>
+<p>$$ v_i \longrightarrow (s_i^1,s_i^2,\dots,s_i^L) $$</p>
+<p>为了避免语义 token 分布极不均衡，OneRec 采用 <strong>Balanced K-Means</strong> 构造更平衡的码本。给定物品集合 $V$ 和簇数 $K$，每个簇分配的样本数为</p>
+<p>$$ w&#x3D;\frac{\lvert V \rvert}{K} $$</p>
+<p>Balanced K-Means 的核心约束是：每个 cluster 都尽量包含相同数量的 item，从而缓解语义编码中的分布偏斜问题。</p>
+<h3 id="2-Session-级列表生成"><a href="#2-Session-级列表生成" class="headerlink" title="2. Session 级列表生成"></a>2. Session 级列表生成</h3><p>不同于传统 point-wise 推荐方法只预测下一个 item，OneRec 直接建模整个 session 的生成。用户历史序列和目标 session 都用语义 ID 序列表示：</p>
+<p>$$ H_u&#x3D;{(s_1^1,s_1^2,\dots,s_1^L),(s_2^1,s_2^2,\dots,s_2^L),\dots,(s_n^1,s_n^2,\dots,s_n^L)} $$</p>
+<p>$$ S&#x3D;{(s_1^1,s_1^2,\dots,s_1^L),(s_2^1,s_2^2,\dots,s_2^L),\dots,(s_m^1,s_m^2,\dots,s_m^L)} $$</p>
+<p>模型结构采用 Encoder-Decoder Transformer。首先，Encoder 对用户历史行为进行编码，得到用户兴趣表示：</p>
+<p>$$ H &#x3D; Encoder(H_u) $$</p>
+<p>然后，Decoder 基于编码后的用户兴趣表示，以自回归方式生成目标 session 的语义 token 序列。</p>
+<p>为了增强模型容量，OneRec 在 Decoder 的前馈层中引入了 **Mixture of Experts (MoE)**。对于第 $l$ 层 decoder 表示 $H_t^l$，MoE 输出为</p>
+<p>$$ H_t^{l+1} &#x3D; \sum_{i&#x3D;1}^{N_{\mathrm{MoE}}} g_{i,t},FFN_i(H_t^l) + H_t^l $$</p>
+<p>其中，$N_{\mathrm{MoE}}$ 表示 expert 总数，$FFN_i(\cdot)$ 表示第 $i$ 个 expert。门控值 $g_{i,t}$ 定义为</p>
+<p>$$ g_{i,t} &#x3D; s_{i,t},\mathbb{I}!\left[s_{i,t}\in \mathrm{Topk}\big({s_{j,t}\mid 1\le j\le N},K_{\mathrm{MoE}}\big)\right] $$</p>
+<p>并且</p>
+<p>$$ s_{i,t}&#x3D;\mathrm{Softmax}_i\big((H_t^l)^\top e_i^l\big) $$</p>
+<p>这意味着每个 token 只会被路由到少数几个 expert 上，从而实现“参数规模大但计算稀疏”。</p>
+<p>在训练时，在每个 item 的语义 token 前加入起始符号 $s^{[\mathrm{BOS}]}$，得到 decoder 输入序列</p>
+<p>$$ \bar S&#x3D;{s^{[\mathrm{BOS}]},s_1^1,s_1^2,\dots,s_1^L,s^{[\mathrm{BOS}]},s_2^1,s_2^2,\dots,s_2^L,\dots,s^{[\mathrm{BOS}]},s_m^1,s_m^2,\dots,s_m^L} $$</p>
+<p>模型采用 next-token prediction 训练目标，对目标 session 的语义 token 使用交叉熵损失：</p>
+<p>$$ L_{\mathrm{NTP}} &#x3D; -\sum_{i&#x3D;1}^{m}\sum_{j&#x3D;1}^{L} \log P\Big(s_i^{j+1}\mid[s^{[\mathrm{BOS}]},s_1^1,\dots,s_1^L,\dots,s^{[\mathrm{BOS}]},s_i^1,\dots,s_i^j];\Theta\Big) $$</p>
+<p>经过这一阶段训练后，可以得到初始生成模型 $M_t$。</p>
+<h3 id="3-奖励模型"><a href="#3-奖励模型" class="headerlink" title="3. 奖励模型"></a>3. 奖励模型</h3><p>为了进一步刻画用户对整个 session 的偏好，OneRec 引入奖励模型 $R(u,S)$。其中，$u$ 表示用户，$S$ 表示一个候选 session，奖励模型输出</p>
+<p>$$ r &#x3D; R(u,S) $$</p>
+<p>表示该用户对该 session 的偏好程度。</p>
+<p>对于 session 中的每个 item $v_i$，首先构造其面向用户的 target-aware 表示：</p>
+<p>$$ e_i &#x3D; v_i \odot u $$</p>
+<p>其中，$\odot$ 表示目标感知操作。于是，整个 session 的表示可以写为</p>
+<p>$$ h&#x3D;{e_1,e_2,\dots,e_m} $$</p>
+<p>为了建模 session 内部 item 之间的关系，采用 self-attention 融合上下文信息：</p>
+<p>$$ h_f&#x3D;\mathrm{SelfAttention}(hW_s^Q,hW_s^K,hW_s^V) $$</p>
+<p>接着，使用多个 tower 对不同目标进行预测：</p>
+<p>$$ \hat r_{\mathrm{swt}} &#x3D; Tower_{\mathrm{swt}}(Sum(h_f)) $$</p>
+<p>$$ \hat r_{\mathrm{vtr}} &#x3D; Tower_{\mathrm{vtr}}(Sum(h_f)) $$</p>
+<p>$$ \hat r_{\mathrm{wtr}} &#x3D; Tower_{\mathrm{wtr}}(Sum(h_f)) $$</p>
+<p>$$ \hat r_{\mathrm{ltr}} &#x3D; Tower_{\mathrm{ltr}}(Sum(h_f)) $$</p>
+<p>其中</p>
+<p>$$ Tower(\cdot)&#x3D;\mathrm{Sigmoid}(\mathrm{MLP}(\cdot)) $$</p>
+<p>奖励模型采用多目标二元交叉熵进行训练：</p>
+<p>$$ L_{\mathrm{RM}} &#x3D; -\sum_{xtr}\left[y_{xtr}\log(\hat r_{xtr}) + (1-y_{xtr})\log(1-\hat r_{xtr})\right] $$</p>
+<h3 id="4-迭代偏好对齐（IPA）"><a href="#4-迭代偏好对齐（IPA）" class="headerlink" title="4. 迭代偏好对齐（IPA）"></a>4. 迭代偏好对齐（IPA）</h3><p>在得到初始生成模型 $M_t$ 和奖励模型 $R(u,S)$ 后，OneRec 进一步采用 <strong>Direct Preference Optimization (DPO)</strong> 做偏好对齐。</p>
+<p>对于每个用户，当前模型通过 beam search 生成 $N$ 个候选 session：</p>
+<p>$$ S_u^n \sim M_t(H_u),\qquad \forall u\in U,; n\in[N] $$</p>
+<p>随后，利用奖励模型为每个候选 session 打分：</p>
+<p>$$ r_u^n &#x3D; R(u,S_u^n) $$</p>
+<p>根据得分，选出奖励最高的候选作为 winner，奖励最低的候选作为 loser：</p>
+<p>$$ S_u^w &#x3D; S_u^{\arg\max_i r_u^i},\qquad S_u^l &#x3D; S_u^{\arg\min_i r_u^i} $$</p>
+<p>从而构造偏好对</p>
+<p>$$ D_t^{\mathrm{pairs}}&#x3D;(S_u^w,S_u^l,H_u) $$</p>
+<p>给定偏好对后，训练下一个模型 $M_{t+1}$，其 DPO 损失定义为</p>
+<p>$$ L_{\mathrm{DPO}} &#x3D; -\log \sigma\left(\beta \log \frac{M_{t+1}(S_u^w\mid H_u)}{M_t(S_u^w\mid H_u)} - \beta \log \frac{M_{t+1}(S_u^l\mid H_u)}{M_t(S_u^l\mid H_u)}\right) $$</p>
+<p>因此，OneRec 的总训练目标可以写为</p>
+<p>$$ L &#x3D; L_{\mathrm{NTP}} + \lambda L_{\mathrm{DPO}} $$</p>
+<p>也就是说，模型一方面通过 $L_{\mathrm{NTP}}$ 学习基本的 session 生成能力，另一方面通过 $L_{\mathrm{DPO}}$ 将生成分布进一步推向更高奖励的候选结果。</p>
+<p>由于偏好对构造需要 beam search，计算代价较高，论文仅对一小部分样本执行 DPO 对齐。设采样比例为 $r_{\mathrm{DPO}}$，则训练时仅在</p>
+<p>$$ \mathrm{rand()} &lt; r_{\mathrm{DPO}} $$</p>
+<p>时执行偏好对齐，否则仅使用 $L_{\mathrm{NTP}}$ 更新参数。</p>
+<h3 id="5-方法总结"><a href="#5-方法总结" class="headerlink" title="5. 方法总结"></a>5. 方法总结</h3><p>总体而言，OneRec 的建模流程可以概括为：</p>
+<ol>
+<li>利用多模态 embedding 和多层残差量化，将 item 表示为语义 ID；</li>
+<li>使用 Encoder-Decoder Transformer 对整个 session 进行自回归生成；</li>
+<li>借助 MoE 扩展模型容量；</li>
+<li>使用奖励模型估计 session 质量；</li>
+<li>通过 IPA + DPO，在迭代训练中不断提升模型对高价值 session 的偏好。</li>
+</ol>
+<p>因此，OneRec 可以视为一个统一了 <strong>检索、列表生成和偏好对齐</strong> 的端到端生成式推荐框架。</p>
 
     </div>
 
@@ -298,6 +394,7 @@
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%96%B9%E6%B3%95%E4%BB%8B%E7%BB%8D"><span class="nav-number">1.</span> <span class="nav-text">方法介绍</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-%E8%AF%AD%E4%B9%89%E8%A1%A8%E7%A4%BA%E6%9E%84%E5%BB%BA"><span class="nav-number">1.1.</span> <span class="nav-text">1. 语义表示构建</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-Session-%E7%BA%A7%E5%88%97%E8%A1%A8%E7%94%9F%E6%88%90"><span class="nav-number">1.2.</span> <span class="nav-text">2. Session 级列表生成</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-%E5%A5%96%E5%8A%B1%E6%A8%A1%E5%9E%8B"><span class="nav-number">1.3.</span> <span class="nav-text">3. 奖励模型</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-%E8%BF%AD%E4%BB%A3%E5%81%8F%E5%A5%BD%E5%AF%B9%E9%BD%90%EF%BC%88IPA%EF%BC%89"><span class="nav-number">1.4.</span> <span class="nav-text">4. 迭代偏好对齐（IPA）</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-%E6%96%B9%E6%B3%95%E6%80%BB%E7%BB%93"><span class="nav-number">1.5.</span> <span class="nav-text">5. 方法总结</span></a></li></ol></li></ol></div>
       </div>
       <!--/noindex-->
 
@@ -311,7 +408,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-count">18</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -419,6 +516,59 @@ document.querySelectorAll('.pdfobject-container').forEach(element => {
   
 
   
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
 

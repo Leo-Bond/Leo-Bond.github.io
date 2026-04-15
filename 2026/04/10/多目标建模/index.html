@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="在推荐、广告和内容分发系统里，我们往往不会只优化一个目标。 以信息流场景为例，平台可能同时关心：  点击率（CTR） 转化率（CVR） 停留时长 收藏、加购、分享等互动行为  这些目标都和“用户价值”有关，但又并不完全一致。只做单目标建模会有两个明显问题：  每个目标单独训练一套模型，维护成本高，特征利用也不充分 不同目标之间本来存在关联，如果完全拆开训练，会损失任务间可以共享的统计规律  因此，">
+<meta property="og:type" content="article">
+<meta property="og:title" content="多目标建模">
+<meta property="og:url" content="https://leo-bond.github.io/2026/04/10/%E5%A4%9A%E7%9B%AE%E6%A0%87%E5%BB%BA%E6%A8%A1/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="在推荐、广告和内容分发系统里，我们往往不会只优化一个目标。 以信息流场景为例，平台可能同时关心：  点击率（CTR） 转化率（CVR） 停留时长 收藏、加购、分享等互动行为  这些目标都和“用户价值”有关，但又并不完全一致。只做单目标建模会有两个明显问题：  每个目标单独训练一套模型，维护成本高，特征利用也不充分 不同目标之间本来存在关联，如果完全拆开训练，会损失任务间可以共享的统计规律  因此，">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://leo-bond.github.io/2026/04/10/%E5%A4%9A%E7%9B%AE%E6%A0%87%E5%BB%BA%E6%A8%A1/1.png">
+<meta property="article:published_time" content="2026-04-10T02:09:01.000Z">
+<meta property="article:modified_time" content="2026-04-10T10:35:17.891Z">
+<meta property="article:author" content="wdy">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://leo-bond.github.io/2026/04/10/%E5%A4%9A%E7%9B%AE%E6%A0%87%E5%BB%BA%E6%A8%A1/1.png">
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/04/10/%E5%A4%9A%E7%9B%AE%E6%A0%87%E5%BB%BA%E6%A8%A1/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>多目标建模 | wdy's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wdy's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="download fa-fw"></i>资源</a>
+
+  </li>
+        <li class="menu-item menu-item-resume">
+
+    <a href="/resume/" rel="section"><i class="file-pdf fa-fw"></i>简历</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/04/10/%E5%A4%9A%E7%9B%AE%E6%A0%87%E5%BB%BA%E6%A8%A1/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          多目标建模
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-04-10 10:09:01 / 修改时间：18:35:17" itemprop="dateCreated datePublished" datetime="2026-04-10T10:09:01+08:00">2026-04-10</time>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <p>在推荐、广告和内容分发系统里，我们往往不会只优化一个目标。</p>
+<p>以信息流场景为例，平台可能同时关心：</p>
+<ul>
+<li>点击率（CTR）</li>
+<li>转化率（CVR）</li>
+<li>停留时长</li>
+<li>收藏、加购、分享等互动行为</li>
+</ul>
+<p>这些目标都和“用户价值”有关，但又并不完全一致。只做单目标建模会有两个明显问题：</p>
+<ul>
+<li>每个目标单独训练一套模型，维护成本高，特征利用也不充分</li>
+<li>不同目标之间本来存在关联，如果完全拆开训练，会损失任务间可以共享的统计规律</li>
+</ul>
+<p>因此，多任务学习（Multi-task Learning, MTL）在推荐系统里非常常见。它的基本思想是：</p>
+<ul>
+<li>用一个模型同时学习多个目标</li>
+<li>让任务之间共享一部分表示能力</li>
+<li>又保留各自的个性化建模能力</li>
+</ul>
+<p>多目标建模里最经典的一条演化路线，大致可以概括为：</p>
+<ul>
+<li><code>Shared-Bottom</code>：先做最基础的参数共享</li>
+<li><code>MMoE</code>：引入专家网络和门控机制，让不同任务学会“按需共享”</li>
+<li><code>PLE</code>：进一步缓解任务冲突，把共享信息和任务专属信息分层解耦</li>
+</ul>
+<img src="/2026/04/10/%E5%A4%9A%E7%9B%AE%E6%A0%87%E5%BB%BA%E6%A8%A1/1.png" alt="MMoE">
+
+<h2 id="基础架构：Shared-Bottom"><a href="#基础架构：Shared-Bottom" class="headerlink" title="基础架构：Shared-Bottom"></a>基础架构：Shared-Bottom</h2><p>Shared-Bottom 是多任务学习里最朴素、也最好理解的结构。</p>
+<p>它的做法非常直接：</p>
+<ol>
+<li>底部使用一套共享的特征抽取网络</li>
+<li>共享层输出一个公共表示</li>
+<li>每个任务在顶部再接自己的 tower</li>
+<li>各任务分别输出自己的预测结果</li>
+</ol>
+<p>如果写成形式化表达，可以理解为：</p>
+<p>$$<br>h &#x3D; f_{shared}(x)<br>$$</p>
+<p>第 $k$ 个任务的输出为：</p>
+<p>$$<br>y_k &#x3D; f_k(h)<br>$$</p>
+<p>其中：</p>
+<ul>
+<li>$x$ 是输入特征</li>
+<li>$f_{shared}$ 是所有任务共用的底层网络</li>
+<li>$f_k$ 是第 $k$ 个任务自己的输出头</li>
+</ul>
+<p>它之所以叫 Shared-Bottom，就是因为“共享”主要发生在底部。</p>
+<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><p>Shared-Bottom 能成为最早期、最广泛使用的多任务结构，不是没有原因的。</p>
+<ol>
+<li>共享层的存在显著降低了模型总参数量。相比每个目标都单独建模，底层只训练一套网络，训练和部署成本都更低。</li>
+<li>共享参数天然带来正则化效应。多个任务共同约束底层表示，能够减少单一任务在数据不足时的过拟合风险。</li>
+<li>当任务之间确实存在相关性时，共享层可以学习到通用模式，从而产生知识迁移，提高泛化能力。</li>
+</ol>
+<p>例如在广告场景中：</p>
+<ul>
+<li>CTR 任务会帮助模型学到“用户是否愿意点进来”</li>
+<li>CVR 任务会帮助模型学到“点进来之后是否会成交”</li>
+</ul>
+<p>虽然两者不完全一样，但用户、商品、上下文之间的一部分交互规律是可以共享的。</p>
+<h3 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h3><p>Shared-Bottom 的问题也同样明显：<strong>它默认所有任务都应该共享同一套底层表示</strong>。</p>
+<p>这在任务高度相关时通常还可以工作，但一旦任务相关性较弱，甚至存在冲突，就会出现典型的负迁移（negative transfer）：</p>
+<ul>
+<li>某个任务希望强化一类特征</li>
+<li>另一个任务却希望抑制这类特征</li>
+<li>共享层被多个目标同时拉扯，最后谁都学不舒服</li>
+</ul>
+<p>例如：</p>
+<ul>
+<li>CTR 更关注“是否吸引点击”</li>
+<li>时长任务更关注“内容是否耐看”</li>
+</ul>
+<p>有些标题党内容可能很容易带来点击，却未必能带来长时停留。此时多个目标对共享表示的优化方向并不一致。</p>
+<p>所以 Shared-Bottom 的核心问题可以总结为一句话：</p>
+<ul>
+<li>共享是静态且强制的，无法根据任务差异动态分配表示能力</li>
+</ul>
+<p>这也是后续 MMoE 出现的直接动机。</p>
+<h2 id="MMoE"><a href="#MMoE" class="headerlink" title="MMoE"></a>MMoE</h2><p>MMoE（Multi-gate Mixture-of-Experts）是 Google 在多任务学习场景里提出的一类经典结构。它试图解决的，不是“要不要共享”，而是：</p>
+<ul>
+<li>哪些知识该共享</li>
+<li>共享多少</li>
+<li>不同任务该从哪些专家那里获取信息</li>
+</ul>
+<p>相比 Shared-Bottom 的“一刀切共享”，MMoE 把共享改成了<strong>可学习的软选择</strong>。</p>
+<h3 id="OMoE"><a href="#OMoE" class="headerlink" title="OMoE"></a>OMoE</h3><p>在正式理解 MMoE 之前，先看一个过渡结构：OMoE（One-gate Mixture-of-Experts）。</p>
+<p>OMoE 的核心结构是：</p>
+<ol>
+<li>底部不再只有一个共享网络，而是放置多个 expert</li>
+<li>所有 expert 并行接收同一份输入</li>
+<li>用一个共享 gate 生成权重</li>
+<li>将多个 expert 的输出加权汇总后，再送给不同任务头</li>
+</ol>
+<p>设有 $n$ 个 expert，第 $i$ 个 expert 输出为：</p>
+<p>$$<br>e_i(x)<br>$$</p>
+<p>共享 gate 生成权重：</p>
+<p>$$<br>g(x) &#x3D; \mathrm{softmax}(W_g x)<br>$$</p>
+<p>则融合表示可写成：</p>
+<p>$$<br>h &#x3D; \sum_{i&#x3D;1}^{n} g_i(x)e_i(x)<br>$$</p>
+<p>然后再由不同任务塔做预测。</p>
+<p>OMoE 比 Shared-Bottom 更灵活，因为：</p>
+<ul>
+<li>不再强迫所有任务只使用同一个底层表征</li>
+<li>模型可以把不同模式分散到不同 expert 中</li>
+</ul>
+<p>但它仍然有一个很大的限制：</p>
+<ul>
+<li>所有任务共享同一个 gate</li>
+</ul>
+<p>也就是说，虽然 expert 变多了，但“如何组合这些 expert”仍然是一套统一策略。这意味着不同任务最终看到的仍是同一种专家加权结果。</p>
+<p>所以 OMoE 只解决了“共享网络容量不足”的问题，却没有真正解决“任务对共享知识需求不同”的问题。</p>
+<h3 id="MMoE-架构及原理"><a href="#MMoE-架构及原理" class="headerlink" title="MMoE 架构及原理"></a>MMoE 架构及原理</h3><p>MMoE 相比 OMoE 的关键变化只有一句话：</p>
+<ul>
+<li><strong>每个任务都有自己独立的 gate</strong></li>
+</ul>
+<p>整体结构变成：</p>
+<ol>
+<li>底部有多个共享 expert</li>
+<li>每个任务都拥有一个自己的 gating network</li>
+<li>不同任务分别对同一组 expert 进行加权组合</li>
+<li>每个任务再接自己的 tower 输出预测结果</li>
+</ol>
+<p>设共有 $n$ 个 expert，第 $k$ 个任务的 gate 输出为：</p>
+<p>$$<br>g^{(k)}(x) &#x3D; \mathrm{softmax}(W^{(k)}_g x)<br>$$</p>
+<p>则第 $k$ 个任务获得的输入表示为：</p>
+<p>$$<br>h^{(k)} &#x3D; \sum_{i&#x3D;1}^{n} g^{(k)}_i(x)e_i(x)<br>$$</p>
+<p>最后第 $k$ 个任务输出：</p>
+<p>$$<br>y_k &#x3D; f_k(h^{(k)})<br>$$</p>
+<p>这个变化看似不大，但本质上完成了从“统一共享”到“按任务路由”的转变。</p>
+<p>直观理解 MMoE，可以把 expert 看成一组不同能力的老师：</p>
+<ul>
+<li>有的 expert 更擅长建模点击模式</li>
+<li>有的 expert 更擅长建模转化倾向</li>
+<li>有的 expert 更擅长建模长时兴趣</li>
+</ul>
+<p>而每个任务自己的 gate，决定它更愿意听哪些老师的意见。</p>
+<h3 id="MMoE-相比-Shared-Bottom-的改进"><a href="#MMoE-相比-Shared-Bottom-的改进" class="headerlink" title="MMoE 相比 Shared-Bottom 的改进"></a>MMoE 相比 Shared-Bottom 的改进</h3><p>MMoE 的优势主要体现在三个方面。</p>
+<ol>
+<li>共享不再是硬性的，而是软性的。不同任务可以根据自身需要，从多个 expert 中动态组合信息。</li>
+<li>expert 之间天然形成某种功能分化。即使没有显式标注，训练过程中也可能出现“某些 expert 更偏向某类任务模式”的现象。</li>
+<li>当任务相关性复杂、部分共享但又不完全重叠时，MMoE 往往比 Shared-Bottom 更稳健。</li>
+</ol>
+<p>从经验上看，任务越多、任务差异越大，MMoE 相比 Shared-Bottom 的优势通常越明显。</p>
+<h3 id="MMoE-的局限"><a href="#MMoE-的局限" class="headerlink" title="MMoE 的局限"></a>MMoE 的局限</h3><p>虽然 MMoE 比 Shared-Bottom 强很多，但它并没有彻底消灭负迁移。</p>
+<p>主要原因有两个。</p>
+<p>第一，expert 本身仍然是所有任务共享的。</p>
+<p>也就是说，即便 gate 不同，底层 expert 参数还是被多个任务共同训练。如果任务冲突很强，expert 仍然可能学成“折中结果”。</p>
+<p>第二，门控决策负担很重。</p>
+<p>gate 需要同时完成两件事：</p>
+<ul>
+<li>判断当前样本更适合走哪些 expert</li>
+<li>间接协调不同任务之间的冲突</li>
+</ul>
+<p>如果 expert 没有形成足够清晰的职责分工，gate 的选择空间就会变得混乱。最终模型可能出现：</p>
+<ul>
+<li>多个任务都偏向同一批 expert</li>
+<li>某些 expert 长期得不到充分训练</li>
+<li>任务冲突被转移到 gate 和 shared expert 上，但没有真正被拆开</li>
+</ul>
+<p>换句话说，MMoE 让“共享”变聪明了，但共享和专属之间的边界仍然不够清楚。</p>
+<p>这正是 PLE 想进一步解决的问题。</p>
+<h2 id="PLE"><a href="#PLE" class="headerlink" title="PLE"></a>PLE</h2><p>PLE（Progressive Layered Extraction）可以看作是对 MMoE 的进一步结构化改造。它的核心判断是：</p>
+<ul>
+<li>MMoE 之所以仍会出现负迁移，不仅是因为共享方式不够灵活</li>
+<li>更因为“共享知识”和“任务私有知识”没有被显式拆开</li>
+</ul>
+<p>因此，PLE 希望把信息流分成两类：</p>
+<ul>
+<li>共享信息</li>
+<li>任务专属信息</li>
+</ul>
+<p>并通过逐层提取（progressive layered extraction）的方式，让二者既能交互，又不过度混杂。</p>
+<p>MMoE 负迁移未根除，门控决策负担重，PLE 正是在这个背景下提出的。</p>
+<h3 id="CGC结构"><a href="#CGC结构" class="headerlink" title="CGC结构"></a>CGC结构</h3><p>PLE 的基础模块叫 CGC（Customized Gate Control）。</p>
+<p>一个 CGC 层通常包含两类 expert：</p>
+<ul>
+<li>shared experts：为所有任务提供公共知识</li>
+<li>task-specific experts：只服务于某一个任务</li>
+</ul>
+<p>然后，每个任务自己的 gate 不再对“全体 expert”做无差别选择，而是从：</p>
+<ul>
+<li>本任务的 task-specific experts</li>
+<li>shared experts</li>
+</ul>
+<p>这两部分中进行加权组合。</p>
+<p>与此同时，共享分支自己也会有一个 gate，用来聚合：</p>
+<ul>
+<li>所有任务的专属 expert</li>
+<li>shared experts</li>
+</ul>
+<p>从而形成下一层共享表示。</p>
+<p>这套机制的关键价值，在于它把“所有 expert 都放在一个池子里竞争”改成了“共享池 + 专属池”的显式分层。</p>
+<h4 id="1-专家职责强制分离"><a href="#1-专家职责强制分离" class="headerlink" title="1. 专家职责强制分离"></a>1. 专家职责强制分离</h4><p>这是 PLE 相比 MMoE 最重要的一点。</p>
+<p>在 MMoE 中，所有 expert 理论上都服务于所有任务，最终是否形成分工，主要依赖训练过程的自发演化。</p>
+<p>而在 PLE 中，模型结构直接规定：</p>
+<ul>
+<li>有些 expert 就是公共专家</li>
+<li>有些 expert 就是任务私有专家</li>
+</ul>
+<p>这样做的好处是：</p>
+<ul>
+<li>公共模式可以沉淀在 shared experts 中</li>
+<li>任务特有模式可以沉淀在 task-specific experts 中</li>
+<li>不必把“共享多少、私有多少”都压给 gate 自己去学</li>
+</ul>
+<p>也就是说，PLE 用结构先验主动帮助模型做职责划分。</p>
+<h4 id="2-任务专属门控的输入限制"><a href="#2-任务专属门控的输入限制" class="headerlink" title="2. 任务专属门控的输入限制"></a>2. 任务专属门控的输入限制</h4><p>另一个关键点是，任务 gate 的可选范围被限制了。</p>
+<p>对于第 $k$ 个任务，它不会像 MMoE 一样面对所有 expert，而只会从下面两类中选择：</p>
+<ul>
+<li>第 $k$ 个任务自己的专属 experts</li>
+<li>shared experts</li>
+</ul>
+<p>这意味着：</p>
+<ul>
+<li>任务不会直接去读取别的任务的私有 expert</li>
+<li>跨任务共享必须通过 shared experts 这一“公共通道”完成</li>
+</ul>
+<p>这种限制非常重要，因为它减少了无序的信息串扰。</p>
+<p>可以把它理解为：</p>
+<ul>
+<li>MMoE 像一个开放式大群，所有任务都能直接找所有 expert</li>
+<li>PLE 更像有公共会议室，也有每个任务自己的办公室</li>
+</ul>
+<p>共享问题去公共会议室讨论，私有问题留在各自办公室解决。</p>
+<h3 id="PLE架构及原理"><a href="#PLE架构及原理" class="headerlink" title="PLE架构及原理"></a>PLE架构及原理</h3><p>PLE 往往不是只堆一层 CGC，而是堆叠多层，形成 progressive layered extraction。</p>
+<p>它的基本流程可以理解为：</p>
+<ol>
+<li>输入特征进入第一层 CGC</li>
+<li>每个任务分支和共享分支分别得到自己的表示</li>
+<li>这些表示继续送入下一层 CGC</li>
+<li>随着层数加深，共享信息与任务专属信息被逐步提炼</li>
+<li>最后每个任务分支接自己的 tower 输出结果</li>
+</ol>
+<p>如果从建模逻辑上理解，PLE 做的是一种“逐层去混叠”：</p>
+<ul>
+<li>底层允许较多共享，因为原始特征里确实有大量共性</li>
+<li>越往上走，任务差异越明显，专属分支承担更多个性化建模</li>
+</ul>
+<p>这比只在单层上做一次专家选择更细致，也更符合多任务学习中“底层偏通用、高层偏任务化”的经验规律。</p>
+<h3 id="PLE-的优势"><a href="#PLE-的优势" class="headerlink" title="PLE 的优势"></a>PLE 的优势</h3><p>PLE 在工业界受欢迎，主要是因为它比 MMoE 更稳定。</p>
+<ol>
+<li>显式区分共享专家和任务专家，能更有效缓解负迁移。</li>
+<li>gate 的选择空间被约束后，决策难度下降，训练更容易稳定。</li>
+<li>多层 CGC 让共享信息和私有信息可以逐步分化，而不是一次性硬切。</li>
+<li>在任务相关但不完全一致的场景中，通常比 Shared-Bottom 和 MMoE 更鲁棒。</li>
+</ol>
+<p>特别是在推荐和广告系统中，像：</p>
+<ul>
+<li>CTR</li>
+<li>CVR</li>
+<li>完播率</li>
+<li>停留时长</li>
+<li>互动率</li>
+</ul>
+<p>这些目标往往既有共性，又各自强调不同的行为结果，PLE 通常会比简单共享结构更合适。</p>
+<h3 id="PLE-的代价"><a href="#PLE-的代价" class="headerlink" title="PLE 的代价"></a>PLE 的代价</h3><p>当然，PLE 也不是没有成本。</p>
+<ul>
+<li>结构更复杂，参数量和训练成本通常高于 Shared-Bottom。</li>
+<li>超参数更多，例如 shared experts 数量、task-specific experts 数量、CGC 层数等，调参复杂度更高。</li>
+<li>当任务非常少、而且相关性很强时，PLE 的收益未必足以覆盖其复杂度。</li>
+</ul>
+<p>因此是否使用 PLE，本质上还是一个工程权衡：</p>
+<ul>
+<li>任务越多</li>
+<li>目标差异越大</li>
+<li>负迁移越明显</li>
+</ul>
+<p>PLE 的价值通常越大。</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>如果把这几种结构放在同一条演进线上，可以这样理解：</p>
+<h3 id="1-Shared-Bottom"><a href="#1-Shared-Bottom" class="headerlink" title="1. Shared-Bottom"></a>1. Shared-Bottom</h3><ul>
+<li>假设所有任务共享同一套底层表示</li>
+<li>优点是简单、高效、易落地</li>
+<li>缺点是容易受到负迁移影响</li>
+</ul>
+<h3 id="2-MMoE"><a href="#2-MMoE" class="headerlink" title="2. MMoE"></a>2. MMoE</h3><ul>
+<li>通过多个 expert 和任务独立 gate，实现按任务动态共享</li>
+<li>比 Shared-Bottom 更灵活</li>
+<li>但 expert 仍是全共享的，任务冲突没有被彻底拆解</li>
+</ul>
+<h3 id="3-PLE"><a href="#3-PLE" class="headerlink" title="3. PLE"></a>3. PLE</h3><ul>
+<li>在 MMoE 基础上进一步显式区分共享专家和任务专家</li>
+<li>通过分层提取逐步解耦共享信息与私有信息</li>
+<li>通常在复杂多目标场景下表现更稳</li>
+</ul>
+<p>所以从本质上说，这三者是在回答同一个问题：</p>
+<ul>
+<li>多个任务到底应该如何共享表示能力</li>
+</ul>
+<p>它们给出的答案分别是：</p>
+<ul>
+<li>Shared-Bottom：大家先共用一套底层再说</li>
+<li>MMoE：共享可以，但要让不同任务自己决定怎么用</li>
+<li>PLE：共享和私有都要有，而且要在结构上明确分开</li>
+</ul>
+<p>在真实业务里，没有哪个结构对所有问题都最优。更合理的做法通常是根据场景判断：</p>
+<ul>
+<li>如果任务少且高度相关，Shared-Bottom 可能已经足够</li>
+<li>如果任务关系复杂，MMoE 往往是一个很好的起点</li>
+<li>如果负迁移明显、目标差异较大，PLE 通常更值得尝试</li>
+</ul>
+<p>理解这条演化链条，比死记某个结构图更重要。因为多目标建模的核心从来不是“哪篇论文最火”，而是：</p>
+<ul>
+<li>如何在共享收益和任务冲突之间找到合适的平衡</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/04/07/%E6%B7%B1%E5%BA%A6%E5%85%B4%E8%B6%A3%E7%BD%91%E7%BB%9C%EF%BC%88DIN%EF%BC%89%E5%8F%8A%E5%85%B6%E6%BC%94%E5%8C%96/" rel="prev" title="深度兴趣网络（DIN）及其演化">
+      <i class="fa fa-chevron-left"></i> 深度兴趣网络（DIN）及其演化
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%9F%BA%E7%A1%80%E6%9E%B6%E6%9E%84%EF%BC%9AShared-Bottom"><span class="nav-number">1.</span> <span class="nav-text">基础架构：Shared-Bottom</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#%E4%BC%98%E5%8A%BF"><span class="nav-number">1.1.</span> <span class="nav-text">优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#%E7%BC%BA%E9%99%B7"><span class="nav-number">1.2.</span> <span class="nav-text">缺陷</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#MMoE"><span class="nav-number">2.</span> <span class="nav-text">MMoE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#OMoE"><span class="nav-number">2.1.</span> <span class="nav-text">OMoE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MMoE-%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%8E%9F%E7%90%86"><span class="nav-number">2.2.</span> <span class="nav-text">MMoE 架构及原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MMoE-%E7%9B%B8%E6%AF%94-Shared-Bottom-%E7%9A%84%E6%94%B9%E8%BF%9B"><span class="nav-number">2.3.</span> <span class="nav-text">MMoE 相比 Shared-Bottom 的改进</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#MMoE-%E7%9A%84%E5%B1%80%E9%99%90"><span class="nav-number">2.4.</span> <span class="nav-text">MMoE 的局限</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#PLE"><span class="nav-number">3.</span> <span class="nav-text">PLE</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#CGC%E7%BB%93%E6%9E%84"><span class="nav-number">3.1.</span> <span class="nav-text">CGC结构</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#1-%E4%B8%93%E5%AE%B6%E8%81%8C%E8%B4%A3%E5%BC%BA%E5%88%B6%E5%88%86%E7%A6%BB"><span class="nav-number">3.1.1.</span> <span class="nav-text">1. 专家职责强制分离</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#2-%E4%BB%BB%E5%8A%A1%E4%B8%93%E5%B1%9E%E9%97%A8%E6%8E%A7%E7%9A%84%E8%BE%93%E5%85%A5%E9%99%90%E5%88%B6"><span class="nav-number">3.1.2.</span> <span class="nav-text">2. 任务专属门控的输入限制</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PLE%E6%9E%B6%E6%9E%84%E5%8F%8A%E5%8E%9F%E7%90%86"><span class="nav-number">3.2.</span> <span class="nav-text">PLE架构及原理</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PLE-%E7%9A%84%E4%BC%98%E5%8A%BF"><span class="nav-number">3.3.</span> <span class="nav-text">PLE 的优势</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#PLE-%E7%9A%84%E4%BB%A3%E4%BB%B7"><span class="nav-number">3.4.</span> <span class="nav-text">PLE 的代价</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E6%80%BB%E7%BB%93"><span class="nav-number">4.</span> <span class="nav-text">总结</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-Shared-Bottom"><span class="nav-number">4.1.</span> <span class="nav-text">1. Shared-Bottom</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-MMoE"><span class="nav-number">4.2.</span> <span class="nav-text">2. MMoE</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-PLE"><span class="nav-number">4.3.</span> <span class="nav-text">3. PLE</span></a></li></ol></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">18</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wdy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script color='' opacity='' zIndex='' count='' src="/lib/canvas-nest/canvas-nest-nomobile.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<script>
+document.querySelectorAll('.pdfobject-container').forEach(element => {
+  let url = element.dataset.target;
+  let pdfOpenParams = {
+    navpanes : 0,
+    toolbar  : 0,
+    statusbar: 0,
+    pagemode : 'thumbs',
+    view     : 'FitH'
+  };
+  let pdfOpenFragment = '#' + Object.entries(pdfOpenParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&');
+  let fullURL = `/lib/pdf/web/viewer.html?file=${encodeURIComponent(url)}${pdfOpenFragment}`;
+
+  if (NexT.utils.supportsPDFs()) {
+    element.innerHTML = `<embed class="pdfobject" src="${url + pdfOpenFragment}" type="application/pdf" style="height: ${element.dataset.height};">`;
+  } else {
+    element.innerHTML = `<iframe src="${fullURL}" style="height: ${element.dataset.height};" frameborder="0"></iframe>`;
+  }
+});
+</script>
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>

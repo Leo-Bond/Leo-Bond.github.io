@@ -172,6 +172,283 @@
   
   
   <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2025/12/29/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%B8%B8%E8%A7%81%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+    </span>
+      <header class="post-header">
+        <h2 class="post-title" itemprop="name headline">
+          
+            <a href="/2025/12/29/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E7%9A%84%E5%B8%B8%E8%A7%81%E8%AF%84%E4%BC%B0%E6%8C%87%E6%A0%87/" class="post-title-link" itemprop="url">推荐系统的常见评估指标</a>
+        </h2>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+
+              <time title="创建时间：2025-12-29 10:43:33" itemprop="dateCreated datePublished" datetime="2025-12-29T10:43:33+08:00">2025-12-29</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-03-30 22:49:26" itemprop="dateModified" datetime="2026-03-30T22:49:26+08:00">2026-03-30</time>
+              </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+          <p>做推荐系统时，一个很常见的问题是：模型到底该怎么评估？</p>
+<p>如果只是看 loss，往往是不够的。因为推荐系统真正关心的通常不是“概率有没有拟合好”，而是：</p>
+<ul>
+<li>正样本能不能被排到前面</li>
+<li>用户真正感兴趣的 item 能不能被召回</li>
+<li>前几个推荐位里有没有足够多的好结果</li>
+</ul>
+<p>所以推荐系统的评估指标，很多时候本质上是在回答两个问题：</p>
+<ol>
+<li>模型能不能把正样本排在负样本前面</li>
+<li>模型能不能把用户真正想看的内容放到 Top-K</li>
+</ol>
+<p>下面是推荐系统里常见的几类指标。</p>
+<h2 id="Precision-Recall"><a href="#Precision-Recall" class="headerlink" title="Precision, Recall"></a>Precision, Recall</h2><p>Precision 和 Recall 是最基础的一组指标。它们最常出现在召回阶段或者 Top-K 推荐评估里。</p>
+<p>先约定几个量：</p>
+<ul>
+<li>TP：真正例，推荐了且用户确实喜欢</li>
+<li>FP：假正例，推荐了但用户不喜欢</li>
+<li>FN：假负例，没有推荐但用户其实喜欢</li>
+</ul>
+<h3 id="Precision"><a href="#Precision" class="headerlink" title="Precision"></a>Precision</h3><p>Precision 关注的是：</p>
+<ul>
+<li>你推荐出去的东西里，有多少是真的对的</li>
+</ul>
+<p>公式为：</p>
+<p>$$<br>\mathrm{Precision} &#x3D; \frac{TP}{TP + FP}<br>$$</p>
+<p>例如给一个用户推荐了 10 个商品，其中 4 个是他真正点击或购买的，那么：</p>
+<p>$$<br>\mathrm{Precision} &#x3D; \frac{4}{10} &#x3D; 0.4<br>$$</p>
+<p>在推荐系统里，Precision 高说明：</p>
+<ul>
+<li>推荐结果更“准”</li>
+<li>暴露出去的位置浪费更少</li>
+</ul>
+<p>但它也有局限，因为它不关心你漏掉了多少用户真正喜欢的内容。</p>
+<h3 id="Recall"><a href="#Recall" class="headerlink" title="Recall"></a>Recall</h3><p>Recall 关注的是：</p>
+<ul>
+<li>用户真正感兴趣的东西里，你找回来了多少</li>
+</ul>
+<p>公式为：</p>
+<p>$$<br>\mathrm{Recall} &#x3D; \frac{TP}{TP + FN}<br>$$</p>
+<p>例如某个用户一共会喜欢 20 个 item，但你的系统只召回了其中 6 个，那么：</p>
+<p>$$<br>\mathrm{Recall} &#x3D; \frac{6}{20} &#x3D; 0.3<br>$$</p>
+<p>在推荐系统里，Recall 尤其适合评估召回层，因为召回阶段的目标本来就不是特别精准，而是先尽量不要漏掉好东西。</p>
+<h3 id="Precision-K-和-Recall-K"><a href="#Precision-K-和-Recall-K" class="headerlink" title="Precision@K 和 Recall@K"></a>Precision@K 和 Recall@K</h3><p>在实际推荐里，我们通常更关心前 $K$ 个结果，所以常写成：</p>
+<p>$$<br>\mathrm{Precision@K} &#x3D; \frac{\mathrm{Hits@K}}{K}<br>$$</p>
+<p>$$<br>\mathrm{Recall@K} &#x3D; \frac{\mathrm{Hits@K}}{\mathrm{Relevant}}<br>$$</p>
+<p>例如用户真实喜欢的 item 有 5 个，模型给出的 Top-10 里命中了 3 个，那么：</p>
+<p>$$<br>\mathrm{Precision@10} &#x3D; \frac{3}{10}<br>$$</p>
+<p>$$<br>\mathrm{Recall@10} &#x3D; \frac{3}{5}<br>$$</p>
+<p>可以看到：</p>
+<ul>
+<li>Precision@K 更关心“前 K 个准不准”</li>
+<li>Recall@K 更关心“前 K 个够不够全”</li>
+</ul>
+<h2 id="AUC-F1"><a href="#AUC-F1" class="headerlink" title="AUC, F1"></a>AUC, F1</h2><p>这一组指标更常出现在 CTR 预估、点击预测、二分类推荐任务里。</p>
+<h3 id="AUC"><a href="#AUC" class="headerlink" title="AUC"></a>AUC</h3><p>AUC 的全称是 Area Under ROC Curve。它衡量的是：</p>
+<ul>
+<li>随机抽一个正样本和一个负样本</li>
+<li>模型把正样本排在负样本前面的概率有多大</li>
+</ul>
+<p>如果记正样本得分为 $s^+$，负样本得分为 $s^-$，那么 AUC 可以理解为：</p>
+<p>$$<br>\mathrm{AUC} &#x3D; P(s^+ &gt; s^-)<br>$$</p>
+<p>这个解释非常适合推荐系统，因为很多推荐任务本质上就是排序任务。</p>
+<p>例如：</p>
+<ul>
+<li>点击样本应该比未点击样本得分更高</li>
+<li>购买样本应该比曝光未购买样本得分更高</li>
+</ul>
+<p>AUC 的优点是：</p>
+<ul>
+<li>不依赖具体阈值</li>
+<li>更关注整体排序能力</li>
+<li>对类别不平衡通常比 Accuracy 更稳</li>
+</ul>
+<p>所以在 CTR 预估里，AUC 往往比 Accuracy 更常见。</p>
+<p>不过 AUC 也有明显局限：</p>
+<ul>
+<li>它衡量的是整体排序</li>
+<li>但不特别关注 Top-K 位置</li>
+</ul>
+<p>也就是说，一个模型 AUC 很高，不代表它前几个推荐位一定最好。</p>
+<h3 id="F1"><a href="#F1" class="headerlink" title="F1"></a>F1</h3><p>F1 是 Precision 和 Recall 的调和平均，用来平衡“查得准”和“查得全”。</p>
+<p>公式为：</p>
+<p>$$<br>F1 &#x3D; \frac{2 \cdot \mathrm{Precision} \cdot \mathrm{Recall}}{\mathrm{Precision} + \mathrm{Recall}}<br>$$</p>
+<p>如果 Precision 很高但 Recall 很低，或者反过来，F1 都不会太高。</p>
+<p>例如：</p>
+<p>$$<br>\mathrm{Precision} &#x3D; 0.8,\quad \mathrm{Recall} &#x3D; 0.4<br>$$</p>
+<p>那么：</p>
+<p>$$<br>F1 &#x3D; \frac{2 \times 0.8 \times 0.4}{0.8 + 0.4} &#x3D; 0.533<br>$$</p>
+<p>F1 的意义是：</p>
+<ul>
+<li>不希望模型只顾着精准，结果漏掉大量正样本</li>
+<li>也不希望模型只顾着召回，结果引入大量噪声</li>
+</ul>
+<p>不过在推荐系统里，F1 没有 AUC、NDCG 那么常用。因为推荐更常见的是排序问题，而 F1 更像是一个固定阈值下的分类指标。</p>
+<h2 id="NDCG"><a href="#NDCG" class="headerlink" title="NDCG"></a>NDCG</h2><p>NDCG 是推荐系统和搜索排序里非常常见的排序指标。它特别适合回答一个问题：</p>
+<ul>
+<li>相关 item 不只是“有没有排进去”</li>
+<li>而是“有没有排在足够靠前的位置”</li>
+</ul>
+<h3 id="DCG"><a href="#DCG" class="headerlink" title="DCG"></a>DCG</h3><p>DCG 的全称是 Discounted Cumulative Gain。它的思想是：</p>
+<ul>
+<li>排名越靠前，贡献越大</li>
+<li>排名越靠后，价值要打折</li>
+</ul>
+<p>如果第 $i$ 个位置的相关性记作 $\mathrm{rel}_i$，那么 DCG 可以写成：</p>
+<p>$$<br>\mathrm{DCG@K} &#x3D; \sum_{i&#x3D;1}^{K} \frac{2^{\mathrm{rel}_i} - 1}{\log_2(i+1)}<br>$$</p>
+<p>这里的分母 $\log_2(i+1)$ 就是在做位置折损。</p>
+<p>如果相关性是二值的，也就是：</p>
+<ul>
+<li>相关记作 1</li>
+<li>不相关记作 0</li>
+</ul>
+<p>那么公式会退化成更简单的形式。</p>
+<h3 id="IDCG"><a href="#IDCG" class="headerlink" title="IDCG"></a>IDCG</h3><p>不同用户的相关 item 数量可能不同，所以单独看 DCG 不方便横向比较。于是需要一个“理想排序”下的 DCG，记作 IDCG：</p>
+<p>$$<br>\mathrm{IDCG@K} &#x3D; \sum_{i&#x3D;1}^{K} \frac{2^{\mathrm{rel}_i^*} - 1}{\log_2(i+1)}<br>$$</p>
+<p>其中 $\mathrm{rel}_i^*$ 表示理想排序下第 $i$ 个位置的相关性。</p>
+<h3 id="NDCG-1"><a href="#NDCG-1" class="headerlink" title="NDCG"></a>NDCG</h3><p>NDCG 就是把 DCG 归一化：</p>
+<p>$$<br>\mathrm{NDCG@K} &#x3D; \frac{\mathrm{DCG@K}}{\mathrm{IDCG@K}}<br>$$</p>
+<p>这样它的取值通常在 $[0,1]$ 之间，越接近 1 越好。</p>
+<p>NDCG 的优点非常适合推荐排序：</p>
+<ul>
+<li>它关注位置，前面的错排惩罚更大</li>
+<li>它允许相关性有等级，不一定只能是 0&#x2F;1</li>
+<li>它适合评估 Top-K 排序质量</li>
+</ul>
+<p>例如：</p>
+<ul>
+<li>点击、加购、购买可以赋予不同相关性等级</li>
+<li>同样命中 3 个正样本，排在第 1、2、3 位显然比排在第 8、9、10 位更好</li>
+</ul>
+<p>这正是 NDCG 想表达的东西。</p>
+<h2 id="MRR"><a href="#MRR" class="headerlink" title="MRR"></a>MRR</h2><p>MRR 的全称是 Mean Reciprocal Rank。它特别关注：</p>
+<ul>
+<li>第一个正确结果出现得有多靠前</li>
+</ul>
+<p>先定义某个用户的第一个相关结果的排名为 $\mathrm{rank}_u$，那么该用户的倒数排名为：</p>
+<p>$$<br>\mathrm{RR}_u &#x3D; \frac{1}{\mathrm{rank}_u}<br>$$</p>
+<p>对所有用户取平均，就得到 MRR：</p>
+<p>$$<br>\mathrm{MRR} &#x3D; \frac{1}{|U|}\sum_{u \in U}\frac{1}{\mathrm{rank}_u}<br>$$</p>
+<p>例如：</p>
+<ul>
+<li>如果第一个正确结果排第 1 位，那么 RR &#x3D; 1</li>
+<li>如果排第 2 位，那么 RR &#x3D; 0.5</li>
+<li>如果排第 10 位，那么 RR &#x3D; 0.1</li>
+</ul>
+<p>MRR 很适合下面这类场景：</p>
+<ul>
+<li>用户通常只会点第一个最相关结果</li>
+<li>系统更关心“第一个命中出现得够不够早”</li>
+</ul>
+<p>比如：</p>
+<ul>
+<li>问答系统</li>
+<li>搜索建议</li>
+<li>单目标检索</li>
+</ul>
+<p>但在推荐系统里，如果我们关心的是“前 20 个里整体好不好”，那 NDCG 往往比 MRR 更合适。因为 MRR 只看第一个相关结果，后面的命中不会继续加分。</p>
+<h2 id="不同指标怎么选"><a href="#不同指标怎么选" class="headerlink" title="不同指标怎么选"></a>不同指标怎么选</h2><p>推荐系统里没有哪个指标是“万能”的，关键看你评估的是哪一层。</p>
+<h3 id="1-召回阶段"><a href="#1-召回阶段" class="headerlink" title="1. 召回阶段"></a>1. 召回阶段</h3><p>更常看：</p>
+<ul>
+<li>Recall@K</li>
+<li>Precision@K</li>
+</ul>
+<p>因为召回层的重点是：</p>
+<ul>
+<li>不要漏掉太多好 item</li>
+<li>在有限候选数里尽量保留有效结果</li>
+</ul>
+<h3 id="2-排序阶段"><a href="#2-排序阶段" class="headerlink" title="2. 排序阶段"></a>2. 排序阶段</h3><p>更常看：</p>
+<ul>
+<li>NDCG@K</li>
+<li>MRR</li>
+<li>AUC</li>
+</ul>
+<p>其中：</p>
+<ul>
+<li>NDCG@K 适合看整体 Top-K 排序质量</li>
+<li>MRR 适合看第一个命中位置</li>
+<li>AUC 适合看整体 pairwise 排序能力</li>
+</ul>
+<h3 id="3-CTR-预估或二分类任务"><a href="#3-CTR-预估或二分类任务" class="headerlink" title="3. CTR 预估或二分类任务"></a>3. CTR 预估或二分类任务</h3><p>更常看：</p>
+<ul>
+<li>AUC</li>
+<li>LogLoss</li>
+<li>F1</li>
+</ul>
+<p>其中 AUC 最常见，因为它不依赖阈值，而且在样本极不平衡时通常更稳。</p>
+<h2 id="一个直观总结"><a href="#一个直观总结" class="headerlink" title="一个直观总结"></a>一个直观总结</h2><p>可以把这些指标粗略理解成下面几类：</p>
+<ul>
+<li>Precision：推荐出去的东西有多准</li>
+<li>Recall：用户喜欢的东西找回来了多少</li>
+<li>F1：Precision 和 Recall 的平衡</li>
+<li>AUC：整体排序能力强不强</li>
+<li>NDCG：前排位置排得好不好</li>
+<li>MRR：第一个正确结果出现得早不早</li>
+</ul>
+<p>如果只记一句话，那么可以记成：</p>
+<ul>
+<li>召回看 Recall@K</li>
+<li>排序看 NDCG@K</li>
+<li>CTR 看 AUC</li>
+</ul>
+<p>当然，真实系统里通常不会只看一个指标，而是会把多个指标放在一起看。因为一个模型可能：</p>
+<ul>
+<li>AUC 更高，但 Top-K 更差</li>
+<li>Recall 更高，但 Precision 明显下降</li>
+<li>NDCG 更高，但覆盖率变差</li>
+</ul>
+<p>所以评估的关键，不只是“哪个指标高”，而是：</p>
+<ul>
+<li>这个指标是否真的对应你当前业务阶段的目标</li>
+</ul>
+
+      
+    </div>
+
+    
+    
+    
+      <footer class="post-footer">
+        <div class="post-eof"></div>
+      </footer>
+  </article>
+  
+  
+  
+
+      
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
     <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2025/12/11/ElasticSearch-DSL%E4%BB%8B%E7%BB%8D/">
 
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
@@ -1608,7 +1885,7 @@
       <div class="site-state-item site-state-posts">
           <a href="/archives/">
         
-          <span class="site-state-item-count">17</span>
+          <span class="site-state-item-count">18</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -1716,6 +1993,59 @@ document.querySelectorAll('.pdfobject-container').forEach(element => {
   
 
   
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
 
   
 
