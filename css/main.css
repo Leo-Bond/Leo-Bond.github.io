@@ -1142,7 +1142,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #6a5571;
+  background: #bd0993;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2527,8 +2527,10 @@ h6,
   font-weight: 600;
 }
 .brand .site-title,
-.brand .site-subtitle {
-  color: #fff;
+.brand .site-subtitle,
+.brand:hover .site-title,
+.brand:hover .site-subtitle {
+  color: #fff !important;
 }
 .menu .menu-item a,
 .menu .menu-item span.exturl,
