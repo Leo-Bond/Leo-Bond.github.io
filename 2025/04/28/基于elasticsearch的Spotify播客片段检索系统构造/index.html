@@ -14,23 +14,20 @@
 
 
 <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
-  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
-  <script src="/lib/pace/pace.min.js"></script>
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="这篇文章整理一下我们在课程项目里做的一个播客检索系统：基于 Elasticsearch，对 Spotify 的播客数据集建立索引，并支持按用户查询返回“可直接收听的播客片段”，而不是只返回整期播客。 这个项目最有意思的地方不只是“把文本搜出来”，而是我们想解决一个更具体的问题：  用户搜索一个主题时，不只是想知道“哪一期播客提到了它” 更希望直接拿到“从哪里开始听最合适”  也就是说，系统返回的不">
+  <meta name="description" content="这篇文章整理一下我们在课程项目里做的一个播客检索系统：基于 Elasticsearch，对 Spotify 的播客数据集建立索引，并支持按用户查询返回“可直接收听的播客片段”，而不是只返回整期播客。 这个项目最有意思的地方不只是“把文本搜出来”，而是我们想解决一个更具体的问题。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="基于elasticsearch的Spotify播客片段检索系统构造">
 <meta property="og:url" content="https://leo-bond.github.io/2025/04/28/%E5%9F%BA%E4%BA%8Eelasticsearch%E7%9A%84Spotify%E6%92%AD%E5%AE%A2%E7%89%87%E6%AE%B5%E6%A3%80%E7%B4%A2%E7%B3%BB%E7%BB%9F%E6%9E%84%E9%80%A0/index.html">
 <meta property="og:site_name" content="wdy&#39;s blog">
-<meta property="og:description" content="这篇文章整理一下我们在课程项目里做的一个播客检索系统：基于 Elasticsearch，对 Spotify 的播客数据集建立索引，并支持按用户查询返回“可直接收听的播客片段”，而不是只返回整期播客。 这个项目最有意思的地方不只是“把文本搜出来”，而是我们想解决一个更具体的问题：  用户搜索一个主题时，不只是想知道“哪一期播客提到了它” 更希望直接拿到“从哪里开始听最合适”  也就是说，系统返回的不">
+<meta property="og:description" content="这篇文章整理一下我们在课程项目里做的一个播客检索系统：基于 Elasticsearch，对 Spotify 的播客数据集建立索引，并支持按用户查询返回“可直接收听的播客片段”，而不是只返回整期播客。 这个项目最有意思的地方不只是“把文本搜出来”，而是我们想解决一个更具体的问题。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2025-04-28T05:22:33.000Z">
-<meta property="article:modified_time" content="2026-09-03T08:56:32.238Z">
 <meta property="article:author" content="wdy">
 <meta property="article:tag" content="Elasticsearch">
 <meta property="article:tag" content="播客检索">
@@ -106,6 +103,7 @@
       <h1 class="site-title">wdy's blog</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
   </div>
 
   <div class="site-nav-right">
@@ -121,37 +119,27 @@
   <ul id="menu" class="main-menu menu">
         <li class="menu-item menu-item-home">
 
-    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
 
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
-
-  </li>
-        <li class="menu-item menu-item-about">
-
-    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
-
-  </li>
-        <li class="menu-item menu-item-resources">
-
-    <a href="/resources/" rel="section"><i class="download fa-fw"></i>资源</a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
 
   </li>
         <li class="menu-item menu-item-resume">
 
-    <a href="/resume/" rel="section"><i class="file-pdf fa-fw"></i>简历</a>
+    <a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>简历</a>
 
   </li>
   </ul>
@@ -187,7 +175,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -212,7 +200,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -225,6 +213,7 @@
             </span>
 
           
+            <div class="post-description">这篇文章整理一下我们在课程项目里做的一个播客检索系统：基于 Elasticsearch，对 Spotify 的播客数据集建立索引，并支持按用户查询返回“可直接收听的播客片段”，而不是只返回整期播客。 这个项目最有意思的地方不只是“把文本搜出来”，而是我们想解决一个更具体的问题。</div>
 
         </div>
       </header>
@@ -259,6 +248,8 @@
 <li>这段内容的文本是什么</li>
 </ul>
 <p>相比传统的“返回整个播客节目”，这种形式更适合真实使用场景，因为用户可以直接从最相关的位置开始收听。</p>
+<span id="more"></span>
+
 <h2 id="二、数据集"><a href="#二、数据集" class="headerlink" title="二、数据集"></a>二、数据集</h2><p>项目使用的是 Spotify 提供的播客数据集，这个数据集也被用于 TREC Podcasts Track。</p>
 <p>这个数据集的几个关键特点是：</p>
 <ul>
@@ -774,7 +765,7 @@
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
   <p class="site-author-name" itemprop="name">wdy</p>
-  <div class="site-description" itemprop="description"></div>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
 </div>
 <div class="site-state-wrap motion-element">
   <nav class="site-state">
@@ -844,7 +835,6 @@
   </div>
 
   
-  <script color='' opacity='' zIndex='' count='' src="/lib/canvas-nest/canvas-nest-nomobile.min.js"></script>
   <script src="/lib/anime.min.js"></script>
   <script src="/lib/velocity/velocity.min.js"></script>
   <script src="/lib/velocity/velocity.ui.min.js"></script>
@@ -874,26 +864,6 @@
 
 
 
-<script>
-document.querySelectorAll('.pdfobject-container').forEach(element => {
-  let url = element.dataset.target;
-  let pdfOpenParams = {
-    navpanes : 0,
-    toolbar  : 0,
-    statusbar: 0,
-    pagemode : 'thumbs',
-    view     : 'FitH'
-  };
-  let pdfOpenFragment = '#' + Object.entries(pdfOpenParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&');
-  let fullURL = `/lib/pdf/web/viewer.html?file=${encodeURIComponent(url)}${pdfOpenFragment}`;
-
-  if (NexT.utils.supportsPDFs()) {
-    element.innerHTML = `<embed class="pdfobject" src="${url + pdfOpenFragment}" type="application/pdf" style="height: ${element.dataset.height};">`;
-  } else {
-    element.innerHTML = `<iframe src="${fullURL}" style="height: ${element.dataset.height};" frameborder="0"></iframe>`;
-  }
-});
-</script>
 
 
 

@@ -14,23 +14,20 @@
 
 
 <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
-  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
-  <script src="/lib/pace/pace.min.js"></script>
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment[J]. arXiv preprint arXiv:2502.18965, 2025.  方法介绍本文提出 OneRec，一个端到端的单阶段生成">
+  <meta name="description" content="Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment J . arXiv pr。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="读论文-OneRec生成式推荐系统">
 <meta property="og:url" content="https://leo-bond.github.io/2026/03/30/%E8%AF%BB%E8%AE%BA%E6%96%87-OneRec%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/index.html">
 <meta property="og:site_name" content="wdy&#39;s blog">
-<meta property="og:description" content="Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment[J]. arXiv preprint arXiv:2502.18965, 2025.  方法介绍本文提出 OneRec，一个端到端的单阶段生成">
+<meta property="og:description" content="Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment J . arXiv pr。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-03-30T08:39:23.000Z">
-<meta property="article:modified_time" content="2026-09-03T08:56:32.217Z">
 <meta property="article:author" content="wdy">
 <meta property="article:tag" content="生成式推荐">
 <meta property="article:tag" content="语义 ID">
@@ -106,6 +103,7 @@
       <h1 class="site-title">wdy's blog</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
   </div>
 
   <div class="site-nav-right">
@@ -121,37 +119,27 @@
   <ul id="menu" class="main-menu menu">
         <li class="menu-item menu-item-home">
 
-    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
 
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
-
-  </li>
-        <li class="menu-item menu-item-about">
-
-    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
-
-  </li>
-        <li class="menu-item menu-item-resources">
-
-    <a href="/resources/" rel="section"><i class="download fa-fw"></i>资源</a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
 
   </li>
         <li class="menu-item menu-item-resume">
 
-    <a href="/resume/" rel="section"><i class="file-pdf fa-fw"></i>简历</a>
+    <a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>简历</a>
 
   </li>
   </ul>
@@ -187,7 +175,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -212,7 +200,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -225,6 +213,7 @@
             </span>
 
           
+            <div class="post-description">Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment J . arXiv pr。</div>
 
         </div>
       </header>
@@ -238,6 +227,8 @@
         <blockquote>
 <p>Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment[J]. arXiv preprint arXiv:2502.18965, 2025.</p>
 </blockquote>
+<span id="more"></span>
+
 <h2 id="方法介绍"><a href="#方法介绍" class="headerlink" title="方法介绍"></a>方法介绍</h2><p>本文提出 <strong>OneRec</strong>，一个端到端的单阶段生成式推荐框架，其目标是直接根据用户历史行为生成目标 session，而不再采用传统的多阶段级联排序流程。设用户历史行为序列为</p>
 <p>$$ H_u&#x3D;{v_1^h,v_2^h,\dots,v_n^h} $$  </p>
 <p>其中，$v_i^h$ 表示用户产生过有效正反馈的视频，$n$ 表示历史行为长度。模型输出为一个 session 级推荐列表</p>
@@ -422,7 +413,7 @@
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
   <p class="site-author-name" itemprop="name">wdy</p>
-  <div class="site-description" itemprop="description"></div>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
 </div>
 <div class="site-state-wrap motion-element">
   <nav class="site-state">
@@ -492,7 +483,6 @@
   </div>
 
   
-  <script color='' opacity='' zIndex='' count='' src="/lib/canvas-nest/canvas-nest-nomobile.min.js"></script>
   <script src="/lib/anime.min.js"></script>
   <script src="/lib/velocity/velocity.min.js"></script>
   <script src="/lib/velocity/velocity.ui.min.js"></script>
@@ -522,26 +512,6 @@
 
 
 
-<script>
-document.querySelectorAll('.pdfobject-container').forEach(element => {
-  let url = element.dataset.target;
-  let pdfOpenParams = {
-    navpanes : 0,
-    toolbar  : 0,
-    statusbar: 0,
-    pagemode : 'thumbs',
-    view     : 'FitH'
-  };
-  let pdfOpenFragment = '#' + Object.entries(pdfOpenParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&');
-  let fullURL = `/lib/pdf/web/viewer.html?file=${encodeURIComponent(url)}${pdfOpenFragment}`;
-
-  if (NexT.utils.supportsPDFs()) {
-    element.innerHTML = `<embed class="pdfobject" src="${url + pdfOpenFragment}" type="application/pdf" style="height: ${element.dataset.height};">`;
-  } else {
-    element.innerHTML = `<iframe src="${fullURL}" style="height: ${element.dataset.height};" frameborder="0"></iframe>`;
-  }
-});
-</script>
 
 
 

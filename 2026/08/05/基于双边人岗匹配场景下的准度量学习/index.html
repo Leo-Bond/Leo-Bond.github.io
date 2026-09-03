@@ -14,23 +14,20 @@
 
 
 <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
-  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
-  <script src="/lib/pace/pace.min.js"></script>
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="1. 论文信息 标题：Quasi-Metric Learning for Bilateral Person-Job Fit 作者：Yingpeng Du、Hongzhi Liu、Hengshu Zhu、Yang Song、Zhi Zheng、Zhonghai Wu 期刊：IEEE Transactions on Pattern Analysis and Machine Intelligence（T">
+  <meta name="description" content="1. 论文信息 - 标题 ：Quasi-Metric Learning for Bilateral Person-Job Fit - 作者 ：Yingpeng Du、Hongzhi Liu、Hengshu Zhu、Yang Song、Zhi Zheng、Zhonghai Wu -。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="基于双边人岗匹配场景下的准度量学习">
 <meta property="og:url" content="https://leo-bond.github.io/2026/08/05/%E5%9F%BA%E4%BA%8E%E5%8F%8C%E8%BE%B9%E4%BA%BA%E5%B2%97%E5%8C%B9%E9%85%8D%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E5%87%86%E5%BA%A6%E9%87%8F%E5%AD%A6%E4%B9%A0/index.html">
 <meta property="og:site_name" content="wdy&#39;s blog">
-<meta property="og:description" content="1. 论文信息 标题：Quasi-Metric Learning for Bilateral Person-Job Fit 作者：Yingpeng Du、Hongzhi Liu、Hengshu Zhu、Yang Song、Zhi Zheng、Zhonghai Wu 期刊：IEEE Transactions on Pattern Analysis and Machine Intelligence（T">
+<meta property="og:description" content="1. 论文信息 - 标题 ：Quasi-Metric Learning for Bilateral Person-Job Fit - 作者 ：Yingpeng Du、Hongzhi Liu、Hengshu Zhu、Yang Song、Zhi Zheng、Zhonghai Wu -。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-08-05T07:45:53.000Z">
-<meta property="article:modified_time" content="2026-09-03T08:57:27.586Z">
 <meta property="article:author" content="wdy">
 <meta property="article:tag" content="人岗匹配">
 <meta property="article:tag" content="双边推荐">
@@ -106,6 +103,7 @@
       <h1 class="site-title">wdy's blog</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
   </div>
 
   <div class="site-nav-right">
@@ -121,37 +119,27 @@
   <ul id="menu" class="main-menu menu">
         <li class="menu-item menu-item-home">
 
-    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
 
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
-
-  </li>
-        <li class="menu-item menu-item-about">
-
-    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
-
-  </li>
-        <li class="menu-item menu-item-resources">
-
-    <a href="/resources/" rel="section"><i class="download fa-fw"></i>资源</a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
 
   </li>
         <li class="menu-item menu-item-resume">
 
-    <a href="/resume/" rel="section"><i class="file-pdf fa-fw"></i>简历</a>
+    <a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>简历</a>
 
   </li>
   </ul>
@@ -187,7 +175,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -212,7 +200,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:57:27" itemprop="dateModified" datetime="2026-09-03T16:57:27+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -225,6 +213,7 @@
             </span>
 
           
+            <div class="post-description">1. 论文信息 - 标题 ：Quasi-Metric Learning for Bilateral Person-Job Fit - 作者 ：Yingpeng Du、Hongzhi Liu、Hengshu Zhu、Yang Song、Zhi Zheng、Zhonghai Wu -。</div>
 
         </div>
       </header>
@@ -249,6 +238,8 @@
 <li><strong>竞争力</strong>：候选人和岗位在招聘市场中的吸引力或竞争力是否对等。</li>
 </ul>
 <p>普通度量学习能够借助三角不等式传播相似性，却要求距离对称；双边招聘关系则天然不对称。论文因此引入不要求对称性的准度量，并通过异质关系图学习不同交互反馈对用户行为的影响。</p>
+<span id="more"></span>
+
 <h2 id="2-问题背景"><a href="#2-问题背景" class="headerlink" title="2. 问题背景"></a>2. 问题背景</h2><h3 id="2-1-人岗匹配是双向选择"><a href="#2-1-人岗匹配是双向选择" class="headerlink" title="2.1 人岗匹配是双向选择"></a>2.1 人岗匹配是双向选择</h3><p>普通商品推荐主要预测“用户是否喜欢商品”，但招聘中的成功匹配需要同时满足：</p>
 <ol>
 <li>候选人愿意申请或接受岗位；</li>
@@ -279,7 +270,10 @@ $$d(c,j)=d(j,c).$$
 
 <p>但招聘中可能出现：</p>
 
-$$q(c,j)<\tau<q(j,c),$$ <p>其中 $q(c,j)$ 较小表示候选人愿意申请岗位，$q(j,c)$ 较大表示雇主不愿接受候选人。因此，对称距离无法直接描述这种单向认可。<p></p>
+$$q(c,j)<\tau<q(j,c),$$
+
+
+<p>其中 $q(c,j)$ 较小表示候选人愿意申请岗位，$q(j,c)$ 较大表示雇主不愿接受候选人。因此，对称距离无法直接描述这种单向认可。</p>
 <h2 id="4-准度量空间"><a href="#4-准度量空间" class="headerlink" title="4. 准度量空间"></a>4. 准度量空间</h2><h3 id="4-1-定义"><a href="#4-1-定义" class="headerlink" title="4.1 定义"></a>4.1 定义</h3><p>给定非空集合 $S$，若函数 $q:S\times S\rightarrow\mathbb{R}$ 对任意 $s,t,z\in S$ 满足：</p>
 <ol>
 <li>非负性：$q(s,t)\geq 0$；</li>
@@ -610,7 +604,7 @@ $$w(s\mid \text{context}),$$
 <li>Weinberger, K. Q., &amp; Saul, L. K. (2009). <em>Distance Metric Learning for Large Margin Nearest Neighbor Classification</em>. JMLR.</li>
 <li>He, X., et al. (2020). <em>LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation</em>. SIGIR 2020.</li>
 </ol>
-</\tau<q(j,c),$$>
+
     </div>
 
     
@@ -704,7 +698,7 @@ $$w(s\mid \text{context}),$$
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
   <p class="site-author-name" itemprop="name">wdy</p>
-  <div class="site-description" itemprop="description"></div>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
 </div>
 <div class="site-state-wrap motion-element">
   <nav class="site-state">
@@ -774,7 +768,6 @@ $$w(s\mid \text{context}),$$
   </div>
 
   
-  <script color='' opacity='' zIndex='' count='' src="/lib/canvas-nest/canvas-nest-nomobile.min.js"></script>
   <script src="/lib/anime.min.js"></script>
   <script src="/lib/velocity/velocity.min.js"></script>
   <script src="/lib/velocity/velocity.ui.min.js"></script>
@@ -804,26 +797,6 @@ $$w(s\mid \text{context}),$$
 
 
 
-<script>
-document.querySelectorAll('.pdfobject-container').forEach(element => {
-  let url = element.dataset.target;
-  let pdfOpenParams = {
-    navpanes : 0,
-    toolbar  : 0,
-    statusbar: 0,
-    pagemode : 'thumbs',
-    view     : 'FitH'
-  };
-  let pdfOpenFragment = '#' + Object.entries(pdfOpenParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&');
-  let fullURL = `/lib/pdf/web/viewer.html?file=${encodeURIComponent(url)}${pdfOpenFragment}`;
-
-  if (NexT.utils.supportsPDFs()) {
-    element.innerHTML = `<embed class="pdfobject" src="${url + pdfOpenFragment}" type="application/pdf" style="height: ${element.dataset.height};">`;
-  } else {
-    element.innerHTML = `<iframe src="${fullURL}" style="height: ${element.dataset.height};" frameborder="0"></iframe>`;
-  }
-});
-</script>
 
 
 

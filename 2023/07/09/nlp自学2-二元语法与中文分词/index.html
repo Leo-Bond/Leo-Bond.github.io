@@ -14,23 +14,20 @@
 
 
 <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
-  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
-  <script src="/lib/pace/pace.min.js"></script>
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta name="description" content="上一篇主要讨论了词典分词。词典分词可以解决“字符串能否成词”的问题，但无法很好处理切分歧义。例如“研究生命起源”既可以切成“研究 &#x2F; 生命 &#x2F; 起源”，也可以切成“研究生 &#x2F; 命 &#x2F; 起源”。两条路径可能都能在词典中找到对应词语，因此还需要一个标准来判断哪一种切分更合理。 二元语法模型（Bigram Language Model）正是这种标准中最基础的一种。">
+  <meta name="description" content="上一篇主要讨论了词典分词。词典分词可以解决“字符串能否成词”的问题，但无法很好处理切分歧义。例如“研究生命起源”既可以切成“研究 &#x2F; 生命 &#x2F; 起源”，也可以切成“研究生 &#x2F; 命 &#x2F; 起源”。两条路径可能都能在词典中找到对应词语，因此还需要一个标准来判断哪一种切分更合理。 二元语。">
 <meta property="og:type" content="article">
 <meta property="og:title" content="nlp自学2-二元语法与中文分词">
 <meta property="og:url" content="https://leo-bond.github.io/2023/07/09/nlp%E8%87%AA%E5%AD%A62-%E4%BA%8C%E5%85%83%E8%AF%AD%E6%B3%95%E4%B8%8E%E4%B8%AD%E6%96%87%E5%88%86%E8%AF%8D/index.html">
 <meta property="og:site_name" content="wdy&#39;s blog">
-<meta property="og:description" content="上一篇主要讨论了词典分词。词典分词可以解决“字符串能否成词”的问题，但无法很好处理切分歧义。例如“研究生命起源”既可以切成“研究 &#x2F; 生命 &#x2F; 起源”，也可以切成“研究生 &#x2F; 命 &#x2F; 起源”。两条路径可能都能在词典中找到对应词语，因此还需要一个标准来判断哪一种切分更合理。 二元语法模型（Bigram Language Model）正是这种标准中最基础的一种。">
+<meta property="og:description" content="上一篇主要讨论了词典分词。词典分词可以解决“字符串能否成词”的问题，但无法很好处理切分歧义。例如“研究生命起源”既可以切成“研究 &#x2F; 生命 &#x2F; 起源”，也可以切成“研究生 &#x2F; 命 &#x2F; 起源”。两条路径可能都能在词典中找到对应词语，因此还需要一个标准来判断哪一种切分更合理。 二元语。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2023-07-09T10:26:16.000Z">
-<meta property="article:modified_time" content="2026-09-03T08:56:32.237Z">
 <meta property="article:author" content="wdy">
 <meta property="article:tag" content="中文分词">
 <meta property="article:tag" content="Bigram">
@@ -106,6 +103,7 @@
       <h1 class="site-title">wdy's blog</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
   </div>
 
   <div class="site-nav-right">
@@ -121,37 +119,27 @@
   <ul id="menu" class="main-menu menu">
         <li class="menu-item menu-item-home">
 
-    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
 
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
-
-  </li>
-        <li class="menu-item menu-item-about">
-
-    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
-
-  </li>
-        <li class="menu-item menu-item-resources">
-
-    <a href="/resources/" rel="section"><i class="download fa-fw"></i>资源</a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
 
   </li>
         <li class="menu-item menu-item-resume">
 
-    <a href="/resume/" rel="section"><i class="file-pdf fa-fw"></i>简历</a>
+    <a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>简历</a>
 
   </li>
   </ul>
@@ -187,7 +175,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -212,7 +200,7 @@
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -225,6 +213,7 @@
             </span>
 
           
+            <div class="post-description">上一篇主要讨论了词典分词。词典分词可以解决“字符串能否成词”的问题，但无法很好处理切分歧义。例如“研究生命起源”既可以切成“研究 / 生命 / 起源”，也可以切成“研究生 / 命 / 起源”。两条路径可能都能在词典中找到对应词语，因此还需要一个标准来判断哪一种切分更合理。 二元语。</div>
 
         </div>
       </header>
@@ -245,6 +234,8 @@
 <p>但直接估计：</p>
 <p><code>P(w1, w2, ..., wn)</code></p>
 <p>几乎不可行，因为词序列空间过大，语料中很难覆盖所有组合。因此需要对联合概率进行近似建模。</p>
+<span id="more"></span>
+
 <h2 id="马尔可夫假设与二元语法"><a href="#马尔可夫假设与二元语法" class="headerlink" title="马尔可夫假设与二元语法"></a>马尔可夫假设与二元语法</h2><p>由链式法则可得：</p>
 <p><code>P(w1, w2, ..., wn) = P(w1) P(w2|w1) P(w3|w1,w2) ... P(wn|w1,...,wn-1)</code></p>
 <p>若采用一阶马尔可夫假设，即认为当前词只依赖于前一个词，则有：</p>
@@ -453,7 +444,7 @@
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
   <p class="site-author-name" itemprop="name">wdy</p>
-  <div class="site-description" itemprop="description"></div>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
 </div>
 <div class="site-state-wrap motion-element">
   <nav class="site-state">
@@ -523,7 +514,6 @@
   </div>
 
   
-  <script color='' opacity='' zIndex='' count='' src="/lib/canvas-nest/canvas-nest-nomobile.min.js"></script>
   <script src="/lib/anime.min.js"></script>
   <script src="/lib/velocity/velocity.min.js"></script>
   <script src="/lib/velocity/velocity.ui.min.js"></script>
@@ -553,26 +543,6 @@
 
 
 
-<script>
-document.querySelectorAll('.pdfobject-container').forEach(element => {
-  let url = element.dataset.target;
-  let pdfOpenParams = {
-    navpanes : 0,
-    toolbar  : 0,
-    statusbar: 0,
-    pagemode : 'thumbs',
-    view     : 'FitH'
-  };
-  let pdfOpenFragment = '#' + Object.entries(pdfOpenParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&');
-  let fullURL = `/lib/pdf/web/viewer.html?file=${encodeURIComponent(url)}${pdfOpenFragment}`;
-
-  if (NexT.utils.supportsPDFs()) {
-    element.innerHTML = `<embed class="pdfobject" src="${url + pdfOpenFragment}" type="application/pdf" style="height: ${element.dataset.height};">`;
-  } else {
-    element.innerHTML = `<iframe src="${fullURL}" style="height: ${element.dataset.height};" frameborder="0"></iframe>`;
-  }
-});
-</script>
 
 
 

@@ -14,20 +14,24 @@
 
 
 <link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
-  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
-  <script src="/lib/pace/pace.min.js"></script>
 
 <script id="hexo-configurations">
     var NexT = window.NexT || {};
-    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":true,"show_result":true,"style":"flat"},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
   </script>
 
-  <meta property="og:type" content="website">
+  <meta name="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
+<meta property="og:type" content="website">
 <meta property="og:title" content="wdy&#39;s blog">
 <meta property="og:url" content="https://leo-bond.github.io/index.html">
 <meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:author" content="wdy">
+<meta property="article:tag" content="推荐系统">
+<meta property="article:tag" content="机器学习">
+<meta property="article:tag" content="自然语言处理">
+<meta property="article:tag" content="搜索与检索">
 <meta name="twitter:card" content="summary">
 
 <link rel="canonical" href="https://leo-bond.github.io/">
@@ -97,6 +101,7 @@
       <h1 class="site-title">wdy's blog</h1>
       <span class="logo-line-after"><i></i></span>
     </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
   </div>
 
   <div class="site-nav-right">
@@ -112,37 +117,27 @@
   <ul id="menu" class="main-menu menu">
         <li class="menu-item menu-item-home">
 
-    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+    <a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a>
 
   </li>
         <li class="menu-item menu-item-archives">
 
-    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+    <a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a>
 
   </li>
         <li class="menu-item menu-item-categories">
 
-    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+    <a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a>
 
   </li>
         <li class="menu-item menu-item-tags">
 
-    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
-
-  </li>
-        <li class="menu-item menu-item-about">
-
-    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
-
-  </li>
-        <li class="menu-item menu-item-resources">
-
-    <a href="/resources/" rel="section"><i class="download fa-fw"></i>资源</a>
+    <a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a>
 
   </li>
         <li class="menu-item menu-item-resume">
 
-    <a href="/resume/" rel="section"><i class="file-pdf fa-fw"></i>简历</a>
+    <a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>简历</a>
 
   </li>
   </ul>
@@ -177,7 +172,7 @@
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -197,7 +192,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2026-09-03 11:58:38 / 修改时间：16:57:27" itemprop="dateCreated datePublished" datetime="2026-09-03T11:58:38+08:00">2026-09-03</time>
+              <time title="创建时间：2026-09-03 11:58:38 / 修改时间：17:23:23" itemprop="dateCreated datePublished" datetime="2026-09-03T11:58:38+08:00">2026-09-03</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -220,441 +215,15 @@
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="1-论文信息"><a href="#1-论文信息" class="headerlink" title="1. 论文信息"></a>1. 论文信息</h2><ul>
-<li><strong>标题</strong>：PEMBOT: Pareto-Ensembled Multi-task Boosted Trees</li>
-<li><strong>作者</strong>：Gokul Swamy、Anoop Saladi、Arunita Das、Shobhit Niranjan</li>
-<li><strong>会议</strong>：KDD 2024</li>
-<li><strong>DOI</strong>：<a target="_blank" rel="noopener" href="https://doi.org/10.1145/3637528.3671619">10.1145&#x2F;3637528.3671619</a></li>
-</ul>
-<p>PEMBOT（<strong>P</strong>areto-<strong>E</strong>nsembled <strong>M</strong>ulti-task <strong>BO</strong>osted <strong>T</strong>rees）是一个面向表格数据的多任务分类框架。它先训练一组位于不同 Pareto 权衡位置的共享 GBT，再为每个任务追加专属树，最后利用 DPP 从候选模型中挑选兼具质量与差异性的子集进行集成。</p>
-<p>这篇论文试图解决三个相互关联的问题：</p>
-<ol>
-<li>多任务之间既共享信息，又可能存在目标冲突；</li>
-<li>线性加权损失依赖人工指定任务权重，单一权重只能对应一种权衡；</li>
-<li>大量 Pareto 模型虽然有利于集成，却难以满足在线推理的延迟要求。</li>
-</ol>
-<h2 id="2-为什么需要-PEMBOT"><a href="#2-为什么需要-PEMBOT" class="headerlink" title="2. 为什么需要 PEMBOT"></a>2. 为什么需要 PEMBOT</h2><p>在电商履约中，一个订单可能面临多种风险，例如包裹未收到、商品损坏或货不对板、退回错误或虚假商品。不同风险共享商品、用户和物流链路中的信息，但对应的干预措施并不相同，因此需要分别预测。</p>
-<p>常见方案各有局限：</p>
-<ul>
-<li><strong>每个任务单独建模</strong>：无法利用任务间协同信息，且训练、部署和维护成本较高；</li>
-<li><strong>固定权重的联合建模</strong>：结果对权重敏感，并可能出现某个任务提升、其他任务退化的负迁移；</li>
-<li><strong>深度多任务模型</strong>：适合部分场景，但在典型表格数据上不一定优于 GBT；</li>
-<li><strong>进化式多目标决策树</strong>：可搜索 Pareto 解，但计算成本随问题规模快速增长。</li>
-</ul>
-<p>PEMBOT 的核心思路可以概括为：</p>
-<blockquote>
-<p>不寻找一个对所有任务都“最好”的模型，而是采样多个互不支配的折中模型，再从中选择少量高质量且多样的模型进行集成。</p>
-</blockquote>
-<h2 id="3-Pareto-最优基础"><a href="#3-Pareto-最优基础" class="headerlink" title="3. Pareto 最优基础"></a>3. Pareto 最优基础</h2><p>设有 $M$ 个二分类任务，模型参数为 $\theta$，第 $i$ 个任务的损失为 $F_i(\theta)$，则多目标优化问题为：</p>
-
-$$\min_{\theta}\ \mathbf{F}(\theta)=\min_{\theta}\ \bigl(F_1(\theta),F_2(\theta),\ldots,F_M(\theta)\bigr).$$
-
-
-<p>第 $i$ 个任务采用二元交叉熵。按最小化损失的通常写法：</p>
-
-$$F_i(\theta)=-\sum_{j=1}^{N_i}\left[y_j\log p_j(\theta)+(1-y_j)\log\bigl(1-p_j(\theta)\bigr)\right].$$
-
-
-<p>如果存在方向 $q(\theta_k)$，使所有任务在一次更新后都不变差，则有：</p>
-
-$$F_i(\theta_{k+1})\le F_i(\theta_k),\qquad \forall i\in\{1,\ldots,M\}.$$
-
-
-<p>一种寻找公共下降方向的方法，是求解梯度凸组合的最小范数问题：</p>
-
-$$\underset{\boldsymbol{\alpha}}{\operatorname{minimize}}\; \left\lVert \sum_{i=1}^{M}\alpha_i\nabla F_i(\theta_k) \right\rVert_2^2 \quad \text{subject to}\quad \alpha_i\geq 0,\; \sum_{i=1}^{M}\alpha_i=1.$$ 
-
-
-<p>对应方向为：</p>
-
-$$q(\theta_k) =-\sum_{i=1}^{M}\alpha_i^*\nabla F_i(\theta_k).$$
-
-
-<p>当梯度的凸包包含零向量时，最优凸组合满足 $q(\theta_k)=0$。此时不存在一个能同时降低所有任务损失的方向，该点称为 <strong>Pareto 驻点</strong>。所有不同权衡下的 Pareto 驻点共同描述 Pareto 前沿。</p>
-<p>这里需要区分两个概念：</p>
-<ul>
-<li><strong>Pareto 最优</strong>：通常是全局意义上的互不支配解；</li>
-<li><strong>Pareto 驻点</strong>：局部一阶条件下不存在共同下降方向。</li>
-</ul>
-<p>论文的训练过程实际保证的是局部 Pareto 驻点，因此“Pareto-optimal trees”更准确地说是不同权重下得到的 Pareto 驻点模型。</p>
-<h2 id="4-PEMBOT-方法"><a href="#4-PEMBOT-方法" class="headerlink" title="4. PEMBOT 方法"></a>4. PEMBOT 方法</h2><h3 id="4-1-多任务共享-GBT"><a href="#4-1-多任务共享-GBT" class="headerlink" title="4.1 多任务共享 GBT"></a>4.1 多任务共享 GBT</h3><p>标准梯度提升树逐轮添加弱学习器：</p>
-
-$$S_m(x)=S_{m-1}(x)+\gamma h_m(x),$$
-
-
-<p>其中 $h_m$ 是第 $m$ 轮拟合伪残差的决策树，$\gamma$ 是学习率。伪残差为：</p>
-
-$$r_{jm} =-\frac{\partial f(y_j,S_{m-1}(x_j))} {\partial S_{m-1}(x_j)}.$$
-
-
-<p>PEMBOT 首先将多个任务损失线性标量化：</p>
-
-$$F(\theta)=\sum_{i=1}^{M}\alpha_iF_i(\theta), \qquad \alpha_i\ge 0, \qquad \sum_{i=1}^{M}\alpha_i=1.$$
-
-
-<p>当共享 GBT 收敛时：</p>
-
-$$\nabla F(\theta) = \sum_{i=1}^{M}\alpha_i\nabla F_i(\theta) \approx 0,$$
-
-
-<p>这与 Pareto 驻点的一阶条件一致。因此，每组权重 $\boldsymbol{\alpha}$ 都可训练出一个局部 Pareto 驻点模型。</p>
-<h3 id="4-2-共享树干与任务专属分支"><a href="#4-2-共享树干与任务专属分支" class="headerlink" title="4.2 共享树干与任务专属分支"></a>4.2 共享树干与任务专属分支</h3><p>共享 GBT 收敛后，PEMBOT 不直接将它用于全部任务，而是针对每个任务继续执行若干轮 boosting：</p>
-<ul>
-<li>前 $n_{\text{boost}}$ 轮使用联合损失，学习任务间的共性；</li>
-<li>后 $n_{\text{additional}}$ 轮只使用任务 $i$ 的损失，学习任务特有模式。</li>
-</ul>
-<p>这相当于树模型版本的“共享表示 + 任务专属头”：</p>
-
-$$
-\text{Shared GBT}
-\longrightarrow
-\begin{cases}
-T^1 & \text{任务 1 专属 boosting}\\
-T^2 & \text{任务 2 专属 boosting}\\
-\vdots\\
-T^M & \text{任务 }M\text{ 专属 boosting}
-\end{cases}
-$$
-
-
-<p>共享阶段能够让标签稀少或类别严重不平衡的任务借用其他任务中的有效信号，专属阶段则减轻纯共享模型无法表达任务差异的问题。</p>
-<h3 id="4-3-采样-Pareto-前沿"><a href="#4-3-采样-Pareto-前沿" class="headerlink" title="4.3 采样 Pareto 前沿"></a>4.3 采样 Pareto 前沿</h3><p>固定一组 $\boldsymbol{\alpha}$ 仍然只能得到一种任务权衡。为覆盖更广的 Pareto 前沿，论文随机采样约 $N_\alpha\approx100$ 组满足单纯形约束的权重，并为每组权重训练一套模型。</p>
-<p>第 $j$ 个共享模型经过第 $i$ 个任务的专属 boosting 后记为 $T_j^i$。若不考虑推理成本，可直接对全部候选模型求和或取平均：</p>
-
-$$\operatorname{pred}_i(x) = \frac{1}{N_\alpha} \sum_{j=1}^{N_\alpha}T_j^i(x).$$
-
-
-<p>论文公式写成求和；若 $T_j^i$ 表示概率，工程实现中通常还需除以模型数量，或在后续阈值标定时吸收这一尺度。</p>
-<p>全量集成能降低单一权重带来的偏差，但约 100 套模型不适合高吞吐在线服务。于是 PEMBOT 再通过 DPP 将其压缩到约 10 套模型。</p>
-<h2 id="5-如何表示一棵-GBT"><a href="#5-如何表示一棵-GBT" class="headerlink" title="5. 如何表示一棵 GBT"></a>5. 如何表示一棵 GBT</h2><p>DPP 需要计算模型之间的相似性，因此首先要把每个 GBT 转换为向量。论文比较了三种基于树分裂特征的表示：</p>
-<ol>
-<li>特征是否出现的 one-hot 编码；</li>
-<li>特征 information gain 的自然对数；</li>
-<li>特征 coverage 的自然对数。</li>
-</ol>
-<p>假设一个 GBT 有 $t$ 棵树，原始特征数为 $f$。每棵树产生一个 $f$ 维向量，再将 $t$ 个向量拼接，得到 $tf$ 维模型表示。实验中效果最好的是 <strong>log information gain</strong>。</p>
-<p>随后对高维稀疏表示执行 SVD，得到每个模型的 $d$ 维稠密向量；论文使用 $d=128$。模型间可使用余弦相似度或欧氏距离衡量差异。</p>
-<p>这种表示的直觉是：如果两个 GBT 在不同 boosting 轮次中反复依赖相同特征，并产生相近的信息增益结构，那么它们学到的决策规律也更相似。</p>
-<h2 id="6-Greedy-DPP：兼顾质量与多样性"><a href="#6-Greedy-DPP：兼顾质量与多样性" class="headerlink" title="6. Greedy DPP：兼顾质量与多样性"></a>6. Greedy DPP：兼顾质量与多样性</h2><h3 id="6-1-DPP-的作用"><a href="#6-1-DPP-的作用" class="headerlink" title="6.1 DPP 的作用"></a>6.1 DPP 的作用</h3><p>行列式点过程（Determinantal Point Process，DPP）为集合赋予概率。对于固定大小为 $k$ 的子集 $J$：</p>
-
-$$P(J)\propto\det(S_{JJ}),\qquad |J|=k,$$
-
-
-<p>其中 $S$ 是候选项的相似度矩阵。几何上，行列式对应所选向量张成平行多面体的平方体积：向量越不相似，体积通常越大。</p>
-<p>仅追求差异性可能选中质量较差的模型，因此论文定义：</p>
-
-$$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det(S_{JJ}+\eta I) \right].$$
-
-
-<p>各符号含义如下：</p>
-<ul>
-<li>$q_j$：第 $j$ 个模型在验证集上的 F1 质量分数；</li>
-<li>$S_{JJ}$：候选子集的相似度子矩阵；</li>
-<li>$\lambda$：质量与多样性的平衡系数；</li>
-<li>$\eta I$：保证矩阵正定和 log-det 数值稳定的正则项；</li>
-<li>$k$：最终参与集成的模型数。</li>
-</ul>
-<p>第一项偏好单模型效果好，第二项偏好模型之间差异大。</p>
-<h3 id="6-2-贪心求解"><a href="#6-2-贪心求解" class="headerlink" title="6.2 贪心求解"></a>6.2 贪心求解</h3><p>精确搜索 $k$ 个模型需要枚举组合，成本很高。论文采用 Greedy DPP：</p>
-<ol>
-<li>用质量最高的模型初始化集合 $J$；</li>
-<li>对每个尚未选择的模型，计算加入后的目标增益；</li>
-<li>加入增益最大的模型；</li>
-<li>重复直到 $|J|=k$。</li>
-</ol>
-<p>利用模型嵌入 $L_j$，其选择目标可写为：</p>
-
-$$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det \left( \sum_{j\in J}L_jL_j^\top+\eta I \right) \right].$$
-
-
-<p>论文指出，该目标具有单调子模性质，贪心算法可获得 $1-1/e$ 的近似保证。</p>
-<h2 id="7-完整训练流程"><a href="#7-完整训练流程" class="headerlink" title="7. 完整训练流程"></a>7. 完整训练流程</h2><p>PEMBOT 可以整理为以下流程：</p>
-<ol>
-<li>准备共享特征和 $M$ 个二分类标签；</li>
-<li>采样 $N_\alpha$ 组位于概率单纯形上的任务权重；</li>
-<li>对每组权重训练联合损失 GBT，得到共享 Pareto 驻点模型；</li>
-<li>从每个共享模型出发，为每个任务追加专属 boosting 轮次；</li>
-<li>根据树中分裂特征的 log information gain 构造模型向量；</li>
-<li>使用 SVD 将模型表示压缩到 128 维；</li>
-<li>用验证集 F1 作为质量分数，通过 Greedy DPP 选择 $k$ 个模型；</li>
-<li>对所选模型的任务输出进行集成，得到最终预测。</li>
-</ol>
-<p>论文给出的经验配置是：</p>
-<ul>
-<li>$N_\alpha\approx30\times N_{\text{tasks}}$；</li>
-<li>最终模型数约为 $N_\alpha$ 的 10%；</li>
-<li>电商实验中约训练 100 个候选模型，最终选 10 个；</li>
-<li>XGBoost 最大深度在 7 到 15 之间随机采样；</li>
-<li>学习率为 0.07；</li>
-<li>模型嵌入维度为 128；</li>
-<li>每组实验重复 10 次并报告均值。</li>
-</ul>
-<h2 id="8-实验一：电商损失预防"><a href="#8-实验一：电商损失预防" class="headerlink" title="8. 实验一：电商损失预防"></a>8. 实验一：电商损失预防</h2><h3 id="8-1-数据与评估"><a href="#8-1-数据与评估" class="headerlink" title="8.1 数据与评估"></a>8.1 数据与评估</h3><p>数据包含三类运营损失任务，论文以 <code>op_loss1</code>、<code>op_loss2</code> 和 <code>op_loss3</code> 匿名表示。每个订单有 187 个商品、物流和用户历史聚合特征，三类损失的合计发生率低于 5%。</p>
-<p>训练集采用分层采样：保留全部损失订单，并抽取 10% 正常履约订单；测试集来自未来时间段。对比模型包括：</p>
-<ul>
-<li>XGBoost</li>
-<li>LightGBM</li>
-<li>GATE</li>
-<li>ResNet</li>
-<li>SAINT</li>
-<li>TabNet</li>
-<li>TabTransformer</li>
-<li>FT-Transformer</li>
-</ul>
-<p>由于业务只干预风险最高的 5% 订单，论文除 AUC-PR 和 AUC-ROC 外，还重点考察 top 5% 风险订单覆盖的金额召回率（Value Recall）。</p>
-<h3 id="8-2-AUC-PR"><a href="#8-2-AUC-PR" class="headerlink" title="8.2 AUC-PR"></a>8.2 AUC-PR</h3><table>
-<thead>
-<tr>
-<th>任务</th>
-<th align="right">PEMBOT</th>
-<th align="right">XGBoost</th>
-<th align="right">LightGBM</th>
-<th align="right">最强基线</th>
-<th align="center">PEMBOT 是否最佳</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>op_loss1</td>
-<td align="right"><strong>16.21%</strong></td>
-<td align="right">13.16%</td>
-<td align="right">10.30%</td>
-<td align="right">SAINT：14.46%</td>
-<td align="center">是</td>
-</tr>
-<tr>
-<td>op_loss2</td>
-<td align="right"><strong>17.25%</strong></td>
-<td align="right">14.11%</td>
-<td align="right">12.50%</td>
-<td align="right">SAINT：14.71%</td>
-<td align="center">是</td>
-</tr>
-<tr>
-<td>op_loss3</td>
-<td align="right"><strong>35.58%</strong></td>
-<td align="right">32.86%</td>
-<td align="right">31.70%</td>
-<td align="right">SAINT：33.52%</td>
-<td align="center">是</td>
-</tr>
-</tbody></table>
-<h3 id="8-3-Top-5-Value-Recall"><a href="#8-3-Top-5-Value-Recall" class="headerlink" title="8.3 Top 5% Value Recall"></a>8.3 Top 5% Value Recall</h3><table>
-<thead>
-<tr>
-<th>任务</th>
-<th align="right">PEMBOT</th>
-<th align="right">XGBoost</th>
-<th align="right">LightGBM</th>
-<th align="right">最强基线</th>
-<th align="right">相对最强基线提升</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>op_loss1</td>
-<td align="right"><strong>23.30%</strong></td>
-<td align="right">20.12%</td>
-<td align="right">20.52%</td>
-<td align="right">GATE：22.47%</td>
-<td align="right">3.7%</td>
-</tr>
-<tr>
-<td>op_loss2</td>
-<td align="right"><strong>40.00%</strong></td>
-<td align="right">31.30%</td>
-<td align="right">29.05%</td>
-<td align="right">TabNet：37.31%</td>
-<td align="right">7.2%</td>
-</tr>
-<tr>
-<td>op_loss3</td>
-<td align="right"><strong>57.75%</strong></td>
-<td align="right">55.52%</td>
-<td align="right">37.73%</td>
-<td align="right">XGBoost：55.52%</td>
-<td align="right">4.0%</td>
-</tr>
-</tbody></table>
-<p>若以 XGBoost 为参照，<code>op_loss2</code> 的 Value Recall 从 31.30% 提升到 40.00%，相对提升约 27.8%。论文将这一显著增益归因于：发生率最低的任务能通过共享树干借用其他任务的标签协同信息。</p>
-<h3 id="8-4-消融实验"><a href="#8-4-消融实验" class="headerlink" title="8.4 消融实验"></a>8.4 消融实验</h3><p>固定 $k=10$ 时，三种选择方式的结果如下：</p>
-<table>
-<thead>
-<tr>
-<th>选择方式</th>
-<th align="right">op_loss1</th>
-<th align="right">op_loss2</th>
-<th align="right">op_loss3</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>随机选择普通 GBT</td>
-<td align="right">1.16%</td>
-<td align="right">32.66%</td>
-<td align="right">56.10%</td>
-</tr>
-<tr>
-<td>随机选择 Pareto 模型</td>
-<td align="right">22.32%</td>
-<td align="right">37.49%</td>
-<td align="right">57.14%</td>
-</tr>
-<tr>
-<td>Greedy DPP 选择 Pareto 模型</td>
-<td align="right"><strong>23.30%</strong></td>
-<td align="right"><strong>40.00%</strong></td>
-<td align="right"><strong>57.75%</strong></td>
-</tr>
-</tbody></table>
-<p>结果支持两个结论：</p>
-<ol>
-<li>Pareto 多任务训练本身比普通随机 GBT 更有效；</li>
-<li>在 Pareto 候选模型中，DPP 比随机抽取更有效。</li>
-</ol>
-<p>随着 $k$ 从 1 增加到 8，三个任务的召回率持续上升；$k\ge8$ 后收益趋于饱和。因此，保留约 10 个模型是效果与延迟之间较合理的平衡点。</p>
-<h3 id="8-5-在线性能与业务效果"><a href="#8-5-在线性能与业务效果" class="headerlink" title="8.5 在线性能与业务效果"></a>8.5 在线性能与业务效果</h3><p>平均单订单推理延迟如下：</p>
-<table>
-<thead>
-<tr>
-<th>模型</th>
-<th align="right">延迟</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>LightGBM</td>
-<td align="right">0.01 ms</td>
-</tr>
-<tr>
-<td>XGBoost</td>
-<td align="right">0.02 ms</td>
-</tr>
-<tr>
-<td>PEMBOT</td>
-<td align="right">0.7 ms</td>
-</tr>
-<tr>
-<td>SAINT</td>
-<td align="right">17.6 ms</td>
-</tr>
-<tr>
-<td>TabTransformer</td>
-<td align="right">21.2 ms</td>
-</tr>
-<tr>
-<td>FT-Transformer</td>
-<td align="right">21.31 ms</td>
-</tr>
-<tr>
-<td>TabNet</td>
-<td align="right">56.8 ms</td>
-</tr>
-</tbody></table>
-<p>尽管 PEMBOT 比单个 XGBoost 慢，但仍低于 1 ms，并明显快于所比较的深度学习模型。论文称该模型已部署于一个新兴电商市场，每天处理数百万订单，相比旧 GBT 系统额外避免了相当于收入 <strong>5 个基点</strong>的运营损失，并产生数百万美元成本节约。</p>
-<p>需要注意，树模型与深度模型的延迟测试硬件不同：前者使用 64 核 vCPU，后者使用 NVIDIA T4 GPU 实例，因此该表更适合说明工程可用性，而不是进行严格的同硬件速度排名。</p>
-<h2 id="9-实验二：葡萄酒质量预测"><a href="#9-实验二：葡萄酒质量预测" class="headerlink" title="9. 实验二：葡萄酒质量预测"></a>9. 实验二：葡萄酒质量预测</h2><p>论文将 UCI 红、白葡萄酒数据合并，共得到 6,492 条样本和 11 个理化特征。质量等级 9 只有 5 条样本，因此被移除；其余质量等级 3 至 8 被拆成 6 个二分类任务，训练集与测试集按 80%&#x2F;20% 划分。</p>
-<table>
-<thead>
-<tr>
-<th>质量等级</th>
-<th align="right">PEMBOT</th>
-<th align="right">XGBoost</th>
-<th align="right">LightGBM</th>
-<th align="right">最强基线</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>3</td>
-<td align="right">10.01%</td>
-<td align="right">8.05%</td>
-<td align="right">8.48%</td>
-<td align="right"><strong>FT-Transformer：13.66%</strong></td>
-</tr>
-<tr>
-<td>4</td>
-<td align="right"><strong>28.45%</strong></td>
-<td align="right">24.49%</td>
-<td align="right">25.56%</td>
-<td align="right">LightGBM：25.56%</td>
-</tr>
-<tr>
-<td>5</td>
-<td align="right"><strong>76.56%</strong></td>
-<td align="right">75.67%</td>
-<td align="right">74.81%</td>
-<td align="right">XGBoost：75.67%</td>
-</tr>
-<tr>
-<td>6</td>
-<td align="right"><strong>75.61%</strong></td>
-<td align="right">73.24%</td>
-<td align="right">73.35%</td>
-<td align="right">LightGBM：73.35%</td>
-</tr>
-<tr>
-<td>7</td>
-<td align="right"><strong>66.66%</strong></td>
-<td align="right">62.27%</td>
-<td align="right">64.30%</td>
-<td align="right">LightGBM：64.30%</td>
-</tr>
-<tr>
-<td>8</td>
-<td align="right"><strong>48.81%</strong></td>
-<td align="right">40.30%</td>
-<td align="right">45.15%</td>
-<td align="right">LightGBM：45.15%</td>
-</tr>
-</tbody></table>
-<p>除质量等级 3 外，PEMBOT 在其余任务上的 AUC-PR 均为最高。质量等级 4 和 8 等少数类上的增益更明显，再次体现了跨任务共享对稀缺标签的帮助。但质量等级 3 只有 30 条样本，结果方差和划分敏感性都可能较大，不宜仅凭单个均值做过强结论。</p>
-<h2 id="10-方法优势"><a href="#10-方法优势" class="headerlink" title="10. 方法优势"></a>10. 方法优势</h2><h3 id="10-1-适合表格多任务问题"><a href="#10-1-适合表格多任务问题" class="headerlink" title="10.1 适合表格多任务问题"></a>10.1 适合表格多任务问题</h3><p>PEMBOT 保留了 GBT 对异构表格特征、非线性关系和类别特征交互的建模能力，同时引入多任务共享机制。</p>
-<h3 id="10-2-不依赖唯一的任务权重"><a href="#10-2-不依赖唯一的任务权重" class="headerlink" title="10.2 不依赖唯一的任务权重"></a>10.2 不依赖唯一的任务权重</h3><p>它并未声称权重不再存在，而是通过采样多组权重、覆盖多种任务权衡并最终集成，降低了对某一组手工权重的依赖。</p>
-<h3 id="10-3-对少数任务更友好"><a href="#10-3-对少数任务更友好" class="headerlink" title="10.3 对少数任务更友好"></a>10.3 对少数任务更友好</h3><p>共享树干能从数据更充足的相关任务中迁移有效模式。在论文两个数据集上，收益都更集中于标签稀少或类别不平衡较严重的任务。</p>
-<h3 id="10-4-质量、多样性与延迟统一优化"><a href="#10-4-质量、多样性与延迟统一优化" class="headerlink" title="10.4 质量、多样性与延迟统一优化"></a>10.4 质量、多样性与延迟统一优化</h3><p>全量 Pareto 集成提高稳健性，DPP 则将其压缩成小规模但互补的模型子集，使在线推理成为可能。</p>
-<h2 id="11-局限与思考"><a href="#11-局限与思考" class="headerlink" title="11. 局限与思考"></a>11. 局限与思考</h2><h3 id="11-1-训练成本较高"><a href="#11-1-训练成本较高" class="headerlink" title="11.1 训练成本较高"></a>11.1 训练成本较高</h3><p>PEMBOT 需要为多组 $\boldsymbol{\alpha}$ 训练共享模型，并为每个任务追加专属 boosting。其训练成本大致随候选权重数和任务数增长，只是这些训练过程具有较强的并行性。</p>
-<h3 id="11-2-线性标量化不能覆盖所有-Pareto-前沿"><a href="#11-2-线性标量化不能覆盖所有-Pareto-前沿" class="headerlink" title="11.2 线性标量化不能覆盖所有 Pareto 前沿"></a>11.2 线性标量化不能覆盖所有 Pareto 前沿</h3><p>当 Pareto 前沿非凸时，简单的加权和通常无法覆盖全部 Pareto 解。因此“随机采样权重即可代表整个 Pareto 前沿”是一种工程近似，而不是严格保证。</p>
-<h3 id="11-3-Pareto-驻点不等于全局-Pareto-最优"><a href="#11-3-Pareto-驻点不等于全局-Pareto-最优" class="headerlink" title="11.3 Pareto 驻点不等于全局 Pareto 最优"></a>11.3 Pareto 驻点不等于全局 Pareto 最优</h3><p>GBT 训练是非凸过程，收敛到加权损失的局部稳定点，并不能证明得到全局互不支配解。论文在表述上将 Pareto 驻点和 Pareto 最优模型交替使用，阅读时应注意这一差别。</p>
-<h3 id="11-4-多样性表示仍是启发式设计"><a href="#11-4-多样性表示仍是启发式设计" class="headerlink" title="11.4 多样性表示仍是启发式设计"></a>11.4 多样性表示仍是启发式设计</h3><p>用分裂特征及 information gain 描述模型结构简单高效，但结构不同不一定意味着预测误差互补。可进一步比较：</p>
-<ul>
-<li>验证集预测向量的相关性；</li>
-<li>样本级错误分歧；</li>
-<li>叶节点路径嵌入；</li>
-<li>结构多样性与预测多样性的联合表示。</li>
-</ul>
-<h3 id="11-5-质量分数与最终指标可能不一致"><a href="#11-5-质量分数与最终指标可能不一致" class="headerlink" title="11.5 质量分数与最终指标可能不一致"></a>11.5 质量分数与最终指标可能不一致</h3><p>DPP 中使用 F1 作为 $q_j$，而电商核心指标是 top 5% Value Recall。若业务目标明确，直接用业务指标或多指标组合定义质量分数，可能更一致。</p>
-<h3 id="11-6-实验仍有扩展空间"><a href="#11-6-实验仍有扩展空间" class="headerlink" title="11.6 实验仍有扩展空间"></a>11.6 实验仍有扩展空间</h3><p>论文只使用一个内部数据集和一个规模较小的公开数据集。若要进一步验证方法的普适性，还需要更多多标签、多任务表格基准，以及训练成本、权重采样策略、任务相关性和统计显著性的系统实验。</p>
-<h2 id="12-复现时的关键问题"><a href="#12-复现时的关键问题" class="headerlink" title="12. 复现时的关键问题"></a>12. 复现时的关键问题</h2><p>论文给出了总体框架，但完整复现仍需自行确定若干细节：</p>
-<ul>
-<li>$\boldsymbol{\alpha}$ 的具体采样分布是否为均匀 Dirichlet；</li>
-<li>共享 boosting 与任务专属 boosting 的轮数及早停方式；</li>
-<li>不同任务样本如何拼接、采样和归一化损失；</li>
-<li>DPP 中 $\lambda$、$\eta$ 的取值及调参范围；</li>
-<li>多任务的 F1 如何合并成单个模型质量分数；</li>
-<li>最终集成使用概率均值、得分求和还是校准后的加权平均；</li>
-<li>SVD 是仅在训练候选模型上拟合，还是包含验证阶段信息。</li>
-</ul>
-<p>一个较稳妥的工程实现应当：</p>
-<ol>
-<li>在训练集上训练候选模型；</li>
-<li>在独立验证集上计算 $q_j$ 和预测多样性；</li>
-<li>仅用验证信息选择 DPP 子集与阈值；</li>
-<li>在完全隔离的测试集上报告最终结果；</li>
-<li>对不同随机种子重复实验，并报告均值和置信区间。</li>
-</ol>
-<h2 id="13-总结"><a href="#13-总结" class="headerlink" title="13. 总结"></a>13. 总结</h2><p>PEMBOT 将三个成熟思想组合成了一个实用的表格多任务框架：</p>
-<ul>
-<li>用多任务加权 GBT 学习共享结构；</li>
-<li>用多组权重近似采样 Pareto 前沿；</li>
-<li>用任务专属 boosting 补充个性化能力；</li>
-<li>用 Greedy DPP 选择高质量且多样的模型；</li>
-<li>用小规模集成兼顾精度和在线延迟。</li>
-</ul>
-<p>它最值得借鉴的并非某一个全新的基础算法，而是完整的工程化组合：面对无法用单一权重定义“最佳模型”的多任务问题，保留多种合理权衡，再通过质量与多样性约束完成压缩和集成。对于标签相关、类别不平衡且要求低延迟的表格预测任务，这是一条很有参考价值的技术路线。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
-<li>Swamy, G., Saladi, A., Das, A., &amp; Niranjan, S. (2024). <em>PEMBOT: Pareto-Ensembled Multi-task Boosted Trees</em>. KDD 2024. <a target="_blank" rel="noopener" href="https://doi.org/10.1145/3637528.3671619">https://doi.org/10.1145/3637528.3671619</a></li>
-<li>Sener, O., &amp; Koltun, V. (2018). <em>Multi-Task Learning as Multi-Objective Optimization</em>.</li>
-<li>Lin, X., et al. (2019). <em>Pareto Multi-Task Learning</em>.</li>
-<li>Chen, L., Zhang, G., &amp; Zhou, H. (2018). <em>Fast Greedy MAP Inference for Determinantal Point Process to Improve Recommendation Diversity</em>.</li>
-<li>Chen, T., &amp; Guestrin, C. (2016). <em>XGBoost: A Scalable Tree Boosting System</em>.</li>
-</ol>
-
+          <p>1. 论文信息 - 标题 ：PEMBOT: Pareto-Ensembled Multi-task Boosted Trees - 作者 ：Gokul Swamy、Anoop Saladi、Arunita Das、Shobhit Niranjan - 会议 ：KDD 2024 -。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/09/03/PEMBOT%EF%BC%9A%E5%B8%95%E7%B4%AF%E6%89%98%E9%9B%86%E6%88%90%E5%A4%9A%E4%BB%BB%E5%8A%A1%E6%8F%90%E5%8D%87%E6%A0%91/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -678,7 +247,7 @@ $$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det \left( \sum_{j\in J}L
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -704,7 +273,7 @@ $$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det \left( \sum_{j\in J}L
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:57:27" itemprop="dateModified" datetime="2026-09-03T16:57:27+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -727,382 +296,15 @@ $$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det \left( \sum_{j\in J}L
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="1-论文信息"><a href="#1-论文信息" class="headerlink" title="1. 论文信息"></a>1. 论文信息</h2><ul>
-<li><strong>标题</strong>：Quasi-Metric Learning for Bilateral Person-Job Fit</li>
-<li><strong>作者</strong>：Yingpeng Du、Hongzhi Liu、Hengshu Zhu、Yang Song、Zhi Zheng、Zhonghai Wu</li>
-<li><strong>期刊</strong>：IEEE Transactions on Pattern Analysis and Machine Intelligence（TPAMI）</li>
-<li><strong>卷期</strong>：Vol. 47, No. 5, May 2025</li>
-<li><strong>DOI</strong>：<a target="_blank" rel="noopener" href="https://doi.org/10.1109/TPAMI.2025.3538774">10.1109&#x2F;TPAMI.2025.3538774</a></li>
-</ul>
-<p>论文提出面向双边人岗匹配的<strong>准度量学习</strong>（Quasi-Metric Learning，QML）框架，并进一步结合关系感知图卷积网络，形成完整模型 <strong>rGQML</strong>。</p>
-<p>核心思想是把人岗匹配拆成两个互补因素：</p>
-<ul>
-<li><strong>相似性</strong>：候选人的技能、经历和地点等是否与岗位要求匹配；</li>
-<li><strong>竞争力</strong>：候选人和岗位在招聘市场中的吸引力或竞争力是否对等。</li>
-</ul>
-<p>普通度量学习能够借助三角不等式传播相似性，却要求距离对称；双边招聘关系则天然不对称。论文因此引入不要求对称性的准度量，并通过异质关系图学习不同交互反馈对用户行为的影响。</p>
-<h2 id="2-问题背景"><a href="#2-问题背景" class="headerlink" title="2. 问题背景"></a>2. 问题背景</h2><h3 id="2-1-人岗匹配是双向选择"><a href="#2-1-人岗匹配是双向选择" class="headerlink" title="2.1 人岗匹配是双向选择"></a>2.1 人岗匹配是双向选择</h3><p>普通商品推荐主要预测“用户是否喜欢商品”，但招聘中的成功匹配需要同时满足：</p>
-<ol>
-<li>候选人愿意申请或接受岗位；</li>
-<li>雇主愿意联系或录用候选人。</li>
-</ol>
-<p>候选人喜欢某个岗位，并不意味着雇主同样认可该候选人。例如，候选人可能主动申请高薪岗位，但因经验不足而被拒绝。这意味着候选人到岗位、岗位到候选人的偏好不能由同一个对称分数完整表达。</p>
-<h3 id="2-2-招聘用户更偏好相似对象"><a href="#2-2-招聘用户更偏好相似对象" class="headerlink" title="2.2 招聘用户更偏好相似对象"></a>2.2 招聘用户更偏好相似对象</h3><p>论文比较了招聘、电影、电商和餐饮等推荐场景中的行为分布。招聘用户的行为在类别上更加集中；即使限定在同一职位类别内，用户也倾向于连续申请关键词相似的岗位。</p>
-<p>这一观察说明，人岗推荐不仅需要判断候选人与岗位是否相关，还需要捕捉更细粒度的<strong>相似性传播</strong>。例如，如果候选人同时偏好两个岗位，那么这两个岗位也应在表示空间中相对接近。</p>
-<h3 id="2-3-交互关系具有异质性"><a href="#2-3-交互关系具有异质性" class="headerlink" title="2.3 交互关系具有异质性"></a>2.3 交互关系具有异质性</h3><p>同一对候选人与岗位之间可能存在不同方向和结果的交互：</p>
-<ul>
-<li>候选人主动申请，但被雇主拒绝；</li>
-<li>雇主主动联系，但被候选人拒绝；</li>
-<li>双方接受并达成一致；</li>
-<li>一方忽略另一方的请求。</li>
-</ul>
-<p>这些行为包含不同语义。正向反馈可能提升用户继续追求相似目标的倾向，负向反馈则可能降低信心。若把所有边都当作无向、同质的“发生过交互”，就会丢失行为方向、反馈结果以及竞争力信息。</p>
-<h2 id="3-为什么普通匹配方法不够"><a href="#3-为什么普通匹配方法不够" class="headerlink" title="3. 为什么普通匹配方法不够"></a>3. 为什么普通匹配方法不够</h2><h3 id="3-1-内积和-MLP-缺少三角不等式"><a href="#3-1-内积和-MLP-缺少三角不等式" class="headerlink" title="3.1 内积和 MLP 缺少三角不等式"></a>3.1 内积和 MLP 缺少三角不等式</h3><p>矩阵分解常用内积衡量匹配程度，深度模型则可用 MLP 学习任意打分函数。但这类相似度通常不满足三角不等式，因此难以从共同邻居中稳定传播相似性。</p>
-<p>如果候选人 $c$ 同时喜欢岗位 $j_1$ 和 $j_2$，度量空间中的三角不等式能够约束：</p>
-
-$$d(j_1,j_2)\leq d(j_1,c)+d(c,j_2).$$
-
-
-<p>当候选人与两个岗位的距离都较小时，两个岗位之间的距离也不会太大。这正是论文所强调的细粒度相似性传播。</p>
-<h3 id="3-2-普通度量无法表示双向偏好"><a href="#3-2-普通度量无法表示双向偏好" class="headerlink" title="3.2 普通度量无法表示双向偏好"></a>3.2 普通度量无法表示双向偏好</h3><p>标准度量还必须满足对称性：</p>
-
-$$d(c,j)=d(j,c).$$
-
-
-<p>但招聘中可能出现：</p>
-
-$$q(c,j)<\tau<q(j,c),$$ <p>其中 $q(c,j)$ 较小表示候选人愿意申请岗位，$q(j,c)$ 较大表示雇主不愿接受候选人。因此，对称距离无法直接描述这种单向认可。<p></p>
-<h2 id="4-准度量空间"><a href="#4-准度量空间" class="headerlink" title="4. 准度量空间"></a>4. 准度量空间</h2><h3 id="4-1-定义"><a href="#4-1-定义" class="headerlink" title="4.1 定义"></a>4.1 定义</h3><p>给定非空集合 $S$，若函数 $q:S\times S\rightarrow\mathbb{R}$ 对任意 $s,t,z\in S$ 满足：</p>
-<ol>
-<li>非负性：$q(s,t)\geq 0$；</li>
-<li>同一性：$q(s,t)=q(t,s)=0\Leftrightarrow s=t$；</li>
-<li>三角不等式：$q(s,t)+q(t,z)\geq q(s,z)$；</li>
-</ol>
-<p>那么 $(S,q)$ 构成准度量空间。</p>
-<p>准度量与普通度量的关键区别是：它<strong>不要求对称性</strong>，即允许 $q(s,t)\neq q(t,s)$。因此，普通度量是准度量的特例，反之不成立。</p>
-<h3 id="4-2-两条招聘规则"><a href="#4-2-两条招聘规则" class="headerlink" title="4.2 两条招聘规则"></a>4.2 两条招聘规则</h3><p>论文根据真实招聘过程提出两条建模规则。</p>
-<h4 id="相似性规则"><a href="#相似性规则" class="headerlink" title="相似性规则"></a>相似性规则</h4><p>系统应优先匹配内容相近的候选人与岗位。例如，软件工程师更可能与软件开发岗位匹配。该规则由满足三角不等式的对称度量负责建模。</p>
-<h4 id="竞争力规则"><a href="#竞争力规则" class="headerlink" title="竞争力规则"></a>竞争力规则</h4><p>双方除了考虑内容是否相似，还会比较对方在市场中的竞争力：</p>
-<ul>
-<li>候选人更偏好薪资、福利和发展空间更好的岗位；</li>
-<li>雇主更偏好教育背景、技能和经验更强的候选人。</li>
-</ul>
-<p>即使两名候选人与岗位同样相似，雇主也可能只接受其中竞争力更强的一位。</p>
-<h3 id="4-3-相似性与竞争力的分解"><a href="#4-3-相似性与竞争力的分解" class="headerlink" title="4.3 相似性与竞争力的分解"></a>4.3 相似性与竞争力的分解</h3><p>论文要求准度量满足：</p>
-
-$$q(s,t)-q(t,s)=w(s)-w(t),$$
-
-
-<p>其中 $w:S\rightarrow\mathbb{R}$ 表示实体的竞争力分数。</p>
-<p>论文证明，满足上述关系的准度量可以由普通度量构造：</p>
-
-$$q(s,t)=d(s,t)+\frac{1}{2}\bigl(w(s)-w(t)\bigr),$$
-
-
-<p>其中 $d(s,t)$ 是对称距离，表示候选人与岗位的相似程度；竞争力差值则引入方向性。为满足非负性，还需保证：</p>
-
-$$d(s,t)+\frac{1}{2}\bigl(w(s)-w(t)\bigr)\geq 0.$$
-
-
-<p>该分解的意义是：</p>
-<ul>
-<li>对称部分 $d(s,t)$ 负责“是否相似”；</li>
-<li>反对称部分 $w(s)-w(t)$ 负责“谁更有竞争力”。</li>
-</ul>
-<h2 id="5-可学习的非对称距离"><a href="#5-可学习的非对称距离" class="headerlink" title="5. 可学习的非对称距离"></a>5. 可学习的非对称距离</h2><p>为得到易实现且天然非负的形式，论文采用：</p>
-
-$$q(s,t)=\lVert s-t\rVert_p+\max\bigl(w(s)-w(t),0\bigr),\qquad p\geq 1.$$
-
-
-<p>它由两部分组成：</p>
-<ol>
-<li>$\lVert s-t\rVert_p$：对称的 $p$ 范数距离，描述相似性；</li>
-<li>$\max(w(s)-w(t),0)$：单向竞争力惩罚，描述非对称偏好。</li>
-</ol>
-<p>交换输入顺序后，两者之差恰好为：</p>
-
-$$q(s,t)-q(t,s)=w(s)-w(t).$$
-
-
-<p>该函数同时满足非负性、同一性和三角不等式，因此确实构成准度量。实验中竞争力函数采用线性映射：</p>
-
-$$w(s)=Ws.$$
-
-
-<h3 id="5-1-方向性的直觉"><a href="#5-1-方向性的直觉" class="headerlink" title="5.1 方向性的直觉"></a>5.1 方向性的直觉</h3><p>假设 $w(s)>w(t)$，则：</p>
-
-$$q(s,t)=\lVert s-t\rVert_p+w(s)-w(t),$$
-
-
-<p>而：</p>
-
-$$q(t,s)=\lVert s-t\rVert_p.$$
-
-
-<p>因此，同一对实体在不同方向上的距离不同。竞争力差不会破坏基础相似性结构，却能让模型区分“候选人喜欢岗位”和“岗位认可候选人”。</p>
-<h2 id="6-候选人与岗位表示"><a href="#6-候选人与岗位表示" class="headerlink" title="6. 候选人与岗位表示"></a>6. 候选人与岗位表示</h2><p>设候选人集合为 $C=\{c_1,\ldots,c_N\}$，岗位集合为 $J=\{j_1,\ldots,j_M\}$。模型分别维护候选人和岗位的 ID embedding 矩阵：</p>
-
-$$P\in\mathbb{R}^{N\times d_e},\qquad Q\in\mathbb{R}^{M\times d_e}.$$
-
-
-<p>候选人 $c_i$ 与岗位 $j_k$ 的 ID 表示为：</p>
-
-$$P_i=\operatorname{Onehot}(c_i)P,\qquad Q_k=\operatorname{Onehot}(j_k)Q.$$
-
-
-<p>模型还用 BERT 编码候选人简历和岗位描述，再通过 PCA 将文本向量压缩到 $d_e$ 维。最终混合表示为：</p>
-
-$$x_{c_i}=P_i+\alpha W'_{T_i},\qquad x_{j_k}=Q_k+\alpha W'_{T_k},$$
-
-
-<p>其中 $\alpha$ 是可学习的融合系数。这样既保留协同交互信号，也引入简历和岗位描述中的语义信息。</p>
-<h2 id="7-同时学习非对称与对称关系"><a href="#7-同时学习非对称与对称关系" class="headerlink" title="7. 同时学习非对称与对称关系"></a>7. 同时学习非对称与对称关系</h2><p>QML 并非只拟合一个方向性距离，而是以多任务方式联合学习两类目标。</p>
-<h3 id="7-1-非对称关系损失"><a href="#7-1-非对称关系损失" class="headerlink" title="7.1 非对称关系损失"></a>7.1 非对称关系损失</h3><p>候选人侧和雇主侧分别使用 pairwise hinge loss。记候选人主动或接受的行为集合为 $A_c$，雇主主动或接受的行为集合为 $A_j$，则：</p>
-
-$$\mathcal{L}_{\mathrm{asym}}=\sum_{(c_i,j_k)\in A_c}\left[q(x_{c_i},x_{j_k})-q(x_{c_i},x_{j'_k})+\kappa\right]_++\sum_{(j_k,c_i)\in A_j}\left[q(x_{j_k},x_{c_i})-q(x_{j_k},x_{c'_i})+\kappa\right]_+.$$
-
-
-<p>其中：</p>
-<ul>
-<li>$j'_k$ 是候选人侧负样本；</li>
-<li>$c'_i$ 是雇主侧负样本；</li>
-<li>$\kappa$ 是安全间隔；</li>
-<li>$[z]_+=\max(z,0)$。</li>
-</ul>
-<p>该目标要求正样本的方向距离至少比负样本小一个 margin，并分别学习候选人到岗位、岗位到候选人的偏好。</p>
-<h3 id="7-2-双方一致关系的匹配距离"><a href="#7-2-双方一致关系的匹配距离" class="headerlink" title="7.2 双方一致关系的匹配距离"></a>7.2 双方一致关系的匹配距离</h3><p>当候选人与雇主达成一致时，需要同时考虑两个方向。论文将双边匹配距离定义为：</p>
-
-$$m(c_i,j_k)=q(x_{c_i},x_{j_k})+q(x_{j_k},x_{c_i}).$$
-
-
-<p>代入准度量后可得：</p>
-
-$$m(c_i,j_k)=2\lVert x_{c_i}-x_{j_k}\rVert_p+\left|w(x_{c_i})-w(x_{j_k})\right|.$$
-
-
-<p>第一项要求双方相似，第二项要求双方竞争力接近。也就是说，真正容易达成一致的双方应当同时满足：</p>
-<ul>
-<li><strong>similarity</strong>：能力与要求匹配；</li>
-<li><strong>co-equity</strong>：市场竞争力相当。</li>
-</ul>
-<h3 id="7-3-对称关系损失"><a href="#7-3-对称关系损失" class="headerlink" title="7.3 对称关系损失"></a>7.3 对称关系损失</h3><p>对已达成一致的候选人—岗位对，论文采用 triplet-wise hinge loss：</p>
-
-$$\mathcal{L}_{\mathrm{sym}}=\sum_{(c_i,j_k)\in A_c^{\leftrightarrow}}\left[m(c_i,j_k)-m(c_i,j'_k)-m(c'_i,j_k)+\kappa\right]_+.$$
-
-
-<p>其中 $(c'_i,j'_k)$ 构成负样本，使真实双边匹配相对于候选人侧和岗位侧的不匹配组合具有更小距离。</p>
-<h3 id="7-4-QML-总目标"><a href="#7-4-QML-总目标" class="headerlink" title="7.4 QML 总目标"></a>7.4 QML 总目标</h3><p>基础准度量学习模型的优化目标为：</p>
-
-$$\min_{\Theta}\ \mathcal{L}_{\mathrm{QML}}=\mathcal{L}_{\mathrm{asym}}+\mathcal{L}_{\mathrm{sym}}+\lambda_{\Theta}\lVert\Theta\rVert_2^2.$$
-
-
-<p>非对称任务利用申请、联系等单向行为学习方向偏好；对称任务利用双方达成一致的行为学习最终匹配。二者共享候选人和岗位表示。</p>
-<h2 id="8-关系感知图卷积网络"><a href="#8-关系感知图卷积网络" class="headerlink" title="8. 关系感知图卷积网络"></a>8. 关系感知图卷积网络</h2><h3 id="8-1-异质关系图"><a href="#8-1-异质关系图" class="headerlink" title="8.1 异质关系图"></a>8.1 异质关系图</h3><p>论文将候选人、岗位和不同类型的交互组织成统一图：</p>
-
-$$G=(V,E),\qquad V=C\cup J.$$
-
-
-<p>边类型由行为方向和反馈结果共同决定，包括：</p>
-<ul>
-<li>候选人主动申请但被拒绝；</li>
-<li>候选人拒绝或忽略雇主邀请；</li>
-<li>雇主主动邀请但被拒绝；</li>
-<li>雇主拒绝或忽略候选人申请；</li>
-<li>双方接受并达成一致。</li>
-</ul>
-<p>由于不同关系对后续行为的影响不同，rGQML 为每种关系 $v$ 学习一个对角矩阵：</p>
-
-$$M_v\in\mathbb{R}^{d_e\times d_e}.$$
-
-
-<h3 id="8-2-关系感知注意力"><a href="#8-2-关系感知注意力" class="headerlink" title="8.2 关系感知注意力"></a>8.2 关系感知注意力</h3><p>候选人 $c_i$ 从相邻岗位聚合信息：</p>
-
-$$e_{c_i}^{(l)}=e_{c_i}^{(l-1)}+\sigma\left(\sum_{j_k\in\mathcal{N}(c_i)}a_{ik}e_{j_k}^{(l-1)}\right).$$
-
-
-<p>邻居权重由关系特定的二次距离决定：</p>
-
-$$a_{ik}=\frac{\exp\left(-\Delta_{ik}^{\top}M_{v(i,k)}\Delta_{ik}\right)}{\sum_{j_{k'}\in\mathcal{N}(c_i)}\exp\left(-\Delta_{ik'}^{\top}M_{v(i,k')}\Delta_{ik'}\right)},\qquad \Delta_{ik}=e_{c_i}^{(l-1)}-e_{j_k}^{(l-1)}.$$
-
-
-<p>关系空间中越接近的邻居，传播到目标节点的信息越多。不同 $M_v$ 使同一个邻居在不同交互语义下产生不同影响。</p>
-<p>参考 LightGCN，模型不使用额外线性变换，并采用恒等激活函数。最终表示是各层表示的平均池化：</p>
-
-$$x_{c_i}^{\mathrm{gcn}}=\operatorname{AveragePool}\left(e_{c_i}^{(0)},e_{c_i}^{(1)},\ldots,e_{c_i}^{(L)}\right).$$
-
-
-<p>岗位侧以对称方式聚合候选人邻居。</p>
-<h3 id="8-3-rGQML-总目标"><a href="#8-3-rGQML-总目标" class="headerlink" title="8.3 rGQML 总目标"></a>8.3 rGQML 总目标</h3><p>将关系感知 GCN 输出代入准度量损失，得到：</p>
-
-$$\min_{\Theta}\ \mathcal{L}_{\mathrm{rGQML}}=\mathcal{L}_{\mathrm{asym}}^{\mathrm{gcn}}+\mathcal{L}_{\mathrm{sym}}^{\mathrm{gcn}}+\lambda_{\Theta}\lVert\Theta\rVert_2^2.$$
-
-
-<p>模型使用小批量样本训练：每轮分别采样候选人侧行为、雇主侧行为、双方一致行为及其负样本，通过梯度下降更新 ID embedding、融合系数、竞争力映射和关系矩阵等参数。</p>
-<h2 id="9-模型结构总结"><a href="#9-模型结构总结" class="headerlink" title="9. 模型结构总结"></a>9. 模型结构总结</h2><p>rGQML 的完整流程可以概括为：</p>
-<ol>
-<li>用 ID embedding 表示候选人和岗位；</li>
-<li>用 BERT 编码简历和岗位描述，并通过 PCA 降维；</li>
-<li>融合 ID 表示与文本表示；</li>
-<li>构造包含方向和反馈类型的异质二部图；</li>
-<li>使用关系感知 GCN 聚合不同类型的邻居信息；</li>
-<li>用 $p$ 范数建模对称相似性；</li>
-<li>用竞争力差构造非对称准度量；</li>
-<li>联合优化单向偏好损失和双边一致损失；</li>
-<li>分别为候选人排序岗位、为岗位排序候选人。</li>
-</ol>
-<p>从建模角度看，rGQML 同时回答三个问题：</p>
-<ul>
-<li><strong>像不像</strong>：由度量空间和三角不等式回答；</li>
-<li><strong>谁更强</strong>：由竞争力函数和非对称距离回答；</li>
-<li><strong>历史反馈如何影响未来行为</strong>：由关系感知 GCN 回答。</li>
-</ul>
-<h2 id="10-实验设置"><a href="#10-实验设置" class="headerlink" title="10. 实验设置"></a>10. 实验设置</h2><h3 id="10-1-数据集"><a href="#10-1-数据集" class="headerlink" title="10.1 数据集"></a>10.1 数据集</h3><p>论文在四个真实招聘数据集上进行实验：</p>
-<ul>
-<li>BOSS 直聘设计行业数据；</li>
-<li>BOSS 直聘销售行业数据；</li>
-<li>BOSS 直聘技术行业数据；</li>
-<li>智联招聘公开数据集。</li>
-</ul>
-<p>前三个数据集包含连续 106 天的线上交互日志：前 84 天作为训练集，后 22 天平均划分为验证集和测试集。智联数据缺少时间戳，因此等比例划分训练集、验证集和测试集。</p>
-<p>所有数据均包含候选人与岗位的文本，以及带方向和反馈的双边行为。每个正样本从未交互记录中采样 20 个负样本，实验使用 5 个随机初始化重复运行并报告均值。</p>
-<h3 id="10-2-评估任务与指标"><a href="#10-2-评估任务与指标" class="headerlink" title="10.2 评估任务与指标"></a>10.2 评估任务与指标</h3><p>论文同时评估两个方向：</p>
-<ul>
-<li>为候选人推荐岗位；</li>
-<li>为岗位推荐候选人。</li>
-</ul>
-<p>Top-N 中 $N=5$，指标包括：</p>
-<ul>
-<li>Recall@5；</li>
-<li>Precision@5；</li>
-<li>NDCG@5；</li>
-<li>MRR。</li>
-</ul>
-<h3 id="10-3-对比方法"><a href="#10-3-对比方法" class="headerlink" title="10.3 对比方法"></a>10.3 对比方法</h3><p>基线覆盖内容、协同过滤、图学习和双边匹配模型：</p>
-<ul>
-<li>BPJFNN</li>
-<li>BPR</li>
-<li>NCF</li>
-<li>LFRR</li>
-<li>LightGCN-BERT</li>
-<li>IPJF</li>
-<li>PJFFF</li>
-<li>DPGNN</li>
-</ul>
-<p>其中 DPGNN 和 LightGCN-BERT 能利用图结构，LFRR、IPJF 和 DPGNN 则以不同方式考虑双向偏好。</p>
-<h3 id="10-4-实现细节"><a href="#10-4-实现细节" class="headerlink" title="10.4 实现细节"></a>10.4 实现细节</h3><p>论文统一采用：</p>
-<ul>
-<li>embedding 维度：64；</li>
-<li>batch size：1024；</li>
-<li>学习率：0.001；</li>
-<li>正则系数：0.0001；</li>
-<li>关系感知 GCN 层数：3；</li>
-<li>准度量：2 范数；</li>
-<li>early stopping patience：50。</li>
-</ul>
-<h2 id="11-实验结果"><a href="#11-实验结果" class="headerlink" title="11. 实验结果"></a>11. 实验结果</h2><h3 id="11-1-整体性能"><a href="#11-1-整体性能" class="headerlink" title="11.1 整体性能"></a>11.1 整体性能</h3><p>rGQML 在四个数据集、两个推荐方向和各项指标上均优于对比方法。论文从结果中总结出以下现象：</p>
-<ol>
-<li>同时利用交互图和文本的混合模型整体更强；</li>
-<li>DPGNN 与 LightGCN-BERT 的表现说明图结构信息十分重要；</li>
-<li>LFRR 即使采用相对简单的矩阵分解，只要显式建模两个方向，也能取得有竞争力的效果；</li>
-<li>仅依赖文本的 BPJFNN 表现较弱，原因可能是简历和岗位描述存在默认、无意义或错误内容；</li>
-<li>rGQML 的优势来自准度量、双任务目标和异质关系传播的共同作用。</li>
-</ol>
-<h3 id="11-2-消融实验"><a href="#11-2-消融实验" class="headerlink" title="11.2 消融实验"></a>11.2 消融实验</h3><p>论文设计了五个变体：</p>
-<table>
-<thead>
-<tr>
-<th>变体</th>
-<th>移除或替换的能力</th>
-<th>验证目标</th>
-</tr>
-</thead>
-<tbody><tr>
-<td>woAsys</td>
-<td>将非对称准度量替换为欧氏距离</td>
-<td>非对称关系与竞争力规则</td>
-</tr>
-<tr>
-<td>woTri</td>
-<td>用内积替代满足三角不等式的距离</td>
-<td>相似性传播</td>
-</tr>
-<tr>
-<td>woMT</td>
-<td>仅保留对称匹配目标</td>
-<td>多任务联合学习</td>
-</tr>
-<tr>
-<td>woRGCN</td>
-<td>移除关系感知 GCN，退化为 QML</td>
-<td>图结构传播</td>
-</tr>
-<tr>
-<td>woHetero</td>
-<td>将关系矩阵替换为单位矩阵</td>
-<td>异质关系语义</td>
-</tr>
-</tbody></table>
-<p>完整 rGQML 在所有场景中均优于这些变体：</p>
-<ul>
-<li>优于 woAsys，说明方向性和竞争力建模有效；</li>
-<li>优于 woTri，说明三角不等式带来的相似性传播有效；</li>
-<li>woMT 在多数场景下降明显，说明单向行为与双边一致需要联合学习；</li>
-<li>优于 woRGCN，说明邻居传播能补充实体表示；</li>
-<li>优于 woHetero，说明不能把申请、邀请、拒绝和接受视为同一种边。</li>
-</ul>
-<h3 id="11-3-超参数分析"><a href="#11-3-超参数分析" class="headerlink" title="11.3 超参数分析"></a>11.3 超参数分析</h3><p>论文主要分析 GCN 层数 $L$ 和范数阶数 $p$：</p>
-<ul>
-<li>GCN 层数过少时传播不足，过多时可能引入噪声或过度平滑，因此适中的层数更好；</li>
-<li>在比较的范数中，2 范数表现最佳，论文建议使用欧氏距离建模相似性。</li>
-</ul>
-<h3 id="11-4-案例分析"><a href="#11-4-案例分析" class="headerlink" title="11.4 案例分析"></a>11.4 案例分析</h3><p>论文选取两名候选人和两个相似岗位进行分析。两名候选人都申请了岗位 $j_1$，但一人被接受，另一人被拒绝。对于要求更高且与 $j_1$ 相似的岗位 $j_2$：</p>
-<ul>
-<li>DPGNN 主要依据相似性，倾向于预测两名候选人都可能申请；</li>
-<li>rGQML 同时利用拒绝反馈和竞争力差异，正确降低了被拒候选人与高级岗位的匹配程度。</li>
-</ul>
-<p>该案例说明，“相似岗位之间传播偏好”并不总是充分的。负反馈会改变用户对相似目标的后续行为，而异质关系和竞争力建模能够修正单纯相似性传播带来的误判。</p>
-<h2 id="12-方法优势"><a href="#12-方法优势" class="headerlink" title="12. 方法优势"></a>12. 方法优势</h2><h3 id="12-1-理论结构与业务过程一致"><a href="#12-1-理论结构与业务过程一致" class="headerlink" title="12.1 理论结构与业务过程一致"></a>12.1 理论结构与业务过程一致</h3><p>准度量保留三角不等式，同时允许方向不对称，分别对应招聘中的相似性和双向选择。</p>
-<h3 id="12-2-区分相似性与竞争力"><a href="#12-2-区分相似性与竞争力" class="headerlink" title="12.2 区分相似性与竞争力"></a>12.2 区分相似性与竞争力</h3><p>模型不再把所有匹配因素压缩成一个黑盒分数，而是将距离解释为“内容差异 + 单向竞争力惩罚”，具有更清晰的业务含义。</p>
-<h3 id="12-3-充分利用不同反馈"><a href="#12-3-充分利用不同反馈" class="headerlink" title="12.3 充分利用不同反馈"></a>12.3 充分利用不同反馈</h3><p>申请、邀请、接受和拒绝被建模为不同关系类型，避免把语义相反的行为混入同一种邻接关系。</p>
-<h3 id="12-4-同时服务双边用户"><a href="#12-4-同时服务双边用户" class="headerlink" title="12.4 同时服务双边用户"></a>12.4 同时服务双边用户</h3><p>模型分别学习候选人侧和雇主侧排序，并使用双方一致目标约束最终匹配，符合双边推荐平台的真实目标。</p>
-<h2 id="13-局限与思考"><a href="#13-局限与思考" class="headerlink" title="13. 局限与思考"></a>13. 局限与思考</h2><h3 id="13-1-竞争力被压缩为一个标量"><a href="#13-1-竞争力被压缩为一个标量" class="headerlink" title="13.1 竞争力被压缩为一个标量"></a>13.1 竞争力被压缩为一个标量</h3><p>线性函数 $w(s)=Ws$ 将竞争力表示为单一数值，但真实招聘市场中的竞争力通常是多维且职位相关的。例如，学历、经验、地点和薪资的影响会随职位类别变化。可以考虑条件化竞争力函数：</p>
-
-$$w(s\mid \text{context}),$$
-
-
-<p>使竞争力依赖行业、岗位类别、城市和时间等上下文。</p>
-<h3 id="13-2-文本编码与主体模型并非完全端到端"><a href="#13-2-文本编码与主体模型并非完全端到端" class="headerlink" title="13.2 文本编码与主体模型并非完全端到端"></a>13.2 文本编码与主体模型并非完全端到端</h3><p>论文先用 BERT 编码文本，再通过 PCA 降维。该流程高效，但文本表示未必针对人岗匹配目标进行充分优化。可进一步研究端到端文本编码、参数高效微调或大语言模型生成的结构化技能表示。</p>
-<h3 id="13-3-静态图难以描述行为演化"><a href="#13-3-静态图难以描述行为演化" class="headerlink" title="13.3 静态图难以描述行为演化"></a>13.3 静态图难以描述行为演化</h3><p>模型把一段时间内的交互组织成统一图，未显式刻画行为顺序。实际中，用户收到拒绝或接受反馈后的偏好会随时间变化。论文也将序列行为建模列为未来方向。</p>
-<h3 id="13-4-准度量的表达范围存在结构约束"><a href="#13-4-准度量的表达范围存在结构约束" class="headerlink" title="13.4 准度量的表达范围存在结构约束"></a>13.4 准度量的表达范围存在结构约束</h3><p>模型将方向性归结为两个实体竞争力标量之差。该形式理论清晰，但不能表达所有可能的非对称关系。例如，同一候选人在不同岗位语境中的优势可能无法用全局标量完全描述。</p>
-<h3 id="13-5-离线指标不等于市场整体收益"><a href="#13-5-离线指标不等于市场整体收益" class="headerlink" title="13.5 离线指标不等于市场整体收益"></a>13.5 离线指标不等于市场整体收益</h3><p>Recall、NDCG 和 MRR 衡量局部排序质量，但双边市场还涉及曝光公平性、岗位供需平衡、申请拥挤、雇主响应率和长期留存。生产系统中还需结合市场机制与长期实验评估。</p>
-<h2 id="14-工程复现要点"><a href="#14-工程复现要点" class="headerlink" title="14. 工程复现要点"></a>14. 工程复现要点</h2><p>复现时需要重点确认以下细节：</p>
-<ol>
-<li>根据行为发起方和反馈结果准确拆分关系类型；</li>
-<li>负采样必须分别针对候选人侧、雇主侧和双方一致关系；</li>
-<li>时间数据应按时间切分，避免未来交互泄漏；</li>
-<li>BERT 与 PCA 只能在训练流程允许的数据范围内拟合；</li>
-<li>关系矩阵采用对角形式，可降低参数量和计算成本；</li>
-<li>推理时距离越小表示匹配程度越高，排序方向不要写反；</li>
-<li>分别评估候选人到岗位、岗位到候选人两个方向；</li>
-<li>除完整模型外，应至少复现对称距离、无三角约束、无异质关系三个关键消融版本。</li>
-</ol>
-<h2 id="15-总结"><a href="#15-总结" class="headerlink" title="15. 总结"></a>15. 总结</h2><p>这篇论文的关键贡献，不只是把对称距离替换为非对称距离，而是构建了一套与招聘机制对应的建模框架：</p>
-<ul>
-<li>用三角不等式捕捉候选人与岗位之间的相似性传播；</li>
-<li>用竞争力差构造方向相关的准度量；</li>
-<li>用非对称损失分别学习候选人和雇主的单向偏好；</li>
-<li>用对称损失学习双方达成一致的匹配关系；</li>
-<li>用关系感知 GCN 表达申请、邀请、接受和拒绝等异质反馈。</li>
-</ul>
-<p>对于招聘、婚恋、导师—学生匹配等需要双方共同接受的推荐问题，准度量提供了一个值得借鉴的视角：匹配不只是“彼此相似”，还取决于双方在市场中的相对吸引力，以及历史反馈对未来选择产生的影响。</p>
-<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
-<li>Du, Y., Liu, H., Zhu, H., Song, Y., Zheng, Z., &amp; Wu, Z. (2025). <em>Quasi-Metric Learning for Bilateral Person-Job Fit</em>. IEEE Transactions on Pattern Analysis and Machine Intelligence, 47(5), 3947–3960. <a target="_blank" rel="noopener" href="https://doi.org/10.1109/TPAMI.2025.3538774">https://doi.org/10.1109/TPAMI.2025.3538774</a></li>
-<li>Hsieh, C.-K., et al. (2017). <em>Collaborative Metric Learning</em>. WWW 2017.</li>
-<li>Yang, C., et al. (2022). <em>Modeling Two-Way Selection Preference for Person-Job Fit</em>. RecSys 2022.</li>
-<li>Weinberger, K. Q., &amp; Saul, L. K. (2009). <em>Distance Metric Learning for Large Margin Nearest Neighbor Classification</em>. JMLR.</li>
-<li>He, X., et al. (2020). <em>LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation</em>. SIGIR 2020.</li>
-</ol>
-</\tau<q(j,c),$$>
+          <p>1. 论文信息 - 标题 ：Quasi-Metric Learning for Bilateral Person-Job Fit - 作者 ：Yingpeng Du、Hongzhi Liu、Hengshu Zhu、Yang Song、Zhi Zheng、Zhonghai Wu -。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/08/05/%E5%9F%BA%E4%BA%8E%E5%8F%8C%E8%BE%B9%E4%BA%BA%E5%B2%97%E5%8C%B9%E9%85%8D%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E5%87%86%E5%BA%A6%E9%87%8F%E5%AD%A6%E4%B9%A0/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -1126,7 +328,7 @@ $$w(s\mid \text{context}),$$
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -1152,7 +354,7 @@ $$w(s\mid \text{context}),$$
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1175,309 +377,15 @@ $$w(s\mid \text{context}),$$
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>在推荐、广告和内容分发系统里，我们往往不会只优化一个目标。</p>
-<p>以信息流场景为例，平台可能同时关心：</p>
-<ul>
-<li>点击率（CTR）</li>
-<li>转化率（CVR）</li>
-<li>停留时长</li>
-<li>收藏、加购、分享等互动行为</li>
-</ul>
-<p>这些目标都和“用户价值”有关，但又并不完全一致。只做单目标建模会有两个明显问题：</p>
-<ul>
-<li>每个目标单独训练一套模型，维护成本高，特征利用也不充分</li>
-<li>不同目标之间本来存在关联，如果完全拆开训练，会损失任务间可以共享的统计规律</li>
-</ul>
-<p>因此，多任务学习（Multi-task Learning, MTL）在推荐系统里非常常见。它的基本思想是：</p>
-<ul>
-<li>用一个模型同时学习多个目标</li>
-<li>让任务之间共享一部分表示能力</li>
-<li>又保留各自的个性化建模能力</li>
-</ul>
-<p>多目标建模里最经典的一条演化路线，大致可以概括为：</p>
-<ul>
-<li><code>Shared-Bottom</code>：先做最基础的参数共享</li>
-<li><code>MMoE</code>：引入专家网络和门控机制，让不同任务学会“按需共享”</li>
-<li><code>PLE</code>：进一步缓解任务冲突，把共享信息和任务专属信息分层解耦</li>
-</ul>
-<img src="/2026/04/10/%E5%A4%9A%E7%9B%AE%E6%A0%87%E5%BB%BA%E6%A8%A1/1.png" alt="MMoE">
-
-<h2 id="基础架构：Shared-Bottom"><a href="#基础架构：Shared-Bottom" class="headerlink" title="基础架构：Shared-Bottom"></a>基础架构：Shared-Bottom</h2><p>Shared-Bottom 是多任务学习里最朴素、也最好理解的结构。</p>
-<p>它的做法非常直接：</p>
-<ol>
-<li>底部使用一套共享的特征抽取网络</li>
-<li>共享层输出一个公共表示</li>
-<li>每个任务在顶部再接自己的 tower</li>
-<li>各任务分别输出自己的预测结果</li>
-</ol>
-<p>如果写成形式化表达，可以理解为：</p>
-<p>$$<br>h &#x3D; f_{shared}(x)<br>$$</p>
-<p>第 $k$ 个任务的输出为：</p>
-<p>$$<br>y_k &#x3D; f_k(h)<br>$$</p>
-<p>其中：</p>
-<ul>
-<li>$x$ 是输入特征</li>
-<li>$f_{shared}$ 是所有任务共用的底层网络</li>
-<li>$f_k$ 是第 $k$ 个任务自己的输出头</li>
-</ul>
-<p>它之所以叫 Shared-Bottom，就是因为“共享”主要发生在底部。</p>
-<h3 id="优势"><a href="#优势" class="headerlink" title="优势"></a>优势</h3><p>Shared-Bottom 能成为最早期、最广泛使用的多任务结构，不是没有原因的。</p>
-<ol>
-<li>共享层的存在显著降低了模型总参数量。相比每个目标都单独建模，底层只训练一套网络，训练和部署成本都更低。</li>
-<li>共享参数天然带来正则化效应。多个任务共同约束底层表示，能够减少单一任务在数据不足时的过拟合风险。</li>
-<li>当任务之间确实存在相关性时，共享层可以学习到通用模式，从而产生知识迁移，提高泛化能力。</li>
-</ol>
-<p>例如在广告场景中：</p>
-<ul>
-<li>CTR 任务会帮助模型学到“用户是否愿意点进来”</li>
-<li>CVR 任务会帮助模型学到“点进来之后是否会成交”</li>
-</ul>
-<p>虽然两者不完全一样，但用户、商品、上下文之间的一部分交互规律是可以共享的。</p>
-<h3 id="缺陷"><a href="#缺陷" class="headerlink" title="缺陷"></a>缺陷</h3><p>Shared-Bottom 的问题也同样明显：<strong>它默认所有任务都应该共享同一套底层表示</strong>。</p>
-<p>这在任务高度相关时通常还可以工作，但一旦任务相关性较弱，甚至存在冲突，就会出现典型的负迁移（negative transfer）：</p>
-<ul>
-<li>某个任务希望强化一类特征</li>
-<li>另一个任务却希望抑制这类特征</li>
-<li>共享层被多个目标同时拉扯，最后谁都学不舒服</li>
-</ul>
-<p>例如：</p>
-<ul>
-<li>CTR 更关注“是否吸引点击”</li>
-<li>时长任务更关注“内容是否耐看”</li>
-</ul>
-<p>有些标题党内容可能很容易带来点击，却未必能带来长时停留。此时多个目标对共享表示的优化方向并不一致。</p>
-<p>所以 Shared-Bottom 的核心问题可以总结为一句话：</p>
-<ul>
-<li>共享是静态且强制的，无法根据任务差异动态分配表示能力</li>
-</ul>
-<p>这也是后续 MMoE 出现的直接动机。</p>
-<h2 id="MMoE"><a href="#MMoE" class="headerlink" title="MMoE"></a>MMoE</h2><p>MMoE（Multi-gate Mixture-of-Experts）是 Google 在多任务学习场景里提出的一类经典结构。它试图解决的，不是“要不要共享”，而是：</p>
-<ul>
-<li>哪些知识该共享</li>
-<li>共享多少</li>
-<li>不同任务该从哪些专家那里获取信息</li>
-</ul>
-<p>相比 Shared-Bottom 的“一刀切共享”，MMoE 把共享改成了<strong>可学习的软选择</strong>。</p>
-<h3 id="OMoE"><a href="#OMoE" class="headerlink" title="OMoE"></a>OMoE</h3><p>在正式理解 MMoE 之前，先看一个过渡结构：OMoE（One-gate Mixture-of-Experts）。</p>
-<p>OMoE 的核心结构是：</p>
-<ol>
-<li>底部不再只有一个共享网络，而是放置多个 expert</li>
-<li>所有 expert 并行接收同一份输入</li>
-<li>用一个共享 gate 生成权重</li>
-<li>将多个 expert 的输出加权汇总后，再送给不同任务头</li>
-</ol>
-<p>设有 $n$ 个 expert，第 $i$ 个 expert 输出为：</p>
-<p>$$<br>e_i(x)<br>$$</p>
-<p>共享 gate 生成权重：</p>
-<p>$$<br>g(x) &#x3D; \mathrm{softmax}(W_g x)<br>$$</p>
-<p>则融合表示可写成：</p>
-<p>$$<br>h &#x3D; \sum_{i&#x3D;1}^{n} g_i(x)e_i(x)<br>$$</p>
-<p>然后再由不同任务塔做预测。</p>
-<p>OMoE 比 Shared-Bottom 更灵活，因为：</p>
-<ul>
-<li>不再强迫所有任务只使用同一个底层表征</li>
-<li>模型可以把不同模式分散到不同 expert 中</li>
-</ul>
-<p>但它仍然有一个很大的限制：</p>
-<ul>
-<li>所有任务共享同一个 gate</li>
-</ul>
-<p>也就是说，虽然 expert 变多了，但“如何组合这些 expert”仍然是一套统一策略。这意味着不同任务最终看到的仍是同一种专家加权结果。</p>
-<p>所以 OMoE 只解决了“共享网络容量不足”的问题，却没有真正解决“任务对共享知识需求不同”的问题。</p>
-<h3 id="MMoE-架构及原理"><a href="#MMoE-架构及原理" class="headerlink" title="MMoE 架构及原理"></a>MMoE 架构及原理</h3><p>MMoE 相比 OMoE 的关键变化只有一句话：</p>
-<ul>
-<li><strong>每个任务都有自己独立的 gate</strong></li>
-</ul>
-<p>整体结构变成：</p>
-<ol>
-<li>底部有多个共享 expert</li>
-<li>每个任务都拥有一个自己的 gating network</li>
-<li>不同任务分别对同一组 expert 进行加权组合</li>
-<li>每个任务再接自己的 tower 输出预测结果</li>
-</ol>
-<p>设共有 $n$ 个 expert，第 $k$ 个任务的 gate 输出为：</p>
-<p>$$<br>g^{(k)}(x) &#x3D; \mathrm{softmax}(W^{(k)}_g x)<br>$$</p>
-<p>则第 $k$ 个任务获得的输入表示为：</p>
-<p>$$<br>h^{(k)} &#x3D; \sum_{i&#x3D;1}^{n} g^{(k)}_i(x)e_i(x)<br>$$</p>
-<p>最后第 $k$ 个任务输出：</p>
-<p>$$<br>y_k &#x3D; f_k(h^{(k)})<br>$$</p>
-<p>这个变化看似不大，但本质上完成了从“统一共享”到“按任务路由”的转变。</p>
-<p>直观理解 MMoE，可以把 expert 看成一组不同能力的老师：</p>
-<ul>
-<li>有的 expert 更擅长建模点击模式</li>
-<li>有的 expert 更擅长建模转化倾向</li>
-<li>有的 expert 更擅长建模长时兴趣</li>
-</ul>
-<p>而每个任务自己的 gate，决定它更愿意听哪些老师的意见。</p>
-<h3 id="MMoE-相比-Shared-Bottom-的改进"><a href="#MMoE-相比-Shared-Bottom-的改进" class="headerlink" title="MMoE 相比 Shared-Bottom 的改进"></a>MMoE 相比 Shared-Bottom 的改进</h3><p>MMoE 的优势主要体现在三个方面。</p>
-<ol>
-<li>共享不再是硬性的，而是软性的。不同任务可以根据自身需要，从多个 expert 中动态组合信息。</li>
-<li>expert 之间天然形成某种功能分化。即使没有显式标注，训练过程中也可能出现“某些 expert 更偏向某类任务模式”的现象。</li>
-<li>当任务相关性复杂、部分共享但又不完全重叠时，MMoE 往往比 Shared-Bottom 更稳健。</li>
-</ol>
-<p>从经验上看，任务越多、任务差异越大，MMoE 相比 Shared-Bottom 的优势通常越明显。</p>
-<h3 id="MMoE-的局限"><a href="#MMoE-的局限" class="headerlink" title="MMoE 的局限"></a>MMoE 的局限</h3><p>虽然 MMoE 比 Shared-Bottom 强很多，但它并没有彻底消灭负迁移。</p>
-<p>主要原因有两个。</p>
-<p>第一，expert 本身仍然是所有任务共享的。</p>
-<p>也就是说，即便 gate 不同，底层 expert 参数还是被多个任务共同训练。如果任务冲突很强，expert 仍然可能学成“折中结果”。</p>
-<p>第二，门控决策负担很重。</p>
-<p>gate 需要同时完成两件事：</p>
-<ul>
-<li>判断当前样本更适合走哪些 expert</li>
-<li>间接协调不同任务之间的冲突</li>
-</ul>
-<p>如果 expert 没有形成足够清晰的职责分工，gate 的选择空间就会变得混乱。最终模型可能出现：</p>
-<ul>
-<li>多个任务都偏向同一批 expert</li>
-<li>某些 expert 长期得不到充分训练</li>
-<li>任务冲突被转移到 gate 和 shared expert 上，但没有真正被拆开</li>
-</ul>
-<p>换句话说，MMoE 让“共享”变聪明了，但共享和专属之间的边界仍然不够清楚。</p>
-<p>这正是 PLE 想进一步解决的问题。</p>
-<h2 id="PLE"><a href="#PLE" class="headerlink" title="PLE"></a>PLE</h2><p>PLE（Progressive Layered Extraction）可以看作是对 MMoE 的进一步结构化改造。它的核心判断是：</p>
-<ul>
-<li>MMoE 之所以仍会出现负迁移，不仅是因为共享方式不够灵活</li>
-<li>更因为“共享知识”和“任务私有知识”没有被显式拆开</li>
-</ul>
-<p>因此，PLE 希望把信息流分成两类：</p>
-<ul>
-<li>共享信息</li>
-<li>任务专属信息</li>
-</ul>
-<p>并通过逐层提取（progressive layered extraction）的方式，让二者既能交互，又不过度混杂。</p>
-<p>MMoE 负迁移未根除，门控决策负担重，PLE 正是在这个背景下提出的。</p>
-<h3 id="CGC结构"><a href="#CGC结构" class="headerlink" title="CGC结构"></a>CGC结构</h3><p>PLE 的基础模块叫 CGC（Customized Gate Control）。</p>
-<p>一个 CGC 层通常包含两类 expert：</p>
-<ul>
-<li>shared experts：为所有任务提供公共知识</li>
-<li>task-specific experts：只服务于某一个任务</li>
-</ul>
-<p>然后，每个任务自己的 gate 不再对“全体 expert”做无差别选择，而是从：</p>
-<ul>
-<li>本任务的 task-specific experts</li>
-<li>shared experts</li>
-</ul>
-<p>这两部分中进行加权组合。</p>
-<p>与此同时，共享分支自己也会有一个 gate，用来聚合：</p>
-<ul>
-<li>所有任务的专属 expert</li>
-<li>shared experts</li>
-</ul>
-<p>从而形成下一层共享表示。</p>
-<p>这套机制的关键价值，在于它把“所有 expert 都放在一个池子里竞争”改成了“共享池 + 专属池”的显式分层。</p>
-<h4 id="1-专家职责强制分离"><a href="#1-专家职责强制分离" class="headerlink" title="1. 专家职责强制分离"></a>1. 专家职责强制分离</h4><p>这是 PLE 相比 MMoE 最重要的一点。</p>
-<p>在 MMoE 中，所有 expert 理论上都服务于所有任务，最终是否形成分工，主要依赖训练过程的自发演化。</p>
-<p>而在 PLE 中，模型结构直接规定：</p>
-<ul>
-<li>有些 expert 就是公共专家</li>
-<li>有些 expert 就是任务私有专家</li>
-</ul>
-<p>这样做的好处是：</p>
-<ul>
-<li>公共模式可以沉淀在 shared experts 中</li>
-<li>任务特有模式可以沉淀在 task-specific experts 中</li>
-<li>不必把“共享多少、私有多少”都压给 gate 自己去学</li>
-</ul>
-<p>也就是说，PLE 用结构先验主动帮助模型做职责划分。</p>
-<h4 id="2-任务专属门控的输入限制"><a href="#2-任务专属门控的输入限制" class="headerlink" title="2. 任务专属门控的输入限制"></a>2. 任务专属门控的输入限制</h4><p>另一个关键点是，任务 gate 的可选范围被限制了。</p>
-<p>对于第 $k$ 个任务，它不会像 MMoE 一样面对所有 expert，而只会从下面两类中选择：</p>
-<ul>
-<li>第 $k$ 个任务自己的专属 experts</li>
-<li>shared experts</li>
-</ul>
-<p>这意味着：</p>
-<ul>
-<li>任务不会直接去读取别的任务的私有 expert</li>
-<li>跨任务共享必须通过 shared experts 这一“公共通道”完成</li>
-</ul>
-<p>这种限制非常重要，因为它减少了无序的信息串扰。</p>
-<p>可以把它理解为：</p>
-<ul>
-<li>MMoE 像一个开放式大群，所有任务都能直接找所有 expert</li>
-<li>PLE 更像有公共会议室，也有每个任务自己的办公室</li>
-</ul>
-<p>共享问题去公共会议室讨论，私有问题留在各自办公室解决。</p>
-<h3 id="PLE架构及原理"><a href="#PLE架构及原理" class="headerlink" title="PLE架构及原理"></a>PLE架构及原理</h3><p>PLE 往往不是只堆一层 CGC，而是堆叠多层，形成 progressive layered extraction。</p>
-<p>它的基本流程可以理解为：</p>
-<ol>
-<li>输入特征进入第一层 CGC</li>
-<li>每个任务分支和共享分支分别得到自己的表示</li>
-<li>这些表示继续送入下一层 CGC</li>
-<li>随着层数加深，共享信息与任务专属信息被逐步提炼</li>
-<li>最后每个任务分支接自己的 tower 输出结果</li>
-</ol>
-<p>如果从建模逻辑上理解，PLE 做的是一种“逐层去混叠”：</p>
-<ul>
-<li>底层允许较多共享，因为原始特征里确实有大量共性</li>
-<li>越往上走，任务差异越明显，专属分支承担更多个性化建模</li>
-</ul>
-<p>这比只在单层上做一次专家选择更细致，也更符合多任务学习中“底层偏通用、高层偏任务化”的经验规律。</p>
-<h3 id="PLE-的优势"><a href="#PLE-的优势" class="headerlink" title="PLE 的优势"></a>PLE 的优势</h3><p>PLE 在工业界受欢迎，主要是因为它比 MMoE 更稳定。</p>
-<ol>
-<li>显式区分共享专家和任务专家，能更有效缓解负迁移。</li>
-<li>gate 的选择空间被约束后，决策难度下降，训练更容易稳定。</li>
-<li>多层 CGC 让共享信息和私有信息可以逐步分化，而不是一次性硬切。</li>
-<li>在任务相关但不完全一致的场景中，通常比 Shared-Bottom 和 MMoE 更鲁棒。</li>
-</ol>
-<p>特别是在推荐和广告系统中，像：</p>
-<ul>
-<li>CTR</li>
-<li>CVR</li>
-<li>完播率</li>
-<li>停留时长</li>
-<li>互动率</li>
-</ul>
-<p>这些目标往往既有共性，又各自强调不同的行为结果，PLE 通常会比简单共享结构更合适。</p>
-<h3 id="PLE-的代价"><a href="#PLE-的代价" class="headerlink" title="PLE 的代价"></a>PLE 的代价</h3><p>当然，PLE 也不是没有成本。</p>
-<ul>
-<li>结构更复杂，参数量和训练成本通常高于 Shared-Bottom。</li>
-<li>超参数更多，例如 shared experts 数量、task-specific experts 数量、CGC 层数等，调参复杂度更高。</li>
-<li>当任务非常少、而且相关性很强时，PLE 的收益未必足以覆盖其复杂度。</li>
-</ul>
-<p>因此是否使用 PLE，本质上还是一个工程权衡：</p>
-<ul>
-<li>任务越多</li>
-<li>目标差异越大</li>
-<li>负迁移越明显</li>
-</ul>
-<p>PLE 的价值通常越大。</p>
-<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>如果把这几种结构放在同一条演进线上，可以这样理解：</p>
-<h3 id="1-Shared-Bottom"><a href="#1-Shared-Bottom" class="headerlink" title="1. Shared-Bottom"></a>1. Shared-Bottom</h3><ul>
-<li>假设所有任务共享同一套底层表示</li>
-<li>优点是简单、高效、易落地</li>
-<li>缺点是容易受到负迁移影响</li>
-</ul>
-<h3 id="2-MMoE"><a href="#2-MMoE" class="headerlink" title="2. MMoE"></a>2. MMoE</h3><ul>
-<li>通过多个 expert 和任务独立 gate，实现按任务动态共享</li>
-<li>比 Shared-Bottom 更灵活</li>
-<li>但 expert 仍是全共享的，任务冲突没有被彻底拆解</li>
-</ul>
-<h3 id="3-PLE"><a href="#3-PLE" class="headerlink" title="3. PLE"></a>3. PLE</h3><ul>
-<li>在 MMoE 基础上进一步显式区分共享专家和任务专家</li>
-<li>通过分层提取逐步解耦共享信息与私有信息</li>
-<li>通常在复杂多目标场景下表现更稳</li>
-</ul>
-<p>所以从本质上说，这三者是在回答同一个问题：</p>
-<ul>
-<li>多个任务到底应该如何共享表示能力</li>
-</ul>
-<p>它们给出的答案分别是：</p>
-<ul>
-<li>Shared-Bottom：大家先共用一套底层再说</li>
-<li>MMoE：共享可以，但要让不同任务自己决定怎么用</li>
-<li>PLE：共享和私有都要有，而且要在结构上明确分开</li>
-</ul>
-<p>在真实业务里，没有哪个结构对所有问题都最优。更合理的做法通常是根据场景判断：</p>
-<ul>
-<li>如果任务少且高度相关，Shared-Bottom 可能已经足够</li>
-<li>如果任务关系复杂，MMoE 往往是一个很好的起点</li>
-<li>如果负迁移明显、目标差异较大，PLE 通常更值得尝试</li>
-</ul>
-<p>理解这条演化链条，比死记某个结构图更重要。因为多目标建模的核心从来不是“哪篇论文最火”，而是：</p>
-<ul>
-<li>如何在共享收益和任务冲突之间找到合适的平衡</li>
-</ul>
-
+          <p>在推荐、广告和内容分发系统里，我们往往不会只优化一个目标。 以信息流场景为例，平台可能同时关心： - 点击率（CTR） - 转化率（CVR） - 停留时长 - 收藏、加购、分享等互动行为 这些目标都和“用户价值”有关，但又并不完全一致。只做单目标建模会有两个明显问题： - 每个目。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/04/10/%E5%A4%9A%E7%9B%AE%E6%A0%87%E5%BB%BA%E6%A8%A1/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -1501,7 +409,7 @@ $$w(s\mid \text{context}),$$
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -1527,7 +435,7 @@ $$w(s\mid \text{context}),$$
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1550,259 +458,15 @@ $$w(s\mid \text{context}),$$
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="DIN"><a href="#DIN" class="headerlink" title="DIN"></a>DIN</h2><p>在推荐系统里，用户兴趣并不是一个固定不变的向量，而是会随着候选物品的不同而表现出不同侧面。</p>
-<p>例如同一个用户既买过母婴用品，也看过数码产品。当我们要预测他是否会点击一款婴儿车时，历史里的母婴行为显然更重要；而在预测他是否会购买耳机时，数码相关行为又更有参考价值。</p>
-<p>传统的 Embedding + MLP 排序模型，通常会把用户历史行为池化成一个固定长度向量，例如平均池化或求和池化：</p>
-<p>$$<br>v_u &#x3D; \frac{1}{T}\sum_{i&#x3D;1}^{T} e_i<br>$$</p>
-<p>其中：</p>
-<ul>
-<li>$e_i$ 表示第 $i$ 个历史行为 item 的 embedding</li>
-<li>$T$ 表示行为序列长度</li>
-<li>$v_u$ 表示汇总后的用户兴趣表示</li>
-</ul>
-<p>这种做法虽然简单，但问题也很明显：</p>
-<ul>
-<li>所有历史行为被一视同仁</li>
-<li>用户兴趣被压缩成单一静态向量</li>
-<li>无法根据当前候选广告或商品动态调整关注重点</li>
-</ul>
-<p>DIN（Deep Interest Network）提出的核心思想就是：</p>
-<ul>
-<li>不预先生成一个固定的用户兴趣向量</li>
-<li>而是针对当前候选 item，自适应地从历史行为里挑选更相关的兴趣信号</li>
-</ul>
-<img src="/2026/04/08/%E6%B7%B1%E5%BA%A6%E5%85%B4%E8%B6%A3%E7%BD%91%E7%BB%9C%EF%BC%88DIN%EF%BC%89%E5%8F%8A%E5%85%B6%E6%BC%94%E5%8C%96/1.png" alt="DIN">
-
-<h3 id="1-核心动机"><a href="#1-核心动机" class="headerlink" title="1. 核心动机"></a>1. 核心动机</h3><p>DIN 最重要的观察是：<strong>用户兴趣是局部激活的</strong>。</p>
-<p>也就是说，用户并不是始终对所有兴趣都保持同样强度，而是在面对某个候选 item 时，只会激活与它相关的那部分历史兴趣。</p>
-<p>因此，DIN 不再简单做平均池化，而是引入注意力机制，让候选 item 作为 query，历史行为作为 key&#x2F;value，计算不同历史行为对当前目标的相关程度。</p>
-<h3 id="2-兴趣激活单元"><a href="#2-兴趣激活单元" class="headerlink" title="2. 兴趣激活单元"></a>2. 兴趣激活单元</h3><p>设当前候选 item 的 embedding 为 $e_a$，用户历史行为序列为：</p>
-<p>$$<br>{e_1,e_2,\ldots,e_T}<br>$$</p>
-<p>DIN 会先计算每个历史行为和候选 item 之间的匹配分数：</p>
-<p>$$<br>w_i &#x3D; f(e_i, e_a)<br>$$</p>
-<p>这里的 $f(\cdot)$ 通常是一个前馈网络，输入可能包括：</p>
-<ul>
-<li>$e_i$</li>
-<li>$e_a$</li>
-<li>$e_i - e_a$</li>
-<li>$e_i \odot e_a$</li>
-</ul>
-<p>其中 $\odot$ 表示逐元素乘积。</p>
-<p>得到权重后，对历史行为做加权汇总：</p>
-<p>$$<br>v_u(e_a) &#x3D; \sum_{i&#x3D;1}^{T} w_i e_i<br>$$</p>
-<p>注意这里的 $v_u(e_a)$ 不再是一个固定的用户向量，而是<strong>和候选 item 相关的兴趣表示</strong>。</p>
-<p>这就是 DIN 相比传统 pooling 的本质区别。</p>
-<h3 id="3-模型结构"><a href="#3-模型结构" class="headerlink" title="3. 模型结构"></a>3. 模型结构</h3><p>DIN 的整体流程可以理解为下面几步：</p>
-<ol>
-<li>对用户画像、上下文特征、候选 item、历史行为序列分别做 embedding</li>
-<li>用候选 item 对历史行为序列做 attention，生成与当前目标相关的兴趣表示</li>
-<li>将兴趣表示与其他特征拼接</li>
-<li>输入多层感知机（MLP）输出点击率或转化率</li>
-</ol>
-<p>因此，从结构上看，DIN 仍然属于 CTR 预估中的深度排序模型，只不过它在“用户兴趣建模”这一层引入了目标感知的注意力机制。</p>
-<h3 id="4-DIN-解决了什么问题"><a href="#4-DIN-解决了什么问题" class="headerlink" title="4. DIN 解决了什么问题"></a>4. DIN 解决了什么问题</h3><p>DIN 相比早期的 Wide &amp; Deep、DeepFM 一类模型，主要改进在于：</p>
-<ul>
-<li>从静态兴趣建模转向动态兴趣激活</li>
-<li>让历史行为不再等权参与预测</li>
-<li>显式建模“候选 item 和历史行为是否相关”</li>
-</ul>
-<p>对于电商场景尤其有效，因为用户的浏览、点击、加购、购买行为天然带有强烈的多兴趣特征。</p>
-<h3 id="5-感知-mini-batch-的正则化"><a href="#5-感知-mini-batch-的正则化" class="headerlink" title="5. 感知 mini-batch 的正则化"></a>5. 感知 mini-batch 的正则化</h3><p>除了兴趣激活单元本身，DIN 论文里还提到了一个比较工程化、但很实用的训练技巧：mini-batch aware regularization。</p>
-<p>CTR 模型里大量参数来自 embedding，尤其是用户、item、类目等高维稀疏特征。若直接对全部 embedding 参数做普通 $L_2$ 正则：</p>
-<p>$$<br>\lambda \lVert \theta \rVert_2^2<br>$$</p>
-<p>虽然形式上很简单，但在工业场景里会遇到一个问题：</p>
-<ul>
-<li>参数规模极大</li>
-<li>每个 mini-batch 实际只访问其中很小一部分 embedding</li>
-<li>如果每一步都对全量参数做正则，计算和存储代价都很高</li>
-</ul>
-<p>DIN 的做法是：只对当前 mini-batch 里真正出现过的稀疏特征参数施加正则约束。</p>
-<p>直观理解就是：</p>
-<ul>
-<li>这一批样本没有出现的 embedding，就不在这一轮额外计算正则</li>
-<li>这一批样本访问到的 embedding，才参与当前 batch 的惩罚项</li>
-</ul>
-<p>这样做的好处是：</p>
-<ul>
-<li>更适合超大规模稀疏参数训练</li>
-<li>降低无意义的全量正则计算开销</li>
-<li>在工程上更容易和稀疏更新框架结合</li>
-</ul>
-<h3 id="6-数据自适应激活函数"><a href="#6-数据自适应激活函数" class="headerlink" title="6. 数据自适应激活函数"></a>6. 数据自适应激活函数</h3><img src="/2026/04/08/%E6%B7%B1%E5%BA%A6%E5%85%B4%E8%B6%A3%E7%BD%91%E7%BB%9C%EF%BC%88DIN%EF%BC%89%E5%8F%8A%E5%85%B6%E6%BC%94%E5%8C%96/2.png" alt="DICE">
-
-<p>DIN 里另一个常被提到的技巧，是数据自适应激活函数 DICE（Data Adaptive Activation Function）。</p>
-<p>在普通 MLP 里，常见激活函数是 ReLU：</p>
-<p>$$<br>\mathrm{ReLU}(x) &#x3D; \max(0, x)<br>$$</p>
-<p>但 CTR 场景有一个特点：</p>
-<ul>
-<li>不同层、不同特征维度的输入分布差异很大</li>
-<li>同一层神经元在不同 batch 下的激活分布也可能不断变化</li>
-</ul>
-<p>固定形状的激活函数，有时不能很好适应这种分布漂移。</p>
-<p>DICE 的核心思想是：</p>
-<ul>
-<li>不再用固定阈值把输入简单切成正半轴和负半轴</li>
-<li>而是根据当前数据分布，自适应地决定激活函数在不同区域的响应强度</li>
-</ul>
-<p>可以把它理解成一种带数据感知能力的 PReLU。它会先结合输入的均值、方差做归一化判断，再用一个可学习参数控制负半区保留多少信息。</p>
-<p>从直觉上说：</p>
-<ul>
-<li>如果某个神经元当前输入大多偏大，激活边界就应随之调整</li>
-<li>如果输入大多偏小，激活函数也不应死板地直接截断</li>
-</ul>
-<p>这个技巧对 CTR 模型很有帮助，因为推荐场景里的特征分布往往高度非平稳，激活函数如果能随数据分布自适应变化，通常会比固定 ReLU 更灵活。</p>
-<p>所以从工程角度看，DIN 的贡献不只是提出了兴趣激活机制，还包括：</p>
-<ul>
-<li>在稀疏大规模参数场景下，引入更实用的 mini-batch aware regularization</li>
-<li>在深层非线性建模里，引入更适合 CTR 分布特点的 DICE 激活函数</li>
-</ul>
-<h3 id="7-DIN-的局限"><a href="#7-DIN-的局限" class="headerlink" title="7. DIN 的局限"></a>7. DIN 的局限</h3><p>DIN 虽然把“相关兴趣激活”做出来了，但它仍然有两个重要限制：</p>
-<ul>
-<li>只关注当前候选 item 与历史行为的相关性，没有显式建模兴趣随时间的演化过程</li>
-<li>历史行为之间彼此独立参与 attention，缺少对序列依赖关系的建模</li>
-</ul>
-<p>换句话说，DIN 更像是在回答：</p>
-<ul>
-<li>哪些历史行为与当前候选 item 更相关</li>
-</ul>
-<p>但还没有很好回答：</p>
-<ul>
-<li>用户兴趣是如何一步步演变到现在的</li>
-</ul>
-<p>这也是后续 DIEN 出现的原因。</p>
-<h2 id="DIEN"><a href="#DIEN" class="headerlink" title="DIEN"></a>DIEN</h2><p>DIEN（Deep Interest Evolution Network）是在 DIN 基础上的进一步发展。它认为，仅仅做“兴趣激活”还不够，因为用户行为本身是一个时间序列，兴趣会不断形成、强化、衰减和转移。</p>
-<p>因此，DIEN 想解决的是两个问题：</p>
-<ul>
-<li>如何从原始行为序列中提取更合理的“兴趣状态”</li>
-<li>如何建模这些兴趣状态随时间的演化过程</li>
-</ul>
-<h3 id="1-为什么-DIN-还不够"><a href="#1-为什么-DIN-还不够" class="headerlink" title="1. 为什么 DIN 还不够"></a>1. 为什么 DIN 还不够</h3><p>在 DIN 中，历史行为 embedding 基本直接拿来和目标 item 做匹配。这样做默认了一个假设：</p>
-<ul>
-<li>单个行为 embedding 就足以代表用户在那个时刻的兴趣</li>
-</ul>
-<p>但实际并不总是如此。</p>
-<p>例如用户连续看了很多手机壳、充电头、数据线，这种连续行为共同表达的可能是“正在为新手机配件做选购”，单独看某一次点击并不能完整体现这一意图。</p>
-<p>所以，DIEN 先用序列模型对行为进行编码，把“行为”提升成“兴趣状态”。</p>
-<h3 id="2-Interest-Extractor-Layer"><a href="#2-Interest-Extractor-Layer" class="headerlink" title="2. Interest Extractor Layer"></a>2. Interest Extractor Layer</h3><p>DIEN 的第一层关键结构是 Interest Extractor Layer，通常使用 GRU 来编码用户行为序列：</p>
-<p>$$<br>h_t &#x3D; \mathrm{GRU}(e_t, h_{t-1})<br>$$</p>
-<p>其中：</p>
-<ul>
-<li>$e_t$ 是第 $t$ 个行为 item 的 embedding</li>
-<li>$h_t$ 是第 $t$ 时刻提取出的兴趣状态</li>
-</ul>
-<p>这样一来，$h_t$ 不再只是单个行为的表示，而是融合了前序上下文的信息，更接近“用户此刻的兴趣”。</p>
-<p>DIEN 还引入了辅助损失（auxiliary loss）来增强兴趣提取效果。直观理解是：</p>
-<ul>
-<li>用当前兴趣状态去预测下一个真实行为</li>
-<li>同时区分真实下一个行为和负采样行为</li>
-</ul>
-<p>辅助损失让中间层的兴趣状态拥有更明确的监督信号，而不是只靠最终 CTR 标签反向传播。</p>
-<h3 id="3-Interest-Evolving-Layer"><a href="#3-Interest-Evolving-Layer" class="headerlink" title="3. Interest Evolving Layer"></a>3. Interest Evolving Layer</h3><p>提取出兴趣状态后，DIEN 还需要进一步回答：</p>
-<ul>
-<li>哪些兴趣状态会持续演化到当前目标相关的兴趣</li>
-</ul>
-<p>因此它在第二层又使用了一次基于 GRU 的演化建模，并把目标 item 的注意力信息融入其中。</p>
-<p>设从第一层得到兴趣状态序列：</p>
-<p>$$<br>{\mathbf{h}_1,\mathbf{h}_2,\ldots,\mathbf{h}_T}<br>$$</p>
-<p>先计算每个兴趣状态和候选 item 的相关性：</p>
-<p>$$<br>\alpha_t &#x3D; \mathrm{Att}(\mathbf{h}_t, \mathbf{e}_a)<br>$$</p>
-<p>然后再把这些注意力分数注入到兴趣演化过程里，从而让演化网络更关注与目标相关的兴趣轨迹。</p>
-<p>论文中提出了几种 attention 与 GRU 结合的方式，其中最常被提到的是 AUGRU（Attentional Update Gate GRU）。它的直观含义是：</p>
-<ul>
-<li>如果某个时刻的兴趣状态和目标 item 更相关，就让 GRU 更新得更明显</li>
-<li>如果相关性较弱，就减小该时刻对最终兴趣表示的影响</li>
-</ul>
-<h3 id="4-DIEN-相比-DIN-的提升"><a href="#4-DIEN-相比-DIN-的提升" class="headerlink" title="4. DIEN 相比 DIN 的提升"></a>4. DIEN 相比 DIN 的提升</h3><p>DIEN 相比 DIN，实质上多做了两件事：</p>
-<ul>
-<li>把“历史行为”升级成“兴趣状态序列”</li>
-<li>把“静态相关性加权”升级成“目标感知的兴趣演化建模”</li>
-</ul>
-<p>因此，DIN 更像是：</p>
-<ul>
-<li>从历史里挑出和当前候选相关的行为</li>
-</ul>
-<p>而 DIEN 更像是：</p>
-<ul>
-<li>先理解用户兴趣是如何形成的</li>
-<li>再挑出那条与当前目标最相关的兴趣演化路径</li>
-</ul>
-<h3 id="5-DIEN-的价值与不足"><a href="#5-DIEN-的价值与不足" class="headerlink" title="5. DIEN 的价值与不足"></a>5. DIEN 的价值与不足</h3><p>DIEN 很适合行为序列较长、兴趣变化较快的场景，因为它比 DIN 更强调时间顺序和状态转移。</p>
-<p>但它依然有一个局限：</p>
-<ul>
-<li>它主要把用户行为看成一条线性的时间序列</li>
-</ul>
-<p>在很多场景中，用户会在一天内反复切换兴趣，比如上午看零食，中午看耳机，晚上又回来看零食。单纯按时间顺序压成一条长序列，有时并不能很好刻画这种多会话、多兴趣跳转行为。</p>
-<p>这就引出了 DSIN。</p>
-<h2 id="DSIN"><a href="#DSIN" class="headerlink" title="DSIN"></a>DSIN</h2><p>DSIN（Deep Session Interest Network）进一步强调：用户的行为并不只是一个长序列，还天然带有会话（session）结构。</p>
-<p>例如在一次连续浏览中，用户可能集中关注某一类商品；而过了一段时间后再打开 App，又进入了另一段新的兴趣会话。把这些行为全都平铺到一条长序列里，可能会稀释局部兴趣模式。</p>
-<h3 id="1-核心动机-1"><a href="#1-核心动机-1" class="headerlink" title="1. 核心动机"></a>1. 核心动机</h3><p>DSIN 的出发点是：</p>
-<ul>
-<li>用户在短时间内的一组连续行为，往往反映一个较稳定的局部兴趣</li>
-<li>不同 session 之间，兴趣可能发生切换</li>
-</ul>
-<p>因此，DSIN 会先把用户行为划分为多个 session，再分别建模 session 内部兴趣与 session 之间的关系。</p>
-<h3 id="2-Session-划分"><a href="#2-Session-划分" class="headerlink" title="2. Session 划分"></a>2. Session 划分</h3><p>DSIN 通常会根据时间间隔把用户行为切成多个 session。例如：</p>
-<ul>
-<li>如果两次行为间隔较短，则认为属于同一次浏览会话</li>
-<li>如果间隔较长，则切到新的 session</li>
-</ul>
-<p>于是原始行为序列：</p>
-<p>$$<br>{\mathbf{e}_1,\mathbf{e}_2,\ldots,\mathbf{e}_T}<br>$$</p>
-<p>会被划分为：</p>
-<p>$$<br>\mathcal{S}_1,\mathcal{S}_2,\ldots,\mathcal{S}_K<br>$$</p>
-<p>其中每个 $\mathcal{S}_k$ 表示一个局部会话。</p>
-<h3 id="3-Session-内兴趣建模"><a href="#3-Session-内兴趣建模" class="headerlink" title="3. Session 内兴趣建模"></a>3. Session 内兴趣建模</h3><p>在每个 session 内，DSIN 会利用 self-attention 或类似机制，对该 session 中的多个行为进行建模，抽取局部兴趣表示。</p>
-<p>直观理解是：</p>
-<ul>
-<li>同一个 session 内的行为通常主题更集中</li>
-<li>因此更适合在局部范围内做兴趣聚合</li>
-</ul>
-<p>如果第 $k$ 个 session 的输出表示记为 $\mathbf{s}_k$，那么最终会得到一个 session 兴趣序列：</p>
-<p>$$<br>{\mathbf{s}_1,\mathbf{s}_2,\ldots,\mathbf{s}_K}<br>$$</p>
-<p>这一步的意义是：先把原始的 item 级行为压缩成 session 级兴趣单元。</p>
-<h3 id="4-Session-间演化"><a href="#4-Session-间演化" class="headerlink" title="4. Session 间演化"></a>4. Session 间演化</h3><p>得到多个 session 表示后，DSIN 再使用序列模型（如 Bi-LSTM）去建模 session 之间的依赖关系，从而捕捉用户兴趣在多个会话之间的变化。</p>
-<p>随后，再结合当前候选 item 做 attention，挑出和目标最相关的 session 兴趣：</p>
-<p>$$<br>\beta_k &#x3D; \mathrm{Att}(\mathbf{s}_k, \mathbf{e}_a)<br>$$</p>
-<p>再对 session 兴趣加权汇总，得到最终用户表示。</p>
-<p>与 DIN 相比，DSIN 不再直接在 item 级别做一次全局 attention；与 DIEN 相比，它也不只是沿单一行为链路建模，而是显式利用了 session 结构。</p>
-<h3 id="5-DSIN-适合什么场景"><a href="#5-DSIN-适合什么场景" class="headerlink" title="5. DSIN 适合什么场景"></a>5. DSIN 适合什么场景</h3><p>DSIN 特别适合：</p>
-<ul>
-<li>用户访问具有明显会话特征的场景</li>
-<li>用户兴趣切换频繁的电商或信息流场景</li>
-<li>长行为序列下需要降低噪声、突出局部兴趣模式的任务</li>
-</ul>
-<p>因为把行为先分 session，可以减少“不同兴趣片段互相干扰”的问题。</p>
-<h3 id="6-从-DIN-到-DIEN-再到-DSIN"><a href="#6-从-DIN-到-DIEN-再到-DSIN" class="headerlink" title="6. 从 DIN 到 DIEN 再到 DSIN"></a>6. 从 DIN 到 DIEN 再到 DSIN</h3><p>这三类模型的演进逻辑可以概括成下面一条主线：</p>
-<ul>
-<li>DIN：解决“历史行为不是等权的”，引入目标感知注意力</li>
-<li>DIEN：解决“兴趣不是静态的”，引入兴趣提取与兴趣演化</li>
-<li>DSIN：解决“行为不是单纯长序列的”，引入会话级兴趣结构</li>
-</ul>
-<p>如果从建模粒度来看：</p>
-<ul>
-<li>DIN 主要在 item 行为级别做目标相关建模</li>
-<li>DIEN 在 item 行为级别上进一步建模时间演化</li>
-<li>DSIN 则提升到 session 级别建模局部兴趣和跨会话迁移</li>
-</ul>
-<h3 id="7-总结"><a href="#7-总结" class="headerlink" title="7. 总结"></a>7. 总结</h3><p>DIN 及其后续演化，本质上都围绕一个核心问题展开：</p>
-<ul>
-<li>如何更真实地表示用户兴趣</li>
-</ul>
-<p>早期做法往往把用户兴趣压缩成一个固定向量，而从 DIN 开始，推荐模型逐步意识到：</p>
-<ul>
-<li>兴趣是和目标相关的</li>
-<li>兴趣是动态变化的</li>
-<li>兴趣还可能具有分段、分会话的结构</li>
-</ul>
-<p>因此，这条演进路线并不是简单地把模型做深，而是在一步步逼近真实用户行为的生成机制。</p>
-<p>在实际工程里如何选择，也可以粗略理解为：</p>
-<ul>
-<li>如果重点是快速引入目标感知兴趣建模，DIN 是一个经典起点</li>
-<li>如果更关心兴趣随时间的连续演化，DIEN 更合适</li>
-<li>如果场景里 session 结构明显，DSIN 往往更有表达力</li>
-</ul>
-<p>从这个角度看，DIN 系列模型的价值，不只是提升离线指标，更在于它们把“用户兴趣”从一个静态特征，逐步建模成了一个与目标、时间和会话结构都相关的动态对象。</p>
-
+          <p>DIN 在推荐系统里，用户兴趣并不是一个固定不变的向量，而是会随着候选物品的不同而表现出不同侧面。 例如同一个用户既买过母婴用品，也看过数码产品。当我们要预测他是否会点击一款婴儿车时，历史里的母婴行为显然更重要；而在预测他是否会购买耳机时，数码相关行为又更有参考价值。 传统的 E。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/04/08/%E6%B7%B1%E5%BA%A6%E5%85%B4%E8%B6%A3%E7%BD%91%E7%BB%9C%EF%BC%88DIN%EF%BC%89%E5%8F%8A%E5%85%B6%E6%BC%94%E5%8C%96/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -1826,7 +490,7 @@ $$w(s\mid \text{context}),$$
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -1852,7 +516,7 @@ $$w(s\mid \text{context}),$$
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -1875,100 +539,15 @@ $$w(s\mid \text{context}),$$
     <div class="post-body" itemprop="articleBody">
 
       
-          <blockquote>
-<p>Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment[J]. arXiv preprint arXiv:2502.18965, 2025.</p>
-</blockquote>
-<h2 id="方法介绍"><a href="#方法介绍" class="headerlink" title="方法介绍"></a>方法介绍</h2><p>本文提出 <strong>OneRec</strong>，一个端到端的单阶段生成式推荐框架，其目标是直接根据用户历史行为生成目标 session，而不再采用传统的多阶段级联排序流程。设用户历史行为序列为</p>
-<p>$$ H_u&#x3D;{v_1^h,v_2^h,\dots,v_n^h} $$  </p>
-<p>其中，$v_i^h$ 表示用户产生过有效正反馈的视频，$n$ 表示历史行为长度。模型输出为一个 session 级推荐列表</p>
-<p>$$ S&#x3D;{v_1,v_2,\dots,v_m} $$  </p>
-<p>其中，$m$ 表示该 session 中的视频个数。</p>
-<p>从整体上看，OneRec 可以表示为一个从用户历史序列到目标 session 的映射函数：</p>
-<p>$$ S :&#x3D; M(H_u) $$</p>
-<p>OneRec 的方法主要由三部分构成：语义表示构建、session 级生成建模，以及基于奖励模型的迭代偏好对齐。</p>
-<h3 id="1-语义表示构建"><a href="#1-语义表示构建" class="headerlink" title="1. 语义表示构建"></a>1. 语义表示构建</h3><p>对于每个视频 $v_i$，首先利用多模态表示学习得到其连续向量表示</p>
-<p>$$ e_i \in \mathbb{R}^d $$</p>
-<p>为了让生成模型能够像生成文本 token 一样生成推荐结果，OneRec 不直接生成原始 item id，而是将每个视频 embedding 离散化为多层语义 ID。具体地，采用多层 residual quantization。第 1 层的初始残差定义为</p>
-<p>$$ r_i^1 &#x3D; e_i $$</p>
-<p>在第 $l$ 层，设码本为</p>
-<p>$$ C_l&#x3D;{c_1^l,c_2^l,\dots,c_K^l} $$</p>
-<p>其中，$K$ 为该层 codebook 大小。则第 $l$ 层所选取的语义 token 索引为</p>
-<p>$$ s_i^l&#x3D;\arg\min_k \lVert r_i^l-c_k^l \rVert_2^2 $$</p>
-<p>随后，将该层选中的聚类中心从残差中扣除，得到下一层残差：</p>
-<p>$$ r_i^{l+1}&#x3D;r_i^l-c_{s_i^l}^l $$</p>
-<p>因此，多层语义 ID 的生成过程可以写为</p>
-<p>$$ s_i^1 &#x3D; \arg\min_k \lVert r_i^1-c_k^1 \rVert_2^2,\qquad r_i^2 &#x3D; r_i^1-c_{s_i^1}^1 $$</p>
-<p>$$ s_i^2 &#x3D; \arg\min_k \lVert r_i^2-c_k^2 \rVert_2^2,\qquad r_i^3 &#x3D; r_i^2-c_{s_i^2}^2 $$</p>
-<p>$$ \cdots $$</p>
-<p>$$ s_i^L &#x3D; \arg\min_k \lVert r_i^L-c_k^L \rVert_2^2 $$</p>
-<p>最终，每个视频被表示为一个由 $L$ 层 token 构成的语义 ID：</p>
-<p>$$ v_i \longrightarrow (s_i^1,s_i^2,\dots,s_i^L) $$</p>
-<p>为了避免语义 token 分布极不均衡，OneRec 采用 <strong>Balanced K-Means</strong> 构造更平衡的码本。给定物品集合 $V$ 和簇数 $K$，每个簇分配的样本数为</p>
-<p>$$ w&#x3D;\frac{\lvert V \rvert}{K} $$</p>
-<p>Balanced K-Means 的核心约束是：每个 cluster 都尽量包含相同数量的 item，从而缓解语义编码中的分布偏斜问题。</p>
-<h3 id="2-Session-级列表生成"><a href="#2-Session-级列表生成" class="headerlink" title="2. Session 级列表生成"></a>2. Session 级列表生成</h3><p>不同于传统 point-wise 推荐方法只预测下一个 item，OneRec 直接建模整个 session 的生成。用户历史序列和目标 session 都用语义 ID 序列表示：</p>
-<p>$$ H_u&#x3D;{(s_1^1,s_1^2,\dots,s_1^L),(s_2^1,s_2^2,\dots,s_2^L),\dots,(s_n^1,s_n^2,\dots,s_n^L)} $$</p>
-<p>$$ S&#x3D;{(s_1^1,s_1^2,\dots,s_1^L),(s_2^1,s_2^2,\dots,s_2^L),\dots,(s_m^1,s_m^2,\dots,s_m^L)} $$</p>
-<p>模型结构采用 Encoder-Decoder Transformer。首先，Encoder 对用户历史行为进行编码，得到用户兴趣表示：</p>
-<p>$$ H &#x3D; Encoder(H_u) $$</p>
-<p>然后，Decoder 基于编码后的用户兴趣表示，以自回归方式生成目标 session 的语义 token 序列。</p>
-<p>为了增强模型容量，OneRec 在 Decoder 的前馈层中引入了 **Mixture of Experts (MoE)**。对于第 $l$ 层 decoder 表示 $H_t^l$，MoE 输出为</p>
-<p>$$ H_t^{l+1} &#x3D; \sum_{i&#x3D;1}^{N_{\mathrm{MoE}}} g_{i,t},FFN_i(H_t^l) + H_t^l $$</p>
-<p>其中，$N_{\mathrm{MoE}}$ 表示 expert 总数，$FFN_i(\cdot)$ 表示第 $i$ 个 expert。门控值 $g_{i,t}$ 定义为</p>
-<p>$$ g_{i,t} &#x3D; s_{i,t},\mathbb{I}!\left[s_{i,t}\in \mathrm{Topk}\big({s_{j,t}\mid 1\le j\le N},K_{\mathrm{MoE}}\big)\right] $$</p>
-<p>并且</p>
-<p>$$ s_{i,t}&#x3D;\mathrm{Softmax}_i\big((H_t^l)^\top e_i^l\big) $$</p>
-<p>这意味着每个 token 只会被路由到少数几个 expert 上，从而实现“参数规模大但计算稀疏”。</p>
-<p>在训练时，在每个 item 的语义 token 前加入起始符号 $s^{[\mathrm{BOS}]}$，得到 decoder 输入序列</p>
-<p>$$ \bar S&#x3D;{s^{[\mathrm{BOS}]},s_1^1,s_1^2,\dots,s_1^L,s^{[\mathrm{BOS}]},s_2^1,s_2^2,\dots,s_2^L,\dots,s^{[\mathrm{BOS}]},s_m^1,s_m^2,\dots,s_m^L} $$</p>
-<p>模型采用 next-token prediction 训练目标，对目标 session 的语义 token 使用交叉熵损失：</p>
-<p>$$ L_{\mathrm{NTP}} &#x3D; -\sum_{i&#x3D;1}^{m}\sum_{j&#x3D;1}^{L} \log P\Big(s_i^{j+1}\mid[s^{[\mathrm{BOS}]},s_1^1,\dots,s_1^L,\dots,s^{[\mathrm{BOS}]},s_i^1,\dots,s_i^j];\Theta\Big) $$</p>
-<p>经过这一阶段训练后，可以得到初始生成模型 $M_t$。</p>
-<h3 id="3-奖励模型"><a href="#3-奖励模型" class="headerlink" title="3. 奖励模型"></a>3. 奖励模型</h3><p>为了进一步刻画用户对整个 session 的偏好，OneRec 引入奖励模型 $R(u,S)$。其中，$u$ 表示用户，$S$ 表示一个候选 session，奖励模型输出</p>
-<p>$$ r &#x3D; R(u,S) $$</p>
-<p>表示该用户对该 session 的偏好程度。</p>
-<p>对于 session 中的每个 item $v_i$，首先构造其面向用户的 target-aware 表示：</p>
-<p>$$ e_i &#x3D; v_i \odot u $$</p>
-<p>其中，$\odot$ 表示目标感知操作。于是，整个 session 的表示可以写为</p>
-<p>$$ h&#x3D;{e_1,e_2,\dots,e_m} $$</p>
-<p>为了建模 session 内部 item 之间的关系，采用 self-attention 融合上下文信息：</p>
-<p>$$ h_f&#x3D;\mathrm{SelfAttention}(hW_s^Q,hW_s^K,hW_s^V) $$</p>
-<p>接着，使用多个 tower 对不同目标进行预测：</p>
-<p>$$ \hat r_{\mathrm{swt}} &#x3D; Tower_{\mathrm{swt}}(Sum(h_f)) $$</p>
-<p>$$ \hat r_{\mathrm{vtr}} &#x3D; Tower_{\mathrm{vtr}}(Sum(h_f)) $$</p>
-<p>$$ \hat r_{\mathrm{wtr}} &#x3D; Tower_{\mathrm{wtr}}(Sum(h_f)) $$</p>
-<p>$$ \hat r_{\mathrm{ltr}} &#x3D; Tower_{\mathrm{ltr}}(Sum(h_f)) $$</p>
-<p>其中</p>
-<p>$$ Tower(\cdot)&#x3D;\mathrm{Sigmoid}(\mathrm{MLP}(\cdot)) $$</p>
-<p>奖励模型采用多目标二元交叉熵进行训练：</p>
-<p>$$ L_{\mathrm{RM}} &#x3D; -\sum_{xtr}\left[y_{xtr}\log(\hat r_{xtr}) + (1-y_{xtr})\log(1-\hat r_{xtr})\right] $$</p>
-<h3 id="4-迭代偏好对齐（IPA）"><a href="#4-迭代偏好对齐（IPA）" class="headerlink" title="4. 迭代偏好对齐（IPA）"></a>4. 迭代偏好对齐（IPA）</h3><p>在得到初始生成模型 $M_t$ 和奖励模型 $R(u,S)$ 后，OneRec 进一步采用 <strong>Direct Preference Optimization (DPO)</strong> 做偏好对齐。</p>
-<p>对于每个用户，当前模型通过 beam search 生成 $N$ 个候选 session：</p>
-<p>$$ S_u^n \sim M_t(H_u),\qquad \forall u\in U,; n\in[N] $$</p>
-<p>随后，利用奖励模型为每个候选 session 打分：</p>
-<p>$$ r_u^n &#x3D; R(u,S_u^n) $$</p>
-<p>根据得分，选出奖励最高的候选作为 winner，奖励最低的候选作为 loser：</p>
-<p>$$ S_u^w &#x3D; S_u^{\arg\max_i r_u^i},\qquad S_u^l &#x3D; S_u^{\arg\min_i r_u^i} $$</p>
-<p>从而构造偏好对</p>
-<p>$$ D_t^{\mathrm{pairs}}&#x3D;(S_u^w,S_u^l,H_u) $$</p>
-<p>给定偏好对后，训练下一个模型 $M_{t+1}$，其 DPO 损失定义为</p>
-<p>$$ L_{\mathrm{DPO}} &#x3D; -\log \sigma\left(\beta \log \frac{M_{t+1}(S_u^w\mid H_u)}{M_t(S_u^w\mid H_u)} - \beta \log \frac{M_{t+1}(S_u^l\mid H_u)}{M_t(S_u^l\mid H_u)}\right) $$</p>
-<p>因此，OneRec 的总训练目标可以写为</p>
-<p>$$ L &#x3D; L_{\mathrm{NTP}} + \lambda L_{\mathrm{DPO}} $$</p>
-<p>也就是说，模型一方面通过 $L_{\mathrm{NTP}}$ 学习基本的 session 生成能力，另一方面通过 $L_{\mathrm{DPO}}$ 将生成分布进一步推向更高奖励的候选结果。</p>
-<p>由于偏好对构造需要 beam search，计算代价较高，论文仅对一小部分样本执行 DPO 对齐。设采样比例为 $r_{\mathrm{DPO}}$，则训练时仅在</p>
-<p>$$ \mathrm{rand()} &lt; r_{\mathrm{DPO}} $$</p>
-<p>时执行偏好对齐，否则仅使用 $L_{\mathrm{NTP}}$ 更新参数。</p>
-<h3 id="5-方法总结"><a href="#5-方法总结" class="headerlink" title="5. 方法总结"></a>5. 方法总结</h3><p>总体而言，OneRec 的建模流程可以概括为：</p>
-<ol>
-<li>利用多模态 embedding 和多层残差量化，将 item 表示为语义 ID；</li>
-<li>使用 Encoder-Decoder Transformer 对整个 session 进行自回归生成；</li>
-<li>借助 MoE 扩展模型容量；</li>
-<li>使用奖励模型估计 session 质量；</li>
-<li>通过 IPA + DPO，在迭代训练中不断提升模型对高价值 session 的偏好。</li>
-</ol>
-<p>因此，OneRec 可以视为一个统一了 <strong>检索、列表生成和偏好对齐</strong> 的端到端生成式推荐框架。</p>
-
+          <p>Deng J, Wang S, Cai K, et al. Onerec: Unifying retrieve and rank with generative recommender and iterative preference alignment J . arXiv pr。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/03/30/%E8%AF%BB%E8%AE%BA%E6%96%87-OneRec%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -1992,7 +571,7 @@ $$w(s\mid \text{context}),$$
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -2018,7 +597,7 @@ $$w(s\mid \text{context}),$$
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2041,130 +620,15 @@ $$w(s\mid \text{context}),$$
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="FNN"><a href="#FNN" class="headerlink" title="FNN"></a>FNN</h2><p>FNN（Factorization-machine supported Neural Network）可以看作是 FM 和 MLP 结合的一个早期代表模型。它的核心想法是：</p>
-<ul>
-<li>FM 很擅长建模二阶特征交互</li>
-<li>但 FM 本身是浅层模型，表达能力有限</li>
-<li>所以可以先用 FM 学出一层有意义的 embedding，再把它交给深层网络</li>
-</ul>
-<p>设输入向量为 $x$，FM 的预测形式为：</p>
-<p>$$<br>\hat y_{FM} &#x3D; w_0 + \sum_{i&#x3D;1}^{n} w_i x_i + \sum_{i&#x3D;1}^{n}\sum_{j&#x3D;i+1}^{n}\langle v_i, v_j\rangle x_i x_j<br>$$</p>
-<p>其中 $v_i$ 是第 $i$ 个特征对应的隐向量。</p>
-<p>FNN 的关键不是直接使用 FM 的预测分数，而是使用 FM 学到的一阶参数和隐向量来初始化神经网络输入层。假设一个样本激活的 field 对应特征索引为 $i_1, i_2, \ldots, i_m$，那么 FNN 的输入表示可以写成：</p>
-<p>$$<br>z_0 &#x3D; [w_{i_1}, v_{i_1}, w_{i_2}, v_{i_2}, \ldots, w_{i_m}, v_{i_m}]<br>$$</p>
-<p>随后再送入标准 MLP：</p>
-<p>$$<br>z_1 &#x3D; \sigma(W_1 z_0 + b_1)<br>$$</p>
-<p>$$<br>z_2 &#x3D; \sigma(W_2 z_1 + b_2)<br>$$</p>
-<p>$$<br>\hat y &#x3D; \mathrm{sigmoid}(W_L z_{L-1} + b_L)<br>$$</p>
-<p>所以 FNN 的本质是：</p>
-<ul>
-<li>用 FM 解决稀疏特征 embedding 初始化问题</li>
-<li>用 DNN 继续学习更高阶的非线性交互</li>
-</ul>
-<p>它的优点是思路自然，但缺点也很明显：</p>
-<ul>
-<li>FM 和 DNN 往往是分阶段训练的</li>
-<li>不是一个完全端到端的结构</li>
-</ul>
-<h2 id="DeepFM"><a href="#DeepFM" class="headerlink" title="DeepFM"></a>DeepFM</h2><p>DeepFM 是 FNN 之后非常重要的一个模型。它解决的核心问题是：</p>
-<ul>
-<li>能不能不再先训练 FM、再训练 DNN</li>
-<li>能不能让低阶交叉和高阶交叉共享同一套 embedding，并联合训练</li>
-</ul>
-<p>DeepFM 的做法是把 FM 部分和 Deep 部分并联起来。</p>
-<h3 id="1-FM-部分"><a href="#1-FM-部分" class="headerlink" title="1. FM 部分"></a>1. FM 部分</h3><p>给定输入向量 $x$，FM 部分包含一阶项和二阶项：</p>
-<p>$$<br>y_{FM} &#x3D; \sum_{i&#x3D;1}^{n} w_i x_i + \sum_{i&#x3D;1}^{n}\sum_{j&#x3D;i+1}^{n}\langle v_i, v_j\rangle x_i x_j<br>$$</p>
-<h3 id="2-Deep-部分"><a href="#2-Deep-部分" class="headerlink" title="2. Deep 部分"></a>2. Deep 部分</h3><p>Deep 部分把各个 field 的 embedding 拼接起来，作为 DNN 输入：</p>
-<p>$$<br>a^{(0)} &#x3D; [e_1, e_2, \ldots, e_m]<br>$$</p>
-<p>然后通过多层感知机：</p>
-<p>$$<br>a^{(l+1)} &#x3D; \sigma(W^{(l)} a^{(l)} + b^{(l)})<br>$$</p>
-<p>最终得到：</p>
-<p>$$<br>y_{Deep} &#x3D; W^{(L)} a^{(L)} + b^{(L)}<br>$$</p>
-<h3 id="3-最终输出"><a href="#3-最终输出" class="headerlink" title="3. 最终输出"></a>3. 最终输出</h3><p>DeepFM 把两部分相加后做 sigmoid：</p>
-<p>$$<br>\hat y &#x3D; \mathrm{sigmoid}(y_{FM} + y_{Deep})<br>$$</p>
-<p>DeepFM 最关键的一点在于：</p>
-<ul>
-<li>FM 部分和 Deep 部分共享同一套 feature embedding</li>
-</ul>
-<p>因此模型可以同时学习：</p>
-<ul>
-<li>低阶显式特征交叉</li>
-<li>高阶隐式非线性交叉</li>
-</ul>
-<p>而且是端到端训练的。</p>
-<p>所以和 FNN 相比，DeepFM 更自然，也更实用。可以把它理解成：</p>
-<ul>
-<li>FM 负责记住低阶组合模式</li>
-<li>DNN 负责做更强的泛化</li>
-</ul>
-<h2 id="NFM"><a href="#NFM" class="headerlink" title="NFM"></a>NFM</h2><p>NFM（Neural Factorization Machine）可以理解成：先保留 FM 的二阶交互结构，再对这些交互做非线性建模。</p>
-<p>它和 DeepFM 的区别在于：</p>
-<ul>
-<li>DeepFM 的 Deep 部分直接对 embedding 拼接后建模</li>
-<li>NFM 则先显式构造二阶交互表示，再把这个交互表示送入神经网络</li>
-</ul>
-<h3 id="1-Bi-Interaction-Pooling"><a href="#1-Bi-Interaction-Pooling" class="headerlink" title="1. Bi-Interaction Pooling"></a>1. Bi-Interaction Pooling</h3><p>设样本激活的特征 embedding 为：</p>
-<p>$$<br>e_1, e_2, \ldots, e_m<br>$$</p>
-<p>NFM 的核心是 Bi-Interaction Pooling 层，其输出为：</p>
-<p>$$<br>z_{BI} &#x3D; \sum_{i&#x3D;1}^{m}\sum_{j&#x3D;i+1}^{m} x_i x_j (e_i \odot e_j)<br>$$</p>
-<p>其中 $\odot$ 表示逐元素乘法。</p>
-<p>这个式子也可以更高效地写成：</p>
-<p>$$<br>z_{BI} &#x3D; \frac{1}{2}\left[\left(\sum_{i&#x3D;1}^{m} x_i e_i\right)^2 - \sum_{i&#x3D;1}^{m}(x_i e_i)^2\right]<br>$$</p>
-<p>这里平方表示按元素平方。</p>
-<h3 id="2-神经网络部分"><a href="#2-神经网络部分" class="headerlink" title="2. 神经网络部分"></a>2. 神经网络部分</h3><p>得到二阶交互向量后，再送入 MLP：</p>
-<p>$$<br>h_1 &#x3D; \sigma(W_1 z_{BI} + b_1)<br>$$</p>
-<p>$$<br>h_2 &#x3D; \sigma(W_2 h_1 + b_2)<br>$$</p>
-<p>$$<br>\hat y &#x3D; \mathrm{sigmoid}(w^{\top} h_L + b)<br>$$</p>
-<p>NFM 的关键点在于：</p>
-<ul>
-<li>FM 只能线性叠加各个二阶交互</li>
-<li>NFM 则让“交互本身”再经过一层非线性组合</li>
-</ul>
-<p>所以它比标准 FM 更强的地方在于：</p>
-<ul>
-<li>不只是学习哪些特征对有交互</li>
-<li>还学习这些交互之间更复杂的组合关系</li>
-</ul>
-<h2 id="AFM"><a href="#AFM" class="headerlink" title="AFM"></a>AFM</h2><p>AFM（Attentional Factorization Machine）是在 FM 上加入注意力机制的模型。它想解决的问题是：</p>
-<ul>
-<li>FM 默认所有二阶特征交互的重要性相同</li>
-<li>但真实任务里，不同交互对预测结果的贡献显然不同</li>
-</ul>
-<p>所以 AFM 的核心思想是：</p>
-<ul>
-<li>不是把所有交互简单相加</li>
-<li>而是给每个交互分配一个可学习的重要性权重</li>
-</ul>
-<h3 id="1-二阶交互表示"><a href="#1-二阶交互表示" class="headerlink" title="1. 二阶交互表示"></a>1. 二阶交互表示</h3><p>先构造所有特征对的交互向量：</p>
-<p>$$<br>z_{ij} &#x3D; (e_i \odot e_j)x_i x_j,\quad i &lt; j<br>$$</p>
-<p>设全部交互集合为：</p>
-<p>$$<br>\mathcal{P} &#x3D; {z_{ij}\ |\ i &lt; j}<br>$$</p>
-<h3 id="2-注意力网络"><a href="#2-注意力网络" class="headerlink" title="2. 注意力网络"></a>2. 注意力网络</h3><p>对于每个交互向量 $z_{ij}$，AFM 先通过一个小的 attention network 计算打分：</p>
-<p>$$<br>a’<em>{ij} &#x3D; h^{\top}\mathrm{ReLU}(W z</em>{ij} + b)<br>$$</p>
-<p>再通过 softmax 得到注意力权重：</p>
-<p>$$<br>\alpha_{ij} &#x3D; \frac{\exp(a’<em>{ij})}{\sum</em>{(p,q)\in \mathcal{P}} \exp(a’_{pq})}<br>$$</p>
-<h3 id="3-加权汇聚与输出"><a href="#3-加权汇聚与输出" class="headerlink" title="3. 加权汇聚与输出"></a>3. 加权汇聚与输出</h3><p>所有交互向量按权重加权求和：</p>
-<p>$$<br>z_{AFM} &#x3D; \sum_{(i,j)\in \mathcal{P}} \alpha_{ij} z_{ij}<br>$$</p>
-<p>最后得到预测：</p>
-<p>$$<br>\hat y &#x3D; \mathrm{sigmoid}\left(w_0 + \sum_{i&#x3D;1}^{n} w_i x_i + p^{\top} z_{AFM}\right)<br>$$</p>
-<h3 id="4-AFM-的意义"><a href="#4-AFM-的意义" class="headerlink" title="4. AFM 的意义"></a>4. AFM 的意义</h3><p>AFM 相比 FM 的最大区别是：</p>
-<ul>
-<li>FM 假设所有交互一视同仁</li>
-<li>AFM 显式学习“哪一对特征交互更重要”</li>
-</ul>
-<p>这带来两个直接好处：</p>
-<ol>
-<li>表达能力更强，因为不同交互可以有不同权重</li>
-<li>可解释性更好，因为可以直接观察注意力分布</li>
-</ol>
-<p>如果把这四个模型放在一起看，可以得到一条很清晰的演化路线：</p>
-<ul>
-<li>FNN：先用 FM 学 embedding，再送入 DNN</li>
-<li>DeepFM：FM 和 DNN 并联，共享 embedding，端到端训练</li>
-<li>NFM：先构造二阶交互向量，再用 MLP 学非线性</li>
-<li>AFM：在二阶交互上加入 attention，学习不同交互的重要性</li>
-</ul>
-
+          <p>FNN FNN（Factorization-machine supported Neural Network）可以看作是 FM 和 MLP 结合的一个早期代表模型。它的核心想法是： - FM 很擅长建模二阶特征交互 - 但 FM 本身是浅层模型，表达能力有限 - 所以可以先用 F。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/03/27/FM%E4%B8%8E%E6%B7%B1%E5%BA%A6%E5%AD%A6%E4%B9%A0%E6%A8%A1%E5%9E%8B%E7%9A%84%E7%BB%93%E5%90%88/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -2188,7 +652,7 @@ $$w(s\mid \text{context}),$$
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -2214,7 +678,7 @@ $$w(s\mid \text{context}),$$
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2237,275 +701,15 @@ $$w(s\mid \text{context}),$$
     <div class="post-body" itemprop="articleBody">
 
       
-          <blockquote>
-<p>Vaswani A, Shazeer N, Parmar N, et al. Attention is all you need[J]. Advances in neural information processing systems, 2017, 30.</p>
-</blockquote>
-<p>Transformer 是现代大模型最核心的基础架构之一。从 BERT、GPT 到如今的大语言模型，几乎都可以看作是在 Transformer 基础上的扩展和变体。</p>
-<p>如果只用一句话概括它的核心思想，那就是：</p>
-<ul>
-<li>不再像 RNN 那样按时间步顺序处理序列</li>
-<li>而是用 self-attention 让每个 token 直接和序列中其他 token 建立联系</li>
-</ul>
-<p>这种设计带来了两个非常重要的优点：</p>
-<ol>
-<li>可以并行计算，训练效率更高</li>
-<li>更容易建模长距离依赖关系</li>
-</ol>
-<p>这篇文章会先把 Transformer 的整体架构讲清楚，再基于练习题中的推导，分析多头自注意力的参数量和计算复杂度。</p>
-<h2 id="一、为什么-Transformer-会出现"><a href="#一、为什么-Transformer-会出现" class="headerlink" title="一、为什么 Transformer 会出现"></a>一、为什么 Transformer 会出现</h2><p>在 Transformer 之前，序列建模主要依赖两类方法：</p>
-<ul>
-<li>RNN &#x2F; LSTM &#x2F; GRU</li>
-<li>CNN 式序列模型</li>
-</ul>
-<p>RNN 的问题在于，它天然是串行计算的。即使一个句子里后面的词和前面的词关系很远，信息也要一层层沿时间步传递。这会带来两个经典问题：</p>
-<ul>
-<li>长距离依赖难学</li>
-<li>训练和推理难以充分并行</li>
-</ul>
-<p>CNN 虽然可以并行，但感受野需要通过堆叠层数逐渐扩大，对于全局依赖的建模仍然不够直接。</p>
-<p>Transformer 的突破在于：让序列中每个位置都能直接“看见”其他所有位置，并根据相关性动态分配注意力权重。</p>
-<p>因此，Transformer 的关键不是“记忆前一个状态”，而是“计算当前位置和其他位置之间的关系”。</p>
-<h2 id="二、整体架构"><a href="#二、整体架构" class="headerlink" title="二、整体架构"></a>二、整体架构</h2><p>原始 Transformer 由两部分组成：</p>
-<ul>
-<li>Encoder</li>
-<li>Decoder</li>
-</ul>
-<p>整体上是一个典型的 seq2seq 结构。</p>
-<h3 id="1-Encoder"><a href="#1-Encoder" class="headerlink" title="1. Encoder"></a>1. Encoder</h3><p>Encoder 由多个相同的编码层堆叠而成。每一层通常包含两个子层：</p>
-<ol>
-<li>Multi-Head Self-Attention</li>
-<li>Position-wise Feed Forward Network</li>
-</ol>
-<p>并且每个子层外面都有：</p>
-<ul>
-<li>Residual Connection</li>
-<li>Layer Normalization</li>
-</ul>
-<p>因此一层 Encoder Block 的计算流程可以简化为：</p>
-<p>$$<br>X \rightarrow \text{Multi-Head Attention} \rightarrow \text{Add &amp; Norm} \rightarrow \text{FFN} \rightarrow \text{Add &amp; Norm}<br>$$</p>
-<h3 id="2-Decoder"><a href="#2-Decoder" class="headerlink" title="2. Decoder"></a>2. Decoder</h3><p>Decoder 同样由多个相同的解码层堆叠而成，但每层会多一个子层：</p>
-<ol>
-<li>Masked Multi-Head Self-Attention</li>
-<li>Cross-Attention</li>
-<li>Position-wise Feed Forward Network</li>
-</ol>
-<p>其中：</p>
-<ul>
-<li>第一层 masked self-attention 保证当前位置只能看到自己和前面的 token，不能偷看未来信息</li>
-<li>第二层 cross-attention 让 decoder 去关注 encoder 输出的表示</li>
-</ul>
-<p>因此 Decoder 比 Encoder 多了一步“从输入序列表示中取信息”的过程。</p>
-<p>如果只讨论 GPT 这类自回归语言模型，那么通常只保留 Decoder 风格的 masked self-attention 结构；如果讨论 BERT，则更接近只用 Encoder。</p>
-<h2 id="三、输入表示"><a href="#三、输入表示" class="headerlink" title="三、输入表示"></a>三、输入表示</h2><p>Transformer 的输入并不是单纯的 one-hot token，而是由两个部分相加得到：</p>
-<ol>
-<li>Token Embedding</li>
-<li>Positional Encoding</li>
-</ol>
-<p>写成公式就是：</p>
-<p>$$<br>X &#x3D; E + P<br>$$</p>
-<p>其中：</p>
-<ul>
-<li>$E$ 表示 token embedding</li>
-<li>$P$ 表示位置编码</li>
-</ul>
-<p>这么做的原因很简单：attention 本身只关心“元素之间的关系”，它并不知道序列顺序。如果不加入位置信息，那么词序就会丢失。</p>
-<h3 id="位置编码为什么重要"><a href="#位置编码为什么重要" class="headerlink" title="位置编码为什么重要"></a>位置编码为什么重要</h3><p>例如下面两个句子：</p>
-<ul>
-<li>dog bites man</li>
-<li>man bites dog</li>
-</ul>
-<p>如果模型完全不知道词的位置，这两个句子在 bag-of-words 意义上可能几乎一样，但语义完全不同。</p>
-<p>因此 Transformer 必须额外注入顺序信息。</p>
-<p>在原始论文中，位置编码使用的是正弦余弦函数：</p>
-<p>$$<br>PE_{(pos, 2i)} &#x3D; \sin\left(\frac{pos}{10000^{2i &#x2F; d_{\text{model}}}}\right)<br>$$</p>
-<p>$$<br>PE_{(pos, 2i+1)} &#x3D; \cos\left(\frac{pos}{10000^{2i &#x2F; d_{\text{model}}}}\right)<br>$$</p>
-<p>它的直觉是：用不同频率的波形来编码位置，使得模型既能区分绝对位置，也能较容易推断相对位置信息。</p>
-<h2 id="四、自注意力机制"><a href="#四、自注意力机制" class="headerlink" title="四、自注意力机制"></a>四、自注意力机制</h2><p>Transformer 的核心就是 attention，尤其是 self-attention。</p>
-<h3 id="1-Q、K、V-的含义"><a href="#1-Q、K、V-的含义" class="headerlink" title="1. Q、K、V 的含义"></a>1. Q、K、V 的含义</h3><p>对于输入表示矩阵 $X \in \mathbb{R}^{n \times d_{\text{model}}}$，模型会分别通过三个线性映射得到：</p>
-<p>$$<br>Q &#x3D; XW^Q,\quad K &#x3D; XW^K,\quad V &#x3D; XW^V<br>$$</p>
-<p>其中：</p>
-<ul>
-<li>$Q$ 是 Query</li>
-<li>$K$ 是 Key</li>
-<li>$V$ 是 Value</li>
-</ul>
-<p>直观地说：</p>
-<ul>
-<li>Query 可以理解为“我现在想找什么信息”</li>
-<li>Key 可以理解为“我这里提供什么信息”</li>
-<li>Value 可以理解为“真正要取出的内容”</li>
-</ul>
-<p>当某个位置的 Query 和另一个位置的 Key 越匹配时，它就应该更多地吸收对方的 Value。</p>
-<h3 id="2-Scaled-Dot-Product-Attention"><a href="#2-Scaled-Dot-Product-Attention" class="headerlink" title="2. Scaled Dot-Product Attention"></a>2. Scaled Dot-Product Attention</h3><p>单头注意力的公式是：</p>
-<p>$$<br>\text{Attention}(Q, K, V) &#x3D; \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)V<br>$$</p>
-<p>这个公式可以分成三步理解。</p>
-<p>第一步，计算相关性分数：</p>
-<p>$$<br>S &#x3D; QK^T<br>$$</p>
-<p>这里的 $S_{ij}$ 表示第 $i$ 个 token 对第 $j$ 个 token 的关注程度。</p>
-<p>第二步，进行缩放：</p>
-<p>$$<br>\frac{QK^T}{\sqrt{d_k}}<br>$$</p>
-<p>除以 $\sqrt{d_k}$ 的原因是，当向量维度变大时，点积的数值方差会变大，容易让 softmax 进入非常陡峭的区域，从而导致梯度不稳定。</p>
-<p>第三步，做 softmax 并加权求和：</p>
-<p>$$<br>A &#x3D; \text{softmax}\left(\frac{QK^T}{\sqrt{d_k}}\right)<br>$$</p>
-<p>$$<br>O &#x3D; AV<br>$$</p>
-<p>其中 $A$ 是注意力权重矩阵，$O$ 是当前注意力层的输出。</p>
-<h3 id="3-Self-Attention-的含义"><a href="#3-Self-Attention-的含义" class="headerlink" title="3. Self-Attention 的含义"></a>3. Self-Attention 的含义</h3><p>当 $Q,K,V$ 都来自同一个输入序列时，这种 attention 就叫 self-attention。</p>
-<p>它的意义是：序列中的每个 token 都可以根据当前任务需要，从整个序列的其他位置动态收集信息。</p>
-<p>例如在句子：</p>
-<ul>
-<li>The animal didn’t cross the street because it was tired.</li>
-</ul>
-<p>中，词 <code>it</code> 的含义更接近 <code>animal</code>，而不是 <code>street</code>。self-attention 就允许模型直接给 <code>animal</code> 更高权重，而不需要像 RNN 那样跨很多步去传递状态。</p>
-<h2 id="五、多头注意力"><a href="#五、多头注意力" class="headerlink" title="五、多头注意力"></a>五、多头注意力</h2><p>单头注意力只能在一个表示子空间中建模关系，而多头注意力（Multi-Head Attention）希望让模型从多个不同角度同时观察序列。</p>
-<p>设一共有 $h$ 个头，每个头的维度为：</p>
-<p>$$<br>d_k &#x3D; d_v &#x3D; \frac{d_{\text{model}}}{h}<br>$$</p>
-<p>第 $j$ 个头的计算为：</p>
-<p>$$<br>\text{head}_j &#x3D; \text{Attention}(Q_j, K_j, V_j)<br>$$</p>
-<p>最后把所有头拼接起来：</p>
-<p>$$<br>\text{MultiHead}(Q,K,V) &#x3D; \text{Concat}(\text{head}_1, \ldots, \text{head}_h)W^O<br>$$</p>
-<p>这样做的直觉是：</p>
-<ul>
-<li>有的头可能关注语法关系</li>
-<li>有的头可能关注实体对齐</li>
-<li>有的头可能关注局部上下文</li>
-<li>有的头可能关注长距离依赖</li>
-</ul>
-<p>虽然每个头的维度更小，但多个头并行后，整体表达能力反而更强。</p>
-<h2 id="六、前馈网络、残差连接与-LayerNorm"><a href="#六、前馈网络、残差连接与-LayerNorm" class="headerlink" title="六、前馈网络、残差连接与 LayerNorm"></a>六、前馈网络、残差连接与 LayerNorm</h2><p>Transformer 不只有 attention。每个 block 中还有一个位置独立的前馈网络：</p>
-<p>$$<br>\text{FFN}(x) &#x3D; W_2 \sigma(W_1 x + b_1) + b_2<br>$$</p>
-<p>这个网络对每个位置分别作用，但参数共享。它的作用可以理解为：</p>
-<ul>
-<li>attention 负责“信息交换”</li>
-<li>FFN 负责“对每个位置的表示做非线性变换”</li>
-</ul>
-<p>此外，每个子层后面都会配合残差连接和 LayerNorm：</p>
-<p>$$<br>\text{LayerNorm}(x + \text{Sublayer}(x))<br>$$</p>
-<p>残差连接有助于深层网络训练，LayerNorm 有助于稳定表示分布。</p>
-<h2 id="七、为什么-Transformer-训练得更快"><a href="#七、为什么-Transformer-训练得更快" class="headerlink" title="七、为什么 Transformer 训练得更快"></a>七、为什么 Transformer 训练得更快</h2><p>Transformer 相比 RNN 的一个重大优势是并行性。</p>
-<p>RNN 的状态更新是：</p>
-<ul>
-<li>第 $t$ 步依赖第 $t-1$ 步</li>
-</ul>
-<p>所以天然串行。</p>
-<p>而 Transformer 在训练时可以一次性拿到整个序列，直接并行计算：</p>
-<ul>
-<li>所有位置的 $Q,K,V$</li>
-<li>所有位置之间的相关性矩阵</li>
-<li>所有位置的注意力输出</li>
-</ul>
-<p>因此在 GPU 上训练效率会高很多。</p>
-<p>不过，这种全局两两交互也带来了新的问题：attention 的复杂度会随着序列长度平方增长。</p>
-<p>这正是练习题里重点分析的部分。</p>
-<h2 id="八、多头自注意力的参数量与计算复杂度"><a href="#八、多头自注意力的参数量与计算复杂度" class="headerlink" title="八、多头自注意力的参数量与计算复杂度"></a>八、多头自注意力的参数量与计算复杂度</h2><p>下面基于练习题中的设定，分析一个 encoder 中单个 multi-head self-attention block 的参数量与 FLOPs。</p>
-<p>设：</p>
-<ul>
-<li>序列长度为 $n$</li>
-<li>模型维度为 $d_{\text{model}}$</li>
-<li>头数为 $h$</li>
-<li>每个头的维度为 $d_k &#x3D; d_v &#x3D; d_{\text{model}} &#x2F; h$</li>
-</ul>
-<p>输入张量形状为：</p>
-<p>$$<br>(1, n, d_{\text{model}})<br>$$</p>
-<p>这里默认 batch size 为 1。</p>
-<h3 id="1-参数量"><a href="#1-参数量" class="headerlink" title="1. 参数量"></a>1. 参数量</h3><p>一个多头注意力块中，主要有四个线性投影矩阵：</p>
-<ul>
-<li>$W^Q \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$</li>
-<li>$W^K \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$</li>
-<li>$W^V \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$</li>
-<li>$W^O \in \mathbb{R}^{d_{\text{model}} \times d_{\text{model}}}$</li>
-</ul>
-<p>因此：</p>
-<p>$$<br>\mathrm{Params} &#x3D; 4 d_{\text{model}}^2<br>$$</p>
-<p>这个结果和头数 $h$ 无关。原因在于，多头拆分本质上只是 reshape，参数仍然集中存在于这四个总投影矩阵中。</p>
-<h3 id="2-FLOPs-推导"><a href="#2-FLOPs-推导" class="headerlink" title="2. FLOPs 推导"></a>2. FLOPs 推导</h3><p>下面只看前向传播的主要计算量，并采用题目中的近似规则：</p>
-<ul>
-<li>一个 $m \times k$ 与 $k \times p$ 的矩阵乘法，记为 $2mkp$ FLOPs</li>
-<li>softmax、缩放等逐元素操作近似记为低阶项</li>
-</ul>
-<h4 id="第一步：计算-Q、K、V-投影"><a href="#第一步：计算-Q、K、V-投影" class="headerlink" title="第一步：计算 Q、K、V 投影"></a>第一步：计算 Q、K、V 投影</h4><p>输入 $X$ 的形状是 $(n, d_{\text{model}})$，乘上投影矩阵 $(d_{\text{model}}, d_{\text{model}})$。</p>
-<p>每次投影代价为：</p>
-<p>$$<br>2 n d_{\text{model}}^2<br>$$</p>
-<p>三次投影合计：</p>
-<p>$$<br>6 n d_{\text{model}}^2<br>$$</p>
-<h4 id="第二步：计算注意力分数-QK-T"><a href="#第二步：计算注意力分数-QK-T" class="headerlink" title="第二步：计算注意力分数 $QK^T$"></a>第二步：计算注意力分数 $QK^T$</h4><p>对于每个头，$Q_{\text{head}}$ 的形状为 $(n, d_k)$，$K_{\text{head}}^T$ 的形状为 $(d_k, n)$。</p>
-<p>每个头的代价为：</p>
-<p>$$<br>2 n^2 d_k<br>$$</p>
-<p>一共有 $h$ 个头，因此总代价为：</p>
-<p>$$<br>h \cdot 2 n^2 d_k &#x3D; h \cdot 2 n^2 \frac{d_{\text{model}}}{h} &#x3D; 2 n^2 d_{\text{model}}<br>$$</p>
-<h4 id="第三步：缩放和-softmax"><a href="#第三步：缩放和-softmax" class="headerlink" title="第三步：缩放和 softmax"></a>第三步：缩放和 softmax</h4><p>这一部分作用在 $(n,n,h)$ 的注意力分数张量上，近似记作：</p>
-<p>$$<br>O(n^2 h)<br>$$</p>
-<h4 id="第四步：注意力权重与-V-相乘"><a href="#第四步：注意力权重与-V-相乘" class="headerlink" title="第四步：注意力权重与 V 相乘"></a>第四步：注意力权重与 V 相乘</h4><p>对于每个头，注意力矩阵形状为 $(n,n)$，$V_{\text{head}}$ 形状为 $(n,d_k)$。</p>
-<p>每个头的代价为：</p>
-<p>$$<br>2 n^2 d_k<br>$$</p>
-<p>所有头加起来：</p>
-<p>$$<br>2 n^2 d_{\text{model}}<br>$$</p>
-<h4 id="第五步：输出投影"><a href="#第五步：输出投影" class="headerlink" title="第五步：输出投影"></a>第五步：输出投影</h4><p>拼接所有头之后，输出形状回到 $(n,d_{\text{model}})$，再乘上 $W^O$，代价为：</p>
-<p>$$<br>2 n d_{\text{model}}^2<br>$$</p>
-<h3 id="3-总-FLOPs"><a href="#3-总-FLOPs" class="headerlink" title="3. 总 FLOPs"></a>3. 总 FLOPs</h3><p>把各部分加起来：</p>
-<p>$$<br>6 n d_{\text{model}}^2 + 2 n^2 d_{\text{model}} + O(n^2 h) + 2 n^2 d_{\text{model}} + 2 n d_{\text{model}}^2<br>$$</p>
-<p>整理得到：</p>
-<p>$$<br>8 n d_{\text{model}}^2 + 4 n^2 d_{\text{model}} + O(n^2 h)<br>$$</p>
-<p>如果忽略低阶项，那么主要复杂度就是：</p>
-<p>$$<br>8 n d_{\text{model}}^2 + 4 n^2 d_{\text{model}}<br>$$</p>
-<h3 id="4-哪一部分是瓶颈"><a href="#4-哪一部分是瓶颈" class="headerlink" title="4. 哪一部分是瓶颈"></a>4. 哪一部分是瓶颈</h3><p>从上式可以看出，多头自注意力中主要有两类大头开销：</p>
-<ol>
-<li>线性投影相关的 $n d_{\text{model}}^2$</li>
-<li>注意力相关的 $n^2 d_{\text{model}}$</li>
-</ol>
-<p>因此瓶颈取决于：</p>
-<ul>
-<li>是 $d_{\text{model}}$ 更大</li>
-<li>还是序列长度 $n$ 更大</li>
-</ul>
-<h4 id="当-d-text-model-gg-n-时"><a href="#当-d-text-model-gg-n-时" class="headerlink" title="当 $d_{\text{model}} \gg n$ 时"></a>当 $d_{\text{model}} \gg n$ 时</h4><p>线性投影更贵，因为：</p>
-<p>$$<br>n d_{\text{model}}^2<br>$$</p>
-<p>会显著大于：</p>
-<p>$$<br>n^2 d_{\text{model}}<br>$$</p>
-<p>例如中等长度序列、但模型宽度很大时，Q&#x2F;K&#x2F;V 和输出投影往往是主要成本。</p>
-<h4 id="当-n-gg-d-text-model-时"><a href="#当-n-gg-d-text-model-时" class="headerlink" title="当 $n \gg d_{\text{model}}$ 时"></a>当 $n \gg d_{\text{model}}$ 时</h4><p>注意力分数计算和 attention 与 V 的矩阵乘法会成为瓶颈，因为它们都含有：</p>
-<p>$$<br>n^2 d_{\text{model}}<br>$$</p>
-<p>这也是为什么超长上下文会让 Transformer 的计算和显存开销迅速爆炸。</p>
-<p>所以 Transformer 的核心效率问题，本质上就在于：</p>
-<ul>
-<li>模型宽度决定了投影层成本</li>
-<li>序列长度决定了 attention 的平方复杂度成本</li>
-</ul>
-<h2 id="九、Transformer-的优点与局限"><a href="#九、Transformer-的优点与局限" class="headerlink" title="九、Transformer 的优点与局限"></a>九、Transformer 的优点与局限</h2><h3 id="优点"><a href="#优点" class="headerlink" title="优点"></a>优点</h3><ul>
-<li>可以高效并行训练</li>
-<li>更容易建模长距离依赖</li>
-<li>架构统一，扩展性非常强</li>
-<li>self-attention 的交互方式非常灵活</li>
-</ul>
-<h3 id="局限"><a href="#局限" class="headerlink" title="局限"></a>局限</h3><ul>
-<li>attention 对长序列是平方复杂度</li>
-<li>显存消耗大</li>
-<li>对训练数据和算力依赖较强</li>
-<li>原始位置编码方式并不一定最适合所有任务</li>
-</ul>
-<p>也正因为这些问题，后续出现了大量改进方向，例如：</p>
-<ul>
-<li>稀疏注意力</li>
-<li>线性注意力</li>
-<li>相对位置编码</li>
-<li>FlashAttention</li>
-<li>MoE 结构</li>
-</ul>
-<p>但无论具体怎么改，很多工作依然是在 Transformer 主干上演化。</p>
-<h2 id="十、小结"><a href="#十、小结" class="headerlink" title="十、小结"></a>十、小结</h2><p>Transformer 的核心不是“把 RNN 换成更深的网络”，而是重新定义了序列建模的基本方式：</p>
-<ul>
-<li>用 self-attention 代替递归状态传递</li>
-<li>用多头机制在不同子空间中并行建模关系</li>
-<li>用残差连接、LayerNorm 和 FFN 组成稳定的堆叠结构</li>
-</ul>
-<p>从这次练习题里的复杂度推导也可以看到，Transformer 的成功并不意味着它没有代价。它一方面通过并行计算大幅提升了训练效率，另一方面也因为 attention 的全局两两交互，引入了明显的平方复杂度瓶颈。</p>
-<p>所以理解 Transformer，不能只停留在“attention 很强”这句话上，而要真正理解三件事：</p>
-<ol>
-<li>它为什么能替代 RNN</li>
-<li>它的每个模块到底在做什么</li>
-<li>它的计算瓶颈到底来自哪里</li>
-</ol>
-<p>这三点想明白之后，再去看 BERT、GPT、ViT 或各种高效注意力变体，就会容易很多。</p>
-
+          <p>Vaswani A, Shazeer N, Parmar N, et al. Attention is all you need J . Advances in neural information processing systems, 2017, 30. Transforme。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/03/27/transformer%E6%9E%B6%E6%9E%84/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -2529,7 +733,7 @@ $$w(s\mid \text{context}),$$
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -2555,7 +759,7 @@ $$w(s\mid \text{context}),$$
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2578,224 +782,15 @@ $$w(s\mid \text{context}),$$
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="提升树"><a href="#提升树" class="headerlink" title="提升树"></a>提升树</h2><p>提升树（Boosting Tree）本质上是一类加法模型。它不是只训练一棵树，而是按轮次训练很多棵弱学习器，并把它们逐步叠加起来。</p>
-<p>如果把第 $m$ 轮训练得到的树记作 $h_m(x)$，那么最终模型可以写成：</p>
-<p>$$<br>F_M(x) &#x3D; \sum_{m&#x3D;1}^{M} \alpha_m h_m(x)<br>$$</p>
-<p>其中：</p>
-<ul>
-<li>$h_m(x)$ 表示第 $m$ 棵树</li>
-<li>$\alpha_m$ 表示该树的权重</li>
-<li>$F_M(x)$ 表示最终集成后的预测函数</li>
-</ul>
-<p>提升方法的核心不是“一次把问题学完”，而是：</p>
-<ul>
-<li>先训练一个较弱的模型</li>
-<li>观察当前模型还没学好的部分</li>
-<li>再让下一轮模型去修正前一轮的误差</li>
-</ul>
-<p>如果是平方损失回归问题，当前模型 $F_{m-1}(x)$ 在样本 $x_i$ 上的残差为：</p>
-<p>$$<br>r_{im} &#x3D; y_i - F_{m-1}(x_i)<br>$$</p>
-<p>于是第 $m$ 轮训练的树，就是去逼近这些残差：</p>
-<p>$$<br>h_m(x) \approx r_{im}<br>$$</p>
-<p>模型更新为：</p>
-<p>$$<br>F_m(x) &#x3D; F_{m-1}(x) + \alpha_m h_m(x)<br>$$</p>
-<p>所以提升树可以理解成一种“逐轮纠错”的方法。前面的树先把大体结构学出来，后面的树不断补充前面没拟合好的部分。</p>
-<h2 id="梯度提升树"><a href="#梯度提升树" class="headerlink" title="梯度提升树"></a>梯度提升树</h2><p>GBDT（Gradient Boosting Decision Tree）是在提升树上的进一步推广。它最关键的地方在于：</p>
-<ul>
-<li>不再局限于直接拟合残差</li>
-<li>而是统一地去拟合损失函数对当前模型输出的负梯度</li>
-</ul>
-<p>这样一来，GBDT 就不只适用于平方损失回归，也能自然用于分类、排序等任务。</p>
-<h3 id="1-加法模型"><a href="#1-加法模型" class="headerlink" title="1. 加法模型"></a>1. 加法模型</h3><p>GBDT 仍然采用加法模型。设第 $m$ 轮新增的树为 $h_m(x)$，则：</p>
-<p>$$<br>F_M(x) &#x3D; F_0(x) + \sum_{m&#x3D;1}^{M} \nu \gamma_m h_m(x)<br>$$</p>
-<p>其中：</p>
-<ul>
-<li>$F_0(x)$ 是初始模型</li>
-<li>$h_m(x)$ 是第 $m$ 轮训练得到的回归树</li>
-<li>$\gamma_m$ 是该轮步长</li>
-<li>$\nu \in (0,1]$ 是学习率，也叫 shrinkage</li>
-</ul>
-<h3 id="2-优化目标"><a href="#2-优化目标" class="headerlink" title="2. 优化目标"></a>2. 优化目标</h3><p>给定训练集 ${(x_i, y_i)}_{i&#x3D;1}^{N}$，GBDT 希望最小化经验风险：</p>
-<p>$$<br>\mathcal{L} &#x3D; \sum_{i&#x3D;1}^{N} L(y_i, F(x_i))<br>$$</p>
-<p>这里 $L(y_i, F(x_i))$ 是单样本损失。</p>
-<p>由于模型是逐步加出来的，所以第 $m$ 轮就是在已有模型 $F_{m-1}(x)$ 的基础上，再增加一个新函数，使总损失下降：</p>
-<p>$$<br>F_m(x) &#x3D; F_{m-1}(x) + \nu \gamma_m h_m(x)<br>$$</p>
-<h3 id="3-负梯度思想"><a href="#3-负梯度思想" class="headerlink" title="3. 负梯度思想"></a>3. 负梯度思想</h3><p>在函数空间里做梯度下降时，当前样本的负梯度定义为：</p>
-<p>$$<br>g_{im} &#x3D; - \frac{\partial L(y_i, F(x_i))}{\partial F(x_i)}, \quad \text{其中 } F(x)&#x3D;F_{m-1}(x)<br>$$</p>
-<p>GBDT 每一轮的关键动作就是：</p>
-<ul>
-<li>先计算所有样本在当前模型下的负梯度 $g_{im}$</li>
-<li>再用一棵回归树去拟合这些负梯度</li>
-</ul>
-<p>也就是说，第 $m$ 轮不是直接去拟合标签 $y_i$，而是拟合：</p>
-<p>$$<br>h_m(x) \approx g_{im}<br>$$</p>
-<p>这就是“梯度提升”的本质。</p>
-<h3 id="4-为什么平方损失下等价于拟合残差"><a href="#4-为什么平方损失下等价于拟合残差" class="headerlink" title="4. 为什么平方损失下等价于拟合残差"></a>4. 为什么平方损失下等价于拟合残差</h3><p>如果损失函数使用平方误差：</p>
-<p>$$<br>L(y_i, F(x_i)) &#x3D; \frac{1}{2}(y_i - F(x_i))^2<br>$$</p>
-<p>那么对 $F(x_i)$ 求导可得：</p>
-<p>$$<br>\frac{\partial L(y_i, F(x_i))}{\partial F(x_i)} &#x3D; F(x_i) - y_i<br>$$</p>
-<p>于是负梯度就是：</p>
-<p>$$<br>g_{im} &#x3D; y_i - F_{m-1}(x_i)<br>$$</p>
-<p>这正好就是残差。所以普通的“拟合残差的提升树”，其实可以看成是 GBDT 在平方损失下的一个特例。</p>
-<h3 id="5-每轮训练流程"><a href="#5-每轮训练流程" class="headerlink" title="5. 每轮训练流程"></a>5. 每轮训练流程</h3><p>GBDT 一轮训练可以拆成下面几步：</p>
-<ol>
-<li>给定当前模型 $F_{m-1}(x)$</li>
-<li>计算每个样本的伪残差，也就是负梯度</li>
-</ol>
-<p>$$<br>g_{im} &#x3D; - \frac{\partial L(y_i, F(x_i))}{\partial F(x_i)}, \quad \text{其中 } F(x)&#x3D;F_{m-1}(x)<br>$$</p>
-<ol start="3">
-<li>用样本对 $(x_i, g_{im})$，$i&#x3D;1,2,\ldots,N$ 拟合一棵回归树，得到若干叶子区域 $R_{jm}, j&#x3D;1,\dots,J$</li>
-<li>对每个叶子区域求最优输出值</li>
-</ol>
-<p>$$<br>\gamma_{jm} &#x3D; \arg\min_{\gamma} \sum_{x_i \in R_{jm}} L\big(y_i, F_{m-1}(x_i) + \gamma\big)<br>$$</p>
-<ol start="5">
-<li>更新模型</li>
-</ol>
-<p>$$<br>F_m(x) &#x3D; F_{m-1}(x) + \nu \sum_{j&#x3D;1}^{J} \gamma_{jm} I(x \in R_{jm})<br>$$</p>
-<p>其中 $I(\cdot)$ 是示性函数，表示样本是否落在第 $j$ 个叶子区域。</p>
-<h3 id="6-初始模型"><a href="#6-初始模型" class="headerlink" title="6. 初始模型"></a>6. 初始模型</h3><p>GBDT 通常先用一个常数作为初始模型：</p>
-<p>$$<br>F_0(x) &#x3D; \arg\min_{\gamma} \sum_{i&#x3D;1}^{N} L(y_i, \gamma)<br>$$</p>
-<p>它的含义是：在还没有任何树之前，先找一个能让整体损失最小的常数起点。</p>
-<p>常见情况下：</p>
-<ul>
-<li>平方损失回归时，$F_0$ 一般是样本均值</li>
-<li>二分类对数损失时，$F_0$ 一般对应正样本比例的 logit</li>
-</ul>
-<h3 id="7-二分类中的-GBDT"><a href="#7-二分类中的-GBDT" class="headerlink" title="7. 二分类中的 GBDT"></a>7. 二分类中的 GBDT</h3><p>在二分类中，常见损失是 logistic loss。若标签 $y_i \in {0,1}$，设：</p>
-<p>$$<br>p_i &#x3D; \sigma(F(x_i)) &#x3D; \frac{1}{1 + e^{-F(x_i)}}<br>$$</p>
-<p>则交叉熵损失可写为：</p>
-<p>$$<br>L(y_i, F(x_i)) &#x3D; -\big[y_i \log p_i + (1-y_i)\log(1-p_i)\big]<br>$$</p>
-<p>其对模型输出的导数为：</p>
-<p>$$<br>\frac{\partial L}{\partial F(x_i)} &#x3D; p_i - y_i<br>$$</p>
-<p>所以负梯度为：</p>
-<p>$$<br>g_{im} &#x3D; y_i - p_i<br>$$</p>
-<p>这里的形式仍然很像残差，但它表示的是“真实标签与当前预测概率之间的差距”。</p>
-<h3 id="8-GBDT-的特点"><a href="#8-GBDT-的特点" class="headerlink" title="8. GBDT 的特点"></a>8. GBDT 的特点</h3><p>GBDT 在表格数据上长期非常强，原因主要有：</p>
-<ul>
-<li>能处理非线性关系</li>
-<li>能自动学习特征组合</li>
-<li>对特征尺度不太敏感</li>
-<li>对数值特征和离散特征都比较友好</li>
-</ul>
-<p>它的缺点也很明显：</p>
-<ul>
-<li>Boosting 是串行训练，训练速度通常不如 bagging 系模型容易并行</li>
-<li>参数较多，比如树深、树数、叶子数、学习率</li>
-<li>树太深或迭代轮数太多时容易过拟合</li>
-</ul>
-<p>一个常见经验是：</p>
-<ul>
-<li>学习率调小一些</li>
-<li>树的数量加多一些</li>
-<li>再配合样本采样和特征采样</li>
-</ul>
-<p>通常会比“大步快跑”的配置更稳。</p>
-<h2 id="用GBDT-LR进行粗排"><a href="#用GBDT-LR进行粗排" class="headerlink" title="用GBDT+LR进行粗排"></a>用GBDT+LR进行粗排</h2><p><code>GBDT + LR</code> 是推荐和广告系统里非常经典的一种粗排方案。它的核心思路是：</p>
-<ul>
-<li>用 GBDT 自动挖掘非线性特征组合</li>
-<li>再把这些组合特征交给 LR 做最终打分</li>
-</ul>
-<h3 id="1-为什么要结合-LR"><a href="#1-为什么要结合-LR" class="headerlink" title="1. 为什么要结合 LR"></a>1. 为什么要结合 LR</h3><p>逻辑回归的形式很简单：</p>
-<p>$$<br>\hat y &#x3D; \sigma(w^\top x + b)<br>$$</p>
-<p>它非常擅长处理高维稀疏特征，但天然是线性的。如果要让 LR 学到复杂交叉，通常只能依赖人工做特征工程。</p>
-<p>而 GBDT 很擅长把特征空间切成很多局部区域。一条从根节点到叶子节点的路径，本质上就是一组规则的组合，例如：</p>
-<ul>
-<li><code>年龄 &lt; 25</code></li>
-<li><code>近7天点击次数 &gt; 3</code></li>
-<li><code>品类 = 数码</code></li>
-</ul>
-<p>当样本落入某个叶子节点时，就说明它满足了一组非线性条件。所以“叶子节点”本身就可以看成自动学习得到的组合特征。</p>
-<h3 id="2-特征转换方式"><a href="#2-特征转换方式" class="headerlink" title="2. 特征转换方式"></a>2. 特征转换方式</h3><p>假设训练好的 GBDT 一共有 $M$ 棵树，第 $m$ 棵树有 $J_m$ 个叶子节点。对于一个样本 $x$，它在第 $m$ 棵树中只会落入一个叶子。</p>
-<p>于是可以把第 $m$ 棵树的输出编码成 one-hot 向量：</p>
-<p>$$<br>\phi_m(x) \in {0,1}^{J_m}<br>$$</p>
-<p>并且满足：</p>
-<p>$$<br>\sum_{j&#x3D;1}^{J_m} \phi_{mj}(x) &#x3D; 1<br>$$</p>
-<p>把所有树的叶子 one-hot 拼接起来，得到新的稀疏特征：</p>
-<p>$$<br>\phi(x) &#x3D; [\phi_1(x), \phi_2(x), \ldots, \phi_M(x)]<br>$$</p>
-<p>然后再把它送给 LR：</p>
-<p>$$<br>\hat y &#x3D; \sigma(w^\top \phi(x) + b)<br>$$</p>
-<h3 id="3-它为什么有效"><a href="#3-它为什么有效" class="headerlink" title="3. 它为什么有效"></a>3. 它为什么有效</h3><p>因为每一个叶子节点都代表了一种局部模式，所以 <code>GBDT + LR</code> 相当于：</p>
-<ul>
-<li>先用 GBDT 做自动分桶和高阶交叉</li>
-<li>再用 LR 对这些交叉模式做线性组合</li>
-</ul>
-<p>这比人工枚举交叉特征要省很多工作量，而且在工业场景里通常更稳定。</p>
-<h3 id="4-训练流程"><a href="#4-训练流程" class="headerlink" title="4. 训练流程"></a>4. 训练流程</h3><p>工程上常见的流程如下：</p>
-<ol>
-<li>用原始特征训练一个 GBDT</li>
-<li>对每个样本，取它在每棵树上的叶子编号</li>
-<li>把所有叶子编号展开成 one-hot 稀疏向量</li>
-<li>用这个新的稀疏向量训练 LR</li>
-</ol>
-<p>如果总叶子数为 $\sum_{m&#x3D;1}^{M} J_m$，那么 LR 的参数维度就是：</p>
-<p>$$<br>w \in \mathbb{R}^{\sum_{m&#x3D;1}^{M} J_m}<br>$$</p>
-<h3 id="5-为什么适合粗排"><a href="#5-为什么适合粗排" class="headerlink" title="5. 为什么适合粗排"></a>5. 为什么适合粗排</h3><p>粗排阶段通常希望：</p>
-<ul>
-<li>比纯 LR 有更强的非线性能力</li>
-<li>在线推断又不能太重</li>
-</ul>
-<p><code>GBDT + LR</code> 很符合这个诉求。因为：</p>
-<ul>
-<li>GBDT 可以离线完成复杂模式学习</li>
-<li>在线阶段只需要走树拿叶子，再做一次稀疏 LR 打分</li>
-</ul>
-<p>虽然现在很多系统会进一步升级到 <code>FM / DeepFM / DCN</code> 这类模型，但 <code>GBDT + LR</code> 依然是理解工业排序模型演化路径时非常重要的一环。</p>
-<h2 id="用-LightGBM-的-LambdaRank-方法进行粗排"><a href="#用-LightGBM-的-LambdaRank-方法进行粗排" class="headerlink" title="用 LightGBM 的 LambdaRank 方法进行粗排"></a>用 LightGBM 的 LambdaRank 方法进行粗排</h2><p>如果任务目标不是点估计 CTR，而是对一个候选列表做排序，那么普通的 pointwise 分类目标往往不够。因为排序任务真正关心的是：</p>
-<ul>
-<li>哪些样本应该排在前面</li>
-<li>把两个样本交换位置之后，排序指标会变化多少</li>
-</ul>
-<p>LambdaRank 就是为这种目标设计的一类排序方法，而 <code>LightGBM</code> 提供了非常成熟的 <code>lambdarank</code> 实现。</p>
-<h3 id="1-排序问题的本质"><a href="#1-排序问题的本质" class="headerlink" title="1. 排序问题的本质"></a>1. 排序问题的本质</h3><p>对于同一个 query 或同一个用户请求下的一组候选样本，设模型对第 $i$ 个样本输出分数 $s_i$。最终排序就是按这些分数从大到小排列。</p>
-<p>排序指标如 <code>NDCG@K</code> 更关心前几位是否排对，因此它和普通分类损失的关注点并不一致。</p>
-<p>LambdaRank 的核心思想是：</p>
-<ul>
-<li>不直接只看单个样本</li>
-<li>而是看样本对 $(i, j)$ 的相对顺序</li>
-<li>如果样本 $i$ 应该排在 $j$ 前面，就推动 $s_i &gt; s_j$</li>
-<li>并且这种推动力度要和排序指标收益相关</li>
-</ul>
-<h3 id="2-pairwise-概率形式"><a href="#2-pairwise-概率形式" class="headerlink" title="2. pairwise 概率形式"></a>2. pairwise 概率形式</h3><p>若在同一个 group 中，样本 $i$ 的相关性高于样本 $j$，则希望：</p>
-<p>$$<br>s_i &gt; s_j<br>$$</p>
-<p>RankNet 中常见的 pairwise 概率写法为：</p>
-<p>$$<br>P_{ij} &#x3D; \sigma(s_i - s_j) &#x3D; \frac{1}{1 + e^{-(s_i - s_j)}}<br>$$</p>
-<p>对应的 pairwise loss 可以写成：</p>
-<p>$$<br>L_{ij} &#x3D; \log\big(1 + e^{-(s_i - s_j)}\big)<br>$$</p>
-<p>如果只优化这个损失，本质上只是做成对排序，还没有显式考虑 <code>NDCG</code>。</p>
-<h3 id="3-Lambda-的核心思想"><a href="#3-Lambda-的核心思想" class="headerlink" title="3. Lambda 的核心思想"></a>3. Lambda 的核心思想</h3><p>LambdaRank 的关键是：如果交换样本 $i$ 和 $j$ 的位置会带来更大的指标变化，那么这对样本在训练时就应该被赋予更大的梯度权重。</p>
-<p>设交换它们后带来的指标变化为：</p>
-<p>$$<br>\Delta \mathrm{NDCG}_{ij}<br>$$</p>
-<p>那么常见的 lambda 形式可以写成：</p>
-<p>$$<br>\lambda_{ij} &#x3D; - \frac{\partial L_{ij}}{\partial s_i} \cdot |\Delta \mathrm{NDCG}_{ij}|<br>$$</p>
-<p>先看导数本身：</p>
-<p>$$<br>\frac{\partial L_{ij}}{\partial s_i} &#x3D; -\frac{1}{1 + e^{s_i - s_j}}<br>$$</p>
-<p>因此负导数为：</p>
-<p>$$<br>-\frac{\partial L_{ij}}{\partial s_i} &#x3D; \frac{1}{1 + e^{s_i - s_j}}<br>$$</p>
-<p>所以可以写成：</p>
-<p>$$<br>\lambda_{ij} &#x3D; \frac{|\Delta \mathrm{NDCG}_{ij}|}{1 + e^{s_i - s_j}}<br>$$</p>
-<p>对于样本 $i$，它最终接收到的梯度信号可以理解成相关样本对贡献的加总：</p>
-<p>$$<br>\lambda_i &#x3D; \sum_{j:(i,j)} \lambda_{ij} - \sum_{j:(j,i)} \lambda_{ji}<br>$$</p>
-<p>LightGBM 在 <code>lambdarank</code> 训练时，本质上就是利用这些 lambda 值来构造树的分裂和更新方向。</p>
-<h3 id="4-为什么适合粗排"><a href="#4-为什么适合粗排" class="headerlink" title="4. 为什么适合粗排"></a>4. 为什么适合粗排</h3><p>推荐和搜索里的粗排，常常更关心：</p>
-<ul>
-<li>top-k 的结果是否尽量靠前</li>
-<li>强相关内容有没有被压到后面</li>
-</ul>
-<p><code>lambdarank</code> 的优势就在于：</p>
-<ul>
-<li>它优化目标更接近实际线上排序指标</li>
-<li>它关注列表内部的相对顺序，而不是单点分类误差</li>
-<li>它会更重视那些影响前排结果的样本对</li>
-</ul>
-<h3 id="5-LightGBM-中的数据组织"><a href="#5-LightGBM-中的数据组织" class="headerlink" title="5. LightGBM 中的数据组织"></a>5. LightGBM 中的数据组织</h3><p>使用 <code>LightGBM</code> 的 <code>lambdarank</code> 时，训练数据一般按 group 组织：</p>
-<ul>
-<li>每个 group 对应一个 query、一次搜索请求，或一次推荐曝光集合</li>
-<li>group 内部样本一起参与排序损失计算</li>
-</ul>
-<p>如果共有 $Q$ 个 group，第 $q$ 个 group 的样本集合为 $\mathcal{G}_q$，那么整体目标可以理解为：</p>
-<p>$$<br>\mathcal{L} &#x3D; \sum_{q&#x3D;1}^{Q} \mathcal{L}_{rank}(\mathcal{G}_q)<br>$$</p>
-<p>其中每个 group 内部再基于样本对和 <code>NDCG</code> 增益计算 lambda。</p>
-
+          <p>提升树 提升树（Boosting Tree）本质上是一类加法模型。它不是只训练一棵树，而是按轮次训练很多棵弱学习器，并把它们逐步叠加起来。 如果把第 轮训练得到的树记作 ，那么最终模型可以写成： 其中： - 表示第 棵树 - 表示该树的权重 - 表示最终集成后的预测函数 提升方法。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/03/27/%E6%A2%AF%E5%BA%A6%E6%8F%90%E5%8D%87%E6%A0%91%EF%BC%88GBDT%EF%BC%89/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -2819,7 +814,7 @@ $$w(s\mid \text{context}),$$
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -2845,7 +840,7 @@ $$w(s\mid \text{context}),$$
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -2868,116 +863,15 @@ $$w(s\mid \text{context}),$$
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="MIND"><a href="#MIND" class="headerlink" title="MIND"></a>MIND</h2><blockquote>
-<p>Li C, Liu Z, Wu M, et al. Multi-interest network with dynamic routing for recommendation at Tmall[C]&#x2F;&#x2F;Proceedings of the 28th ACM international conference on information and knowledge management. 2019: 2615-2623.</p>
-</blockquote>
-<p>传统召回模型通常把用户压成一个向量，但单向量很难表达用户的多兴趣结构。MIND 的核心做法是：把用户历史行为映射成多个兴趣向量，再让目标 item 选择最相关的那个兴趣参与训练。</p>
-<img src="/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/1.png" alt="MIND">
-
-<h3 id="胶囊网络介绍"><a href="#胶囊网络介绍" class="headerlink" title="胶囊网络介绍"></a>胶囊网络介绍</h3><img src="/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/3.png" alt="capsule network0">
-
-<p>MIND 借鉴了胶囊网络里的动态路由思想。这里可以把：</p>
-<ul>
-<li>用户历史行为向量看成低层 capsule</li>
-<li>用户兴趣向量看成高层 capsule</li>
-</ul>
-<p>动态路由的目标不是简单 pooling，而是把行为向量自适应地分配到不同兴趣上。</p>
-<img src="/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/2.png" alt="capsule network">
-
-<h3 id="多兴趣提取层"><a href="#多兴趣提取层" class="headerlink" title="多兴趣提取层"></a>多兴趣提取层</h3><p>设用户行为序列对应的 item embedding 为：</p>
-<p>$$<br>E &#x3D; {e_1, e_2, \ldots, e_n}<br>$$</p>
-<p>MIND 希望从中提取出 $K$ 个兴趣向量：</p>
-<p>$$<br>V &#x3D; {v_1, v_2, \ldots, v_K}<br>$$</p>
-<p>其中 $v_j \in \mathbb{R}^d$ 表示第 $j$ 个兴趣 capsule。</p>
-<p>先把行为向量做线性映射：</p>
-<p>$$<br>\hat{e}_{ij} &#x3D; W_j e_i<br>$$</p>
-<p>其中 $W_j$ 是第 $j$ 个兴趣 capsule 对应的变换矩阵。</p>
-<p>然后通过 routing logit $b_{ij}$ 计算行为 $i$ 分配给兴趣 $j$ 的权重：</p>
-<p>$$<br>c_{ij} &#x3D; \frac{\exp(b_{ij})}{\sum_{k&#x3D;1}^{K}\exp(b_{ik})}<br>$$</p>
-<p>接着聚合得到第 $j$ 个兴趣 capsule 的输入：</p>
-<p>$$<br>s_j &#x3D; \sum_{i&#x3D;1}^{n} c_{ij}\hat{e}_{ij}<br>$$</p>
-<p>再经过 squash 函数得到兴趣向量：</p>
-<p>$$<br>v_j &#x3D; \mathrm{squash}(s_j)<br>&#x3D; \frac{|s_j|^2}{1+|s_j|^2}\frac{s_j}{|s_j|}<br>$$</p>
-<p>最后根据 agreement 更新 routing logit：</p>
-<p>$$<br>b_{ij} \leftarrow b_{ij} + \hat{e}_{ij}^{\top} v_j<br>$$</p>
-<p>重复若干轮后，相似行为会被分到同一个兴趣 capsule 中。</p>
-<h3 id="Label-Aware-注意力层"><a href="#Label-Aware-注意力层" class="headerlink" title="Label-Aware 注意力层"></a>Label-Aware 注意力层</h3><p>设目标 item embedding 为 $e_t$。MIND 用目标 item 和多个兴趣向量计算注意力权重，从而选出和当前目标最相关的兴趣。</p>
-<p>先计算相似度分数：</p>
-<p>$$<br>g_j &#x3D; v_j^{\top} e_t<br>$$</p>
-<p>再通过幂指数放大差异：</p>
-<p>$$<br>a_j &#x3D; \frac{\exp(g_j^p)}{\sum_{k&#x3D;1}^{K}\exp(g_k^p)}<br>$$</p>
-<p>其中 $p$ 是可调超参数。$p$ 越大，注意力越接近 hard attention。</p>
-<p>最后得到与目标 item 对齐的用户表示：</p>
-<p>$$<br>u &#x3D; \sum_{j&#x3D;1}^{K} a_j v_j<br>$$</p>
-<p>这一步的作用是：训练时不再让一个目标 item 同时对齐所有兴趣，而是重点更新最相关的那个兴趣表示。</p>
-<h3 id="训练流程"><a href="#训练流程" class="headerlink" title="训练流程"></a>训练流程</h3><p>训练时，先用动态路由得到多个兴趣向量，再用目标 item 通过 Label-Aware Attention 得到用户表示 $u$。随后计算用户和目标 item 的匹配分数：</p>
-<p>$$<br>z &#x3D; u^{\top} e_t<br>$$</p>
-<p>如果采用 sampled softmax，训练目标可以写成：</p>
-<p>$$<br>P(i_t \mid u) &#x3D; \frac{\exp(u^{\top} e_t)}{\sum_{i \in \mathcal{I}}\exp(u^{\top} e_i)}<br>$$</p>
-<p>$$<br>\mathcal{L} &#x3D; - \log P(i_t \mid u)<br>$$</p>
-<p>在线召回时，用户最终不再对应一个向量，而是对应多个兴趣向量 $v_1, \ldots, v_K$。可以让每个兴趣向量分别去检索候选 item，再把结果合并。这样比单向量用户表示更容易覆盖用户的多样化兴趣。</p>
-<h2 id="SDM"><a href="#SDM" class="headerlink" title="SDM"></a>SDM</h2><blockquote>
-<p>Lv F, Jin T, Yu C, et al. SDM: Sequential deep matching model for online large-scale recommender system[C]&#x2F;&#x2F;Proceedings of the 28th ACM international conference on information and knowledge management. 2019: 2635-2643.</p>
-</blockquote>
-<p>MIND解决了兴趣“广度”的问题，但新的问题随之而来：时间。 用户兴趣不仅是多元的，还是动态演化的。一个用户在一次购物会话中的行为，往往比他一个月前的行为更能预示他下一刻的需求。MIND虽然能捕捉多个兴趣，但并未在结构上显式地区分它们的时效性。序列深度匹配模型（SDM） 正是为了解决这一问题而提出的。SDM模型的核心思想是分别建模用户的短期即时兴趣和长期稳定偏好，然后智能地融合它们。</p>
-<img src="/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/4.png" alt="SDM">
-
-<h3 id="捕捉短期兴趣"><a href="#捕捉短期兴趣" class="headerlink" title="捕捉短期兴趣"></a>捕捉短期兴趣</h3><p>SDM 用用户最近的一段行为序列来建模短期兴趣。根据图中的结构，短期路径由 <code>LSTM + Multi-head Self-Attention + AttnNet</code> 组成。设最近 $T$ 个行为对应的 item embedding 为：</p>
-<p>$$<br>S &#x3D; {e_1, e_2, \ldots, e_T}<br>$$</p>
-<p>先用 LSTM 编码顺序信息，第 $t$ 步隐状态为：</p>
-<p>$$<br>h_t &#x3D; \mathrm{LSTM}(e_t, h_{t-1})<br>$$</p>
-<p>然后用多头自注意力进一步建模行为之间的依赖关系。若记</p>
-<p>$$<br>H &#x3D; [h_1, h_2, \ldots, h_T]<br>$$</p>
-<p>则自注意力输出可以写成：</p>
-<p>$$<br>\tilde{H} &#x3D; \mathrm{MultiHead}(H, H, H)<br>$$</p>
-<p>其中 $\tilde{H} &#x3D; [\tilde{h}_1, \tilde{h}_2, \ldots, \tilde{h}_T]$。</p>
-<p>接下来，图中的 AttnNet 会使用查询向量 $e_u$ 对这些时序表示做注意力汇聚。其打分形式可以写成：</p>
-<p>$$<br>r_t &#x3D; \mathrm{score}(\tilde{h}_t, e_u)<br>$$</p>
-<p>$$<br>\alpha_t &#x3D; \frac{\exp(r_t)}{\sum_{j&#x3D;1}^{T}\exp(r_j)}<br>$$</p>
-<p>最终得到短期兴趣表示：</p>
-<p>$$<br> s_t^u &#x3D; \sum_{t&#x3D;1}^{T}\alpha_t \tilde{h}_t<br>$$</p>
-<p>其中 $e_u$ 可以理解为当前匹配任务对应的查询向量，AttnNet 会让和当前目标更相关的近期行为获得更大的权重。</p>
-<h3 id="捕捉长期兴趣"><a href="#捕捉长期兴趣" class="headerlink" title="捕捉长期兴趣"></a>捕捉长期兴趣</h3><p>短期兴趣描述“此刻想买什么”，长期兴趣描述“这个人稳定偏好什么”。从图里可以看到，SDM 的长期兴趣并不是直接从长序列中提，而是从多路用户画像特征中提取，包括：</p>
-<ul>
-<li>user id</li>
-<li>leaf</li>
-<li>cate</li>
-<li>brand</li>
-<li>shop</li>
-</ul>
-<p>记这些特征集合分别为 <code>L_id^u</code>、<code>L_leaf^u</code>、<code>L_cate^u</code>、<code>L_brand^u</code> 和 <code>L_shop^u</code>。</p>
-<p>每一路特征都会经过一个 AttnNet，并共享查询向量 $e_u$。以第 $m$ 路特征集合 $L_m^u &#x3D; {x_1^m, x_2^m, \ldots, x_{N_m}^m}$ 为例，其注意力权重为：</p>
-<p>$$<br>\beta_i^m &#x3D; \frac{\exp(\mathrm{score}(x_i^m, e_u))}{\sum_{j&#x3D;1}^{N_m}\exp(\mathrm{score}(x_j^m, e_u))}<br>$$</p>
-<p>对应的第 $m$ 路长期偏好表示为：</p>
-<p>$$<br>p_m^u &#x3D; \sum_{i&#x3D;1}^{N_m} \beta_i^m x_i^m<br>$$</p>
-<p>最后把多路画像表示拼接后经过一层全连接，得到长期兴趣表示：</p>
-<p>$$<br>p^u &#x3D; \phi\left(W_p [p_{id}^u; p_{leaf}^u; p_{cate}^u; p_{brand}^u; p_{shop}^u] + b_p\right)<br>$$</p>
-<p>其中 $\phi(\cdot)$ 表示图中的 Dense 层变换。</p>
-<h3 id="长短期兴趣融合"><a href="#长短期兴趣融合" class="headerlink" title="长短期兴趣融合"></a>长短期兴趣融合</h3><p>有了短期兴趣 $s_t^u$ 和长期兴趣 $p^u$ 之后，SDM 使用 fusion gate 做自适应融合，而不是固定加权。</p>
-<p>从图里可以看出，门控值 $G_t^u$ 同时依赖：</p>
-<ul>
-<li>长期兴趣 $p^u$</li>
-<li>短期兴趣 $s_t^u$</li>
-<li>查询向量 $e_u$</li>
-</ul>
-<p>因此可以写成：</p>
-<p>$$<br>G_t^u &#x3D; \sigma\left(W_g [p^u; s_t^u; e_u] + b_g\right)<br>$$</p>
-<p>其中 $G_t^u \in (0,1)^d$ 表示逐维门控权重。根据图中的 <code>1-</code>、逐元素乘法和逐元素加法，最终输出表示为：</p>
-<p>$$<br>o_t^u &#x3D; G_t^u \odot s_t^u + (1 - G_t^u) \odot p^u<br>$$</p>
-<p>其中 $\odot$ 表示逐元素乘法。</p>
-<p>得到最终用户表示 $o_t^u$ 后，就可以和目标 item 做匹配。若目标 item 向量记作 $v_i$，则打分函数可以写成：</p>
-<p>$$<br>z_i &#x3D; {o_t^u}^{\top} v_i<br>$$</p>
-<p>如果采用 softmax 形式训练，则目标概率为：</p>
-<p>$$<br>P(i_t \mid o_t^u) &#x3D; \frac{\exp({o_t^u}^{\top} v_{i_t})}{\sum_{i \in \mathcal{I}} \exp({o_t^u}^{\top} v_i)}<br>$$</p>
-<p>对应损失函数为：</p>
-<p>$$<br>\mathcal{L} &#x3D; -\log P(i_t \mid o_t^u)<br>$$</p>
-<p>所以 SDM 的核心可以概括成：</p>
-<ul>
-<li>短期路径刻画最近行为的时序依赖</li>
-<li>长期路径从多路画像特征中提取稳定偏好</li>
-<li>fusion gate 根据当前查询向量动态平衡短期和长期兴趣</li>
-</ul>
-
+          <p>MIND Li C, Liu Z, Wu M, et al. Multi-interest network with dynamic routing for recommendation at Tmall C //Proceedings of the 28th ACM inter。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/03/26/%E5%BA%8F%E5%88%97%E5%8F%AC%E5%9B%9E/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -3001,7 +895,7 @@ $$w(s\mid \text{context}),$$
     <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
       <meta itemprop="image" content="/images/avatar.gif">
       <meta itemprop="name" content="wdy">
-      <meta itemprop="description" content="">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
     </span>
 
     <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
@@ -3027,7 +921,7 @@ $$w(s\mid \text{context}),$$
                   <i class="far fa-calendar-check"></i>
                 </span>
                 <span class="post-meta-item-text">更新于</span>
-                <time title="修改时间：2026-09-03 16:56:32" itemprop="dateModified" datetime="2026-09-03T16:56:32+08:00">2026-09-03</time>
+                <time title="修改时间：2026-09-03 17:23:23" itemprop="dateModified" datetime="2026-09-03T17:23:23+08:00">2026-09-03</time>
               </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -3050,374 +944,15 @@ $$w(s\mid \text{context}),$$
     <div class="post-body" itemprop="articleBody">
 
       
-          <h2 id="Word2vec"><a href="#Word2vec" class="headerlink" title="Word2vec"></a>Word2vec</h2><p>如果只看方法本身，word2vec 其实不复杂。它最核心的内容只有两种训练方式：</p>
-<ol>
-<li>CBOW</li>
-<li>Skip-gram</li>
-</ol>
-<p>任务目标是生成一个嵌入词表，每一个词对应词表中的一行嵌入向量。</p>
-<img src="/2026/02/18/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84embedding%E6%96%B9%E6%B3%95/1.png" alt="word2vec">
-
-<h3 id="CBOW：用上下文预测中心词"><a href="#CBOW：用上下文预测中心词" class="headerlink" title="CBOW：用上下文预测中心词"></a>CBOW：用上下文预测中心词</h3><p>CBOW 的全称是 Continuous Bag of Words。</p>
-<p>它的训练目标是：</p>
-<ul>
-<li>已知上下文词</li>
-<li>预测中间的中心词</li>
-</ul>
-<h4 id="1-一个具体样本怎么构造"><a href="#1-一个具体样本怎么构造" class="headerlink" title="1. 一个具体样本怎么构造"></a>1. 一个具体样本怎么构造</h4><p>还是用句子：</p>
-<ul>
-<li><code>I like deep learning models</code></li>
-</ul>
-<p>如果窗口大小取 2，并把 <code>deep</code> 当作中心词，那么一个训练样本可以写成：</p>
-<ul>
-<li>输入：<code>I</code>, <code>like</code>, <code>learning</code>, <code>models</code></li>
-<li>输出：<code>deep</code></li>
-</ul>
-<p>也就是说，CBOW 是把上下文聚合起来，去预测被遮住的中心词。</p>
-<h4 id="2-训练流程"><a href="#2-训练流程" class="headerlink" title="2. 训练流程"></a>2. 训练流程</h4><img src="/2026/02/18/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84embedding%E6%96%B9%E6%B3%95/2.png" alt="cbow">
-
-<p>CBOW 的训练流程可以概括成四步：</p>
-<ol>
-<li>把上下文词都表示成 one-hot</li>
-<li>通过 embedding 矩阵查出它们对应的向量</li>
-<li>对这些上下文向量做平均或求和</li>
-<li>用这个聚合向量去预测中心词</li>
-</ol>
-<p>假设词表大小是 <code>V</code>，embedding 维度是 <code>d</code>，embedding 矩阵记为：</p>
-<p>$$<br>W \in \mathbb{R}^{V \times d}<br>$$</p>
-<p>对于上下文词 <code>w1, w2, ..., wk</code>，先查出各自的词向量：</p>
-<ul>
-<li><code>v1, v2, ..., vk</code></li>
-</ul>
-<p>然后把它们聚合成一个上下文表示：</p>
-<p>$$<br>h &#x3D; \frac{v_1 + v_2 + \cdots + v_k}{k}<br>$$</p>
-<p>再用这个 <code>h</code> 去预测中心词 <code>wc</code> 的概率分布：</p>
-<p>$$<br>P(w_c \mid \text{context})<br>$$</p>
-<p>如果采用 softmax，那么训练目标可以写成最小化负对数似然：</p>
-<p>$$<br>L &#x3D; -\log P(w_c \mid \text{context})<br>$$</p>
-<h4 id="3-直观理解"><a href="#3-直观理解" class="headerlink" title="3. 直观理解"></a>3. 直观理解</h4><p>CBOW 可以理解成一种“完形填空”：</p>
-<ul>
-<li>给你周围几个词</li>
-<li>让你猜中间最可能是什么词</li>
-</ul>
-<p>如果模型经常看到：</p>
-<ul>
-<li><code>I like _ learning models</code></li>
-</ul>
-<p>它就会逐渐学到：</p>
-<ul>
-<li>在这种上下文里，<code>deep</code> 出现的概率应该比较高</li>
-</ul>
-<p>于是 <code>deep</code> 的词向量就会被训练成更适合这个上下文的位置。</p>
-<h4 id="4-CBOW-的特点"><a href="#4-CBOW-的特点" class="headerlink" title="4. CBOW 的特点"></a>4. CBOW 的特点</h4><p>CBOW 的特点是：</p>
-<ul>
-<li>训练速度通常更快</li>
-<li>对高频词更稳定</li>
-<li>因为把多个上下文词做平均，所以目标比较平滑</li>
-</ul>
-<p>它更像是：</p>
-<ul>
-<li>用上下文的整体语义去猜中心词</li>
-</ul>
-<h3 id="Skip-gram：用中心词预测上下文"><a href="#Skip-gram：用中心词预测上下文" class="headerlink" title="Skip-gram：用中心词预测上下文"></a>Skip-gram：用中心词预测上下文</h3><p>Skip-gram 和 CBOW 的方向正好相反。</p>
-<p>它的训练目标是：</p>
-<ul>
-<li>已知中心词</li>
-<li>预测它周围的上下文词</li>
-</ul>
-<h4 id="1-一个具体样本怎么构造-1"><a href="#1-一个具体样本怎么构造-1" class="headerlink" title="1. 一个具体样本怎么构造"></a>1. 一个具体样本怎么构造</h4><p>还是句子：</p>
-<ul>
-<li><code>I like deep learning models</code></li>
-</ul>
-<p>如果把 <code>deep</code> 当作中心词，窗口大小还是 2，那么它会被拆成多个训练对子：</p>
-<ul>
-<li>(<code>deep</code> -&gt; <code>I</code>)</li>
-<li>(<code>deep</code> -&gt; <code>like</code>)</li>
-<li>(<code>deep</code> -&gt; <code>learning</code>)</li>
-<li>(<code>deep</code> -&gt; <code>models</code>)</li>
-</ul>
-<p>也就是说：</p>
-<ul>
-<li>CBOW 是“多个上下文 -&gt; 一个中心词”</li>
-<li>Skip-gram 是“一个中心词 -&gt; 多个上下文词”</li>
-</ul>
-<h4 id="2-训练流程-1"><a href="#2-训练流程-1" class="headerlink" title="2. 训练流程"></a>2. 训练流程</h4><img src="/2026/02/18/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84embedding%E6%96%B9%E6%B3%95/3.png" alt="skipgram">
-
-<p>Skip-gram 的训练过程也可以概括成四步：</p>
-<ol>
-<li>输入中心词的 one-hot</li>
-<li>从 embedding 矩阵中取出中心词向量</li>
-<li>用这个向量分别去预测窗口中的每个上下文词</li>
-<li>对多个上下文词的损失求和</li>
-</ol>
-<p>假设中心词是 <code>wi</code>，它对应的输入向量记为 <code>vi</code>。</p>
-<p>对于一个目标上下文词 <code>wo</code>，模型要最大化：</p>
-<p>$$<br>P(w_o \mid w_i)<br>$$</p>
-<p>如果使用 softmax，这个概率写成：</p>
-<p>$$<br>P(w_o \mid w_i) &#x3D; \frac{\exp(v_o^T v_i)}{\sum_{w&#x3D;1}^{V} \exp(v_w^T v_i)}<br>$$</p>
-<p>其中：</p>
-<ul>
-<li><code>vi</code> 是中心词的输入向量</li>
-<li><code>vo</code> 是目标上下文词的输出向量</li>
-</ul>
-<p>这个公式的意思其实很简单：</p>
-<ul>
-<li>如果中心词和上下文词真的经常一起出现</li>
-<li>那么它们的向量点积就应该更大</li>
-<li>点积越大，被 softmax 分到的概率就越高</li>
-</ul>
-<p>如果窗口内的上下文词集合记为 <code>C(wi)</code>，那么 Skip-gram 的训练目标可以写成：</p>
-<p>$$<br>L &#x3D; - \sum_{w_o \in C(w_i)} \log P(w_o \mid w_i)<br>$$</p>
-<h4 id="3-直观理解-1"><a href="#3-直观理解-1" class="headerlink" title="3. 直观理解"></a>3. 直观理解</h4><p>Skip-gram 可以理解成一种“扩散预测”：</p>
-<ul>
-<li>给你一个词</li>
-<li>让你去猜它周围最可能出现哪些词</li>
-</ul>
-<p>例如给定 <code>deep</code>，模型会学习：</p>
-<ul>
-<li>它附近更可能出现 <code>learning</code></li>
-<li>也可能出现 <code>models</code></li>
-<li>不太可能出现完全无关的词</li>
-</ul>
-<p>这样训练多了之后，词向量就会逐渐把共现关系编码进去。</p>
-<h4 id="4-Skip-gram-的特点"><a href="#4-Skip-gram-的特点" class="headerlink" title="4. Skip-gram 的特点"></a>4. Skip-gram 的特点</h4><p>Skip-gram 的特点是：</p>
-<ul>
-<li>对低频词往往更友好</li>
-<li>更容易学到细粒度的共现关系</li>
-<li>一个中心词会拆成多个训练样本，因此训练信号更细</li>
-</ul>
-<p>所以在很多语料上，Skip-gram 学出的词向量会更有表现力。</p>
-<h3 id="负采样：用更便宜的损失替代完整-softmax"><a href="#负采样：用更便宜的损失替代完整-softmax" class="headerlink" title="负采样：用更便宜的损失替代完整 softmax"></a>负采样：用更便宜的损失替代完整 softmax</h3><p>原始 Skip-gram 的 softmax 最大问题是：</p>
-<ul>
-<li>分母要对整个词表求和</li>
-</ul>
-<p>词表一大，训练代价就非常高。</p>
-<p>负采样的做法是把问题改写成二分类任务。对于一个真实共现的词对 <code>(wi, wo)</code>，把它当成正样本；再随机采样 <code>K</code> 个负样本 <code>w1^- , ..., wK^-</code>。</p>
-<p>这时单个样本的损失函数可以写成：</p>
-<p>$$<br>L &#x3D; -\log \sigma(v_o^T v_i) - \sum_{j&#x3D;1}^{K} \log \sigma\left(-{v_j^-}^T v_i\right)<br>$$</p>
-<p>其中：</p>
-<ul>
-<li><code>σ</code> 是 sigmoid 函数</li>
-<li><code>vi</code> 是中心词向量</li>
-<li><code>vo</code> 是正样本上下文词向量</li>
-<li><code>v_j^-</code> 是第 <code>j</code> 个负样本词向量</li>
-</ul>
-<p>这个损失的含义很直接：</p>
-<ul>
-<li>对正样本，希望 <code>vo^T vi</code> 越大越好</li>
-<li>对负样本，希望 <code>v_j^- ^T vi</code> 越小越好</li>
-</ul>
-<p>也就是说，训练目标就是：</p>
-<ul>
-<li>把真实共现的词拉近</li>
-<li>把随机采样的无关词推远</li>
-</ul>
-<p>这样一来，每次更新只需要处理：</p>
-<ul>
-<li>1 个正样本</li>
-<li><code>K</code> 个负样本</li>
-</ul>
-<p>而不需要遍历整个词表，所以训练会快很多。</p>
-<p>实际中大家常说的：</p>
-<ul>
-<li>Skip-gram with Negative Sampling</li>
-</ul>
-<p>本质上就是：</p>
-<ul>
-<li><p>Skip-gram 定义预测任务</p>
-</li>
-<li><p>Negative Sampling 定义高效可训练的损失函数</p>
-</li>
-<li><p>(<code>deep</code>, <code>learning</code>)</p>
-</li>
-</ul>
-<p>当作正样本。</p>
-<p>同时再随机采一些负样本，比如：</p>
-<ul>
-<li>(<code>deep</code>, <code>banana</code>)</li>
-<li>(<code>deep</code>, <code>railway</code>)</li>
-<li>(<code>deep</code>, <code>window</code>)</li>
-</ul>
-<p>训练时模型会被推动去学习：</p>
-<ul>
-<li><code>deep</code> 和 <code>learning</code> 的点积应该更大</li>
-<li><code>deep</code> 和 <code>banana</code>、<code>railway</code>、<code>window</code> 的点积应该更小</li>
-</ul>
-<p>这样训练多了以后，“经常共现的词彼此更接近”这个结构就会在 embedding 空间中逐渐形成。</p>
-<h2 id="Item2vec"><a href="#Item2vec" class="headerlink" title="Item2vec"></a>Item2vec</h2><p>其实就是Word2vec在Item上的实现，可以用于构建物品塔</p>
-<ul>
-<li><p>词语 → 物品</p>
-</li>
-<li><p>句子 → 用户交互序列</p>
-</li>
-<li><p>词语共现 → 物品共同被用户交互</p>
-</li>
-</ul>
-<p>Item2vec和Word2vec唯一的不同在于，Item2vec摒弃了时间的概念，认为序列中任意两个物品都相关。</p>
-<h2 id="Graph-Embedding"><a href="#Graph-Embedding" class="headerlink" title="Graph Embedding"></a>Graph Embedding</h2><h3 id="DeepWalk"><a href="#DeepWalk" class="headerlink" title="DeepWalk"></a>DeepWalk</h3><img src="/2026/02/18/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84embedding%E6%96%B9%E6%B3%95/eges_item_graph.png" alt="eges_item_graph">
-
-<ol>
-<li><p>图(a)是原始的用户行为序列。</p>
-</li>
-<li><p>图(b)基于这些用户行为序列构建了物品关系图。可以看出，物品A和B之间的边产生的原因是用户U1先后购买了物品A和物品B。如果后续产生了多条相同的有向边，则有向边的权重被加强。在 将所有用户行为序列都转换成物品关系图中的边之后，全局的物品关系图就建立起来了。</p>
-</li>
-<li><p>图(c)采用随机游走的方式随机选择起始点，重新产生物品序列。</p>
-</li>
-</ol>
-<p>最后将这些物品序列输入Word2vec 模型中， 生成最终的物品Embedding向量。</p>
-<h3 id="Node2vec"><a href="#Node2vec" class="headerlink" title="Node2vec"></a>Node2vec</h3><img src="/2026/02/18/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84embedding%E6%96%B9%E6%B3%95/5.png" alt="node2vec1">
-
-<p>DeepWalk 的核心做法是：</p>
-<ul>
-<li>在图上做随机游走</li>
-<li>把游走得到的节点序列当作“句子”</li>
-<li>再用 Word2vec 学节点向量</li>
-</ul>
-<p>Node2vec 可以看作是 DeepWalk 的增强版。它最关键的改进在于：</p>
-<ul>
-<li>它不是做完全均匀的随机游走</li>
-<li>而是通过两个参数控制游走更偏向 BFS 还是 DFS</li>
-</ul>
-<p>也就是说，Node2vec 的重点不只是“在图上走”，而是：</p>
-<ul>
-<li>如何走，决定了最终 embedding 更偏向学习哪类图结构信息</li>
-</ul>
-<h4 id="1-为什么要引入有偏随机游走"><a href="#1-为什么要引入有偏随机游走" class="headerlink" title="1. 为什么要引入有偏随机游走"></a>1. 为什么要引入有偏随机游走</h4><p>在图结构中，我们往往希望 embedding 能表达两类信息：</p>
-<ul>
-<li>局部邻居关系</li>
-<li>结构角色关系</li>
-</ul>
-<p>例如在推荐系统里：</p>
-<ul>
-<li>如果两个商品经常和同一批商品一起出现，它们可能属于同一兴趣簇</li>
-<li>如果两个商品虽然不直接相邻，但在图中扮演类似的桥接角色，它们也可能结构相似</li>
-</ul>
-<p>DeepWalk 的随机游走比较平均，无法显式控制更强调哪一类关系。Node2vec 则通过有偏采样补上了这一点。</p>
-<h4 id="2-p-和-q-两个参数"><a href="#2-p-和-q-两个参数" class="headerlink" title="2. p 和 q 两个参数"></a>2. <code>p</code> 和 <code>q</code> 两个参数</h4><p>设随机游走中前一个节点是 <code>t</code>，当前节点是 <code>v</code>，下一步候选节点是 <code>x</code>。</p>
-<p>Node2vec 通过两个超参数控制转移概率：</p>
-<ul>
-<li><code>p</code>：return parameter</li>
-<li><code>q</code>：in-out parameter</li>
-</ul>
-<p>更具体地说，在当前节点 <code>v</code> 上，从上一个节点 <code>t</code> 出发，走向候选节点 <code>x</code> 的未归一化转移概率可以写成：</p>
-<p>$$<br>\pi_{vx} &#x3D; \alpha_{pq}(t, x)\cdot w_{vx}<br>$$</p>
-<p>其中：</p>
-<ul>
-<li>$w_{vx}$ 表示边 $(v,x)$ 的权重</li>
-<li>$\alpha_{pq}(t, x)$ 是由 <code>p</code> 和 <code>q</code> 控制的偏置项</li>
-</ul>
-<p>偏置项定义为：</p>
-<p>$$<br>\alpha_{pq}(t, x)&#x3D;\frac{1}{p}\ \text{if } d_{tx}&#x3D;0,\quad<br>\alpha_{pq}(t, x)&#x3D;1\ \text{if } d_{tx}&#x3D;1,\quad<br>\alpha_{pq}(t, x)&#x3D;\frac{1}{q}\ \text{if } d_{tx}&#x3D;2<br>$$</p>
-<p>这里 $d_{tx}$ 表示节点 $t$ 和节点 $x$ 之间的最短路径距离。</p>
-<p>这个公式的含义是：</p>
-<ul>
-<li>如果 <code>x = t</code>，也就是走回上一个节点，那么转移权重是 $\frac{1}{p}$</li>
-<li>如果 <code>x</code> 是当前节点 <code>v</code> 的邻居，且和 <code>t</code> 也相邻，那么权重是 $1$</li>
-<li>如果 <code>x</code> 更远一些，那么权重是 $\frac{1}{q}$</li>
-</ul>
-<img src="/2026/02/18/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84embedding%E6%96%B9%E6%B3%95/4.png" alt="node2vec2">
-
-<p>它们的直观作用可以这样理解。</p>
-<p><code>p</code> 控制是否容易“走回头路”：</p>
-<ul>
-<li><code>p</code> 大，回到上一个节点的概率更低</li>
-<li><code>p</code> 小，更容易回到刚访问过的节点</li>
-</ul>
-<p><code>q</code> 控制游走更像 BFS 还是 DFS：</p>
-<ul>
-<li><code>q</code> 大，更倾向停留在当前节点附近，更像 BFS</li>
-<li><code>q</code> 小，更倾向往远处探索，更像 DFS</li>
-</ul>
-<p>所以：</p>
-<ul>
-<li>BFS 风格更容易捕捉同一局部社区中的相似节点</li>
-<li>DFS 风格更容易捕捉结构角色相似的节点</li>
-</ul>
-<h3 id="EGES"><a href="#EGES" class="headerlink" title="EGES"></a>EGES</h3><p>EGES 全称是 Enhanced Graph Embedding with Side Information，是推荐系统场景下很有代表性的一种图 embedding 方法。</p>
-<p>它要解决的问题非常实际：</p>
-<ul>
-<li>如果只靠图结构来学 item embedding，热门商品通常能学得很好</li>
-<li>但冷启动商品或者交互很少的商品，向量往往不稳定</li>
-</ul>
-<p>因为在推荐系统里，商品不只有行为数据，还通常有很多 side information，例如：</p>
-<ul>
-<li>类目</li>
-<li>品牌</li>
-<li>店铺</li>
-<li>标题关键词</li>
-</ul>
-<p>这些信息即使在行为很少时，也能提供很强的先验。</p>
-<h4 id="1-EGES-的核心思想"><a href="#1-EGES-的核心思想" class="headerlink" title="1. EGES 的核心思想"></a>1. EGES 的核心思想</h4><p>EGES 的核心思想可以概括成一句话：</p>
-<ul>
-<li>item 的表示不应该只来自图结构，还应该融合它本身的属性信息</li>
-</ul>
-<p>所以它的流程通常可以理解为：</p>
-<ol>
-<li>根据用户行为构建 item 图</li>
-<li>在图上做随机游走，生成 item 序列</li>
-<li>在训练 embedding 时，把 item ID 和 side information 一起编码</li>
-</ol>
-<p>前两步和 DeepWalk &#x2F; Node2vec 很像，真正的区别出现在第三步。</p>
-<h4 id="2-为什么-side-information-很重要"><a href="#2-为什么-side-information-很重要" class="headerlink" title="2. 为什么 side information 很重要"></a>2. 为什么 side information 很重要</h4><p>如果只用 item ID 学 embedding，那么只有交互充分的商品才能学到比较稳定的向量。</p>
-<p>而对于冷启动商品：</p>
-<ul>
-<li>行为序列短</li>
-<li>图中连接少</li>
-<li>采样得到的上下文不充分</li>
-</ul>
-<p>这时单靠图结构往往不够。</p>
-<p>但如果我们知道这个商品还属于：</p>
-<ul>
-<li>某个类目</li>
-<li>某个品牌</li>
-<li>某个店铺</li>
-</ul>
-<p>那么这些属性就可以帮助模型在数据不足时仍然学到更合理的表示。</p>
-<h4 id="3-EGES-怎么融合-side-information"><a href="#3-EGES-怎么融合-side-information" class="headerlink" title="3. EGES 怎么融合 side information"></a>3. EGES 怎么融合 side information</h4><p>EGES 的做法不是简单平均所有 side information，而是：</p>
-<ul>
-<li>为 item ID 和每一种 side information 都学习一个 embedding</li>
-<li>再学习一组权重，决定不同信息源的重要性</li>
-</ul>
-<p>也就是说，一个商品最终的表示不只是：</p>
-<ul>
-<li><code>e_item</code></li>
-</ul>
-<p>而更像是：</p>
-<ul>
-<li><code>e = α0 e_item + α1 e_category + α2 e_brand + ...</code></li>
-</ul>
-<p>其中这些权重 <code>α</code> 不是手工指定的，而是通过训练学出来的。</p>
-<p>这个设计很关键，因为不同商品对 side information 的依赖程度并不一样。</p>
-<p>例如：</p>
-<ul>
-<li>有些商品行为很多，item ID 本身就足够</li>
-<li>有些商品很新，这时类目、品牌等 side information 会更重要</li>
-</ul>
-<p>EGES 通过学习权重，让模型自动决定该更依赖哪一类信息。</p>
-<h4 id="4-和-DeepWalk-x2F-Node2vec-的区别"><a href="#4-和-DeepWalk-x2F-Node2vec-的区别" class="headerlink" title="4. 和 DeepWalk &#x2F; Node2vec 的区别"></a>4. 和 DeepWalk &#x2F; Node2vec 的区别</h4><p>可以简单这样理解：</p>
-<ul>
-<li>DeepWalk：只利用图结构</li>
-<li>Node2vec：利用图结构，并改进随机游走策略</li>
-<li>EGES：在图结构基础上，进一步融合 side information</li>
-</ul>
-<p>所以 EGES 的意义不在于完全推翻前面的图 embedding 方法，而在于：</p>
-<ul>
-<li>把更符合推荐系统实际的数据条件融了进来</li>
-</ul>
-<h4 id="5-在推荐场景中的价值"><a href="#5-在推荐场景中的价值" class="headerlink" title="5. 在推荐场景中的价值"></a>5. 在推荐场景中的价值</h4><p>EGES 特别适合：</p>
-<ul>
-<li>电商推荐</li>
-<li>内容推荐</li>
-<li>冷启动比较明显的 item 场景</li>
-</ul>
-<p>因为在这些场景里，单靠用户行为往往是不够的。</p>
-<p>它抓住了推荐系统里一个非常真实的问题：</p>
-<ul>
-<li>商品不只有“在图中的位置”</li>
-<li>还有“它本身的属性信息”</li>
-</ul>
-<p>而一个更好的 embedding，通常应该同时利用这两部分信息。</p>
-
+          <p>Word2vec 如果只看方法本身，word2vec 其实不复杂。它最核心的内容只有两种训练方式： 1. CBOW 2. Skip-gram 任务目标是生成一个嵌入词表，每一个词对应词表中的一行嵌入向量。 CBOW：用上下文预测中心词 CBOW 的全称是 Continuous B。</p>
+          <!--noindex-->
+            <div class="post-button">
+              <a class="btn" href="/2026/02/18/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F%E4%B8%AD%E7%9A%84embedding%E6%96%B9%E6%B3%95/">
+                阅读全文 &raquo;
+              </a>
+            </div>
+          <!--/noindex-->
+        
       
     </div>
 
@@ -3494,7 +1029,7 @@ $$w(s\mid \text{context}),$$
       <div class="site-overview-wrap sidebar-panel">
         <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
   <p class="site-author-name" itemprop="name">wdy</p>
-  <div class="site-description" itemprop="description"></div>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
 </div>
 <div class="site-state-wrap motion-element">
   <nav class="site-state">
@@ -3564,7 +1099,6 @@ $$w(s\mid \text{context}),$$
   </div>
 
   
-  <script color='' opacity='' zIndex='' count='' src="/lib/canvas-nest/canvas-nest-nomobile.min.js"></script>
   <script src="/lib/anime.min.js"></script>
   <script src="/lib/velocity/velocity.min.js"></script>
   <script src="/lib/velocity/velocity.ui.min.js"></script>
@@ -3594,26 +1128,6 @@ $$w(s\mid \text{context}),$$
 
 
 
-<script>
-document.querySelectorAll('.pdfobject-container').forEach(element => {
-  let url = element.dataset.target;
-  let pdfOpenParams = {
-    navpanes : 0,
-    toolbar  : 0,
-    statusbar: 0,
-    pagemode : 'thumbs',
-    view     : 'FitH'
-  };
-  let pdfOpenFragment = '#' + Object.entries(pdfOpenParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&');
-  let fullURL = `/lib/pdf/web/viewer.html?file=${encodeURIComponent(url)}${pdfOpenFragment}`;
-
-  if (NexT.utils.supportsPDFs()) {
-    element.innerHTML = `<embed class="pdfobject" src="${url + pdfOpenFragment}" type="application/pdf" style="height: ${element.dataset.height};">`;
-  } else {
-    element.innerHTML = `<iframe src="${fullURL}" style="height: ${element.dataset.height};" frameborder="0"></iframe>`;
-  }
-});
-</script>
 
 
 
