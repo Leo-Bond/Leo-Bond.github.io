@@ -1142,7 +1142,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #adbe24;
+  background: #6a5571;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2506,6 +2506,12 @@ body,
 body {
   background: #fafaf8;
 }
+.brand {
+  background: #6f7f8f;
+}
+.brand:hover {
+  background: #627383;
+}
 .site-title,
 .site-subtitle,
 h1,
@@ -2519,6 +2525,10 @@ h6,
   color: #1a1a1a;
   font-family: "Songti SC", "STSong", "Noto Serif CJK SC", Georgia, serif !important;
   font-weight: 600;
+}
+.brand .site-title,
+.brand .site-subtitle {
+  color: #fff;
 }
 .menu .menu-item a,
 .menu .menu-item span.exturl,
