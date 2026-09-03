@@ -30,7 +30,7 @@
 <meta property="og:description" content="1. 论文信息 标题：PEMBOT: Pareto-Ensembled Multi-task Boosted Trees 作者：Gokul Swamy、Anoop Saladi、Arunita Das、Shobhit Niranjan 会议：KDD 2024 DOI：10.1145&#x2F;3637528.3671619  PEMBOT（Pareto-Ensembled Multi-task B">
 <meta property="og:locale" content="zh_CN">
 <meta property="article:published_time" content="2026-09-03T03:58:38.000Z">
-<meta property="article:modified_time" content="2026-09-03T06:56:43.296Z">
+<meta property="article:modified_time" content="2026-09-03T07:01:55.553Z">
 <meta property="article:author" content="wdy">
 <meta property="article:tag" content="多任务学习">
 <meta property="article:tag" content="梯度提升树">
@@ -206,7 +206,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2026-09-03 11:58:38 / 修改时间：14:56:43" itemprop="dateCreated datePublished" datetime="2026-09-03T11:58:38+08:00">2026-09-03</time>
+              <time title="创建时间：2026-09-03 11:58:38 / 修改时间：15:01:55" itemprop="dateCreated datePublished" datetime="2026-09-03T11:58:38+08:00">2026-09-03</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -255,19 +255,31 @@
 <p>不寻找一个对所有任务都“最好”的模型，而是采样多个互不支配的折中模型，再从中选择少量高质量且多样的模型进行集成。</p>
 </blockquote>
 <h2 id="3-Pareto-最优基础"><a href="#3-Pareto-最优基础" class="headerlink" title="3. Pareto 最优基础"></a>3. Pareto 最优基础</h2><p>设有 $M$ 个二分类任务，模型参数为 $\theta$，第 $i$ 个任务的损失为 $F_i(\theta)$，则多目标优化问题为：</p>
-<h1 id="min-theta-mathbf-F-theta"><a href="#min-theta-mathbf-F-theta" class="headerlink" title="$$\min_{\theta}\ \mathbf{F}(\theta)"></a>$$<br>\min_{\theta}\ \mathbf{F}(\theta)</h1><p>\min_{\theta}\ \bigl(F_1(\theta),F_2(\theta),\ldots,F_M(\theta)\bigr).<br>$$</p>
+
+$$\min_{\theta}\ \mathbf{F}(\theta)=\min_{\theta}\ \bigl(F_1(\theta),F_2(\theta),\ldots,F_M(\theta)\bigr).$$
+
+
 <p>第 $i$ 个任务采用二元交叉熵。按最小化损失的通常写法：</p>
-<h1 id="F-i-theta"><a href="#F-i-theta" class="headerlink" title="$$F_i(\theta)"></a>$$<br>F_i(\theta)</h1><p>-\sum_{j&#x3D;1}^{N_i}<br>\left[<br>y_j\log p_j(\theta)+(1-y_j)\log(1-p_j(\theta))<br>\right].<br>$$</p>
+
+$$F_i(\theta)=-\sum_{j=1}^{N_i}\left[y_j\log p_j(\theta)+(1-y_j)\log\bigl(1-p_j(\theta)\bigr)\right].$$
+
+
 <p>如果存在方向 $q(\theta_k)$，使所有任务在一次更新后都不变差，则有：</p>
-<p>$$<br>F_i(\theta_{k+1})\le F_i(\theta_k),\qquad \forall i\in{1,\ldots,M}.<br>$$</p>
+
+$$F_i(\theta_{k+1})\le F_i(\theta_k),\qquad \forall i\in\{1,\ldots,M\}.$$
+
+
 <p>一种寻找公共下降方向的方法，是求解梯度凸组合的最小范数问题：</p>
 
 $$\underset{\boldsymbol{\alpha}}{\operatorname{minimize}}\; \left\lVert \sum_{i=1}^{M}\alpha_i\nabla F_i(\theta_k) \right\rVert_2^2 \quad \text{subject to}\quad \alpha_i\geq 0,\; \sum_{i=1}^{M}\alpha_i=1.$$ 
 
 
 <p>对应方向为：</p>
-<p>$$<br>q(\theta_k)<br>&#x3D;-\sum_{i&#x3D;1}^{M}\alpha_i^*\nabla F_i(\theta_k).<br>$$</p>
-<p>当梯度的凸包包含零向量时，最优凸组合满足 $q(\theta_k)&#x3D;0$。此时不存在一个能同时降低所有任务损失的方向，该点称为 <strong>Pareto 驻点</strong>。所有不同权衡下的 Pareto 驻点共同描述 Pareto 前沿。</p>
+
+$$q(\theta_k) =-\sum_{i=1}^{M}\alpha_i^*\nabla F_i(\theta_k).$$
+
+
+<p>当梯度的凸包包含零向量时，最优凸组合满足 $q(\theta_k)=0$。此时不存在一个能同时降低所有任务损失的方向，该点称为 <strong>Pareto 驻点</strong>。所有不同权衡下的 Pareto 驻点共同描述 Pareto 前沿。</p>
 <p>这里需要区分两个概念：</p>
 <ul>
 <li><strong>Pareto 最优</strong>：通常是全局意义上的互不支配解；</li>
@@ -275,13 +287,25 @@ $$\underset{\boldsymbol{\alpha}}{\operatorname{minimize}}\; \left\lVert \sum_{i=
 </ul>
 <p>论文的训练过程实际保证的是局部 Pareto 驻点，因此“Pareto-optimal trees”更准确地说是不同权重下得到的 Pareto 驻点模型。</p>
 <h2 id="4-PEMBOT-方法"><a href="#4-PEMBOT-方法" class="headerlink" title="4. PEMBOT 方法"></a>4. PEMBOT 方法</h2><h3 id="4-1-多任务共享-GBT"><a href="#4-1-多任务共享-GBT" class="headerlink" title="4.1 多任务共享 GBT"></a>4.1 多任务共享 GBT</h3><p>标准梯度提升树逐轮添加弱学习器：</p>
-<p>$$<br>S_m(x)&#x3D;S_{m-1}(x)+\gamma h_m(x),<br>$$</p>
+
+$$S_m(x)=S_{m-1}(x)+\gamma h_m(x),$$
+
+
 <p>其中 $h_m$ 是第 $m$ 轮拟合伪残差的决策树，$\gamma$ 是学习率。伪残差为：</p>
-<p>$$<br>r_{jm}<br>&#x3D;-\frac{\partial f(y_j,S_{m-1}(x_j))}<br>{\partial S_{m-1}(x_j)}.<br>$$</p>
+
+$$r_{jm} =-\frac{\partial f(y_j,S_{m-1}(x_j))} {\partial S_{m-1}(x_j)}.$$
+
+
 <p>PEMBOT 首先将多个任务损失线性标量化：</p>
-<p>$$<br>F(\theta)&#x3D;\sum_{i&#x3D;1}^{M}\alpha_iF_i(\theta),<br>\qquad<br>\alpha_i\ge 0,<br>\qquad<br>\sum_{i&#x3D;1}^{M}\alpha_i&#x3D;1.<br>$$</p>
+
+$$F(\theta)=\sum_{i=1}^{M}\alpha_iF_i(\theta), \qquad \alpha_i\ge 0, \qquad \sum_{i=1}^{M}\alpha_i=1.$$
+
+
 <p>当共享 GBT 收敛时：</p>
-<h1 id="nabla-F-theta"><a href="#nabla-F-theta" class="headerlink" title="$$\nabla F(\theta)"></a>$$<br>\nabla F(\theta)</h1><p>\sum_{i&#x3D;1}^{M}\alpha_i\nabla F_i(\theta)<br>\approx 0,<br>$$</p>
+
+$$\nabla F(\theta) = \sum_{i=1}^{M}\alpha_i\nabla F_i(\theta) \approx 0,$$
+
+
 <p>这与 Pareto 驻点的一阶条件一致。因此，每组权重 $\boldsymbol{\alpha}$ 都可训练出一个局部 Pareto 驻点模型。</p>
 <h3 id="4-2-共享树干与任务专属分支"><a href="#4-2-共享树干与任务专属分支" class="headerlink" title="4.2 共享树干与任务专属分支"></a>4.2 共享树干与任务专属分支</h3><p>共享 GBT 收敛后，PEMBOT 不直接将它用于全部任务，而是针对每个任务继续执行若干轮 boosting：</p>
 <ul>
@@ -305,7 +329,10 @@ $$
 <p>共享阶段能够让标签稀少或类别严重不平衡的任务借用其他任务中的有效信号，专属阶段则减轻纯共享模型无法表达任务差异的问题。</p>
 <h3 id="4-3-采样-Pareto-前沿"><a href="#4-3-采样-Pareto-前沿" class="headerlink" title="4.3 采样 Pareto 前沿"></a>4.3 采样 Pareto 前沿</h3><p>固定一组 $\boldsymbol{\alpha}$ 仍然只能得到一种任务权衡。为覆盖更广的 Pareto 前沿，论文随机采样约 $N_\alpha\approx100$ 组满足单纯形约束的权重，并为每组权重训练一套模型。</p>
 <p>第 $j$ 个共享模型经过第 $i$ 个任务的专属 boosting 后记为 $T_j^i$。若不考虑推理成本，可直接对全部候选模型求和或取平均：</p>
-<h1 id="operatorname-pred-i-x"><a href="#operatorname-pred-i-x" class="headerlink" title="$$\operatorname{pred}_i(x)"></a>$$<br>\operatorname{pred}_i(x)</h1><p>\frac{1}{N_\alpha}<br>\sum_{j&#x3D;1}^{N_\alpha}T_j^i(x).<br>$$</p>
+
+$$\operatorname{pred}_i(x) = \frac{1}{N_\alpha} \sum_{j=1}^{N_\alpha}T_j^i(x).$$
+
+
 <p>论文公式写成求和；若 $T_j^i$ 表示概率，工程实现中通常还需除以模型数量，或在后续阈值标定时吸收这一尺度。</p>
 <p>全量集成能降低单一权重带来的偏差，但约 100 套模型不适合高吞吐在线服务。于是 PEMBOT 再通过 DPP 将其压缩到约 10 套模型。</p>
 <h2 id="5-如何表示一棵-GBT"><a href="#5-如何表示一棵-GBT" class="headerlink" title="5. 如何表示一棵 GBT"></a>5. 如何表示一棵 GBT</h2><p>DPP 需要计算模型之间的相似性，因此首先要把每个 GBT 转换为向量。论文比较了三种基于树分裂特征的表示：</p>
@@ -315,13 +342,19 @@ $$
 <li>特征 coverage 的自然对数。</li>
 </ol>
 <p>假设一个 GBT 有 $t$ 棵树，原始特征数为 $f$。每棵树产生一个 $f$ 维向量，再将 $t$ 个向量拼接，得到 $tf$ 维模型表示。实验中效果最好的是 <strong>log information gain</strong>。</p>
-<p>随后对高维稀疏表示执行 SVD，得到每个模型的 $d$ 维稠密向量；论文使用 $d&#x3D;128$。模型间可使用余弦相似度或欧氏距离衡量差异。</p>
+<p>随后对高维稀疏表示执行 SVD，得到每个模型的 $d$ 维稠密向量；论文使用 $d=128$。模型间可使用余弦相似度或欧氏距离衡量差异。</p>
 <p>这种表示的直觉是：如果两个 GBT 在不同 boosting 轮次中反复依赖相同特征，并产生相近的信息增益结构，那么它们学到的决策规律也更相似。</p>
 <h2 id="6-Greedy-DPP：兼顾质量与多样性"><a href="#6-Greedy-DPP：兼顾质量与多样性" class="headerlink" title="6. Greedy DPP：兼顾质量与多样性"></a>6. Greedy DPP：兼顾质量与多样性</h2><h3 id="6-1-DPP-的作用"><a href="#6-1-DPP-的作用" class="headerlink" title="6.1 DPP 的作用"></a>6.1 DPP 的作用</h3><p>行列式点过程（Determinantal Point Process，DPP）为集合赋予概率。对于固定大小为 $k$ 的子集 $J$：</p>
-<p>$$<br>P(J)\propto\det(S_{JJ}),\qquad |J|&#x3D;k,<br>$$</p>
+
+$$P(J)\propto\det(S_{JJ}),\qquad |J|=k,$$
+
+
 <p>其中 $S$ 是候选项的相似度矩阵。几何上，行列式对应所选向量张成平行多面体的平方体积：向量越不相似，体积通常越大。</p>
 <p>仅追求差异性可能选中质量较差的模型，因此论文定义：</p>
-<p>$$<br>\max_{J:|J|&#x3D;k}<br>\left[<br>\sum_{j\in J}q_j<br>+<br>\lambda\log\det(S_{JJ}+\eta I)<br>\right].<br>$$</p>
+
+$$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det(S_{JJ}+\eta I) \right].$$
+
+
 <p>各符号含义如下：</p>
 <ul>
 <li>$q_j$：第 $j$ 个模型在验证集上的 F1 质量分数；</li>
@@ -336,11 +369,14 @@ $$
 <li>用质量最高的模型初始化集合 $J$；</li>
 <li>对每个尚未选择的模型，计算加入后的目标增益；</li>
 <li>加入增益最大的模型；</li>
-<li>重复直到 $|J|&#x3D;k$。</li>
+<li>重复直到 $|J|=k$。</li>
 </ol>
 <p>利用模型嵌入 $L_j$，其选择目标可写为：</p>
-<p>$$<br>\max_{J:|J|&#x3D;k}<br>\left[<br>\sum_{j\in J}q_j<br>+<br>\lambda\log\det<br>\left(<br>\sum_{j\in J}L_jL_j^\top+\eta I<br>\right)<br>\right].<br>$$</p>
-<p>论文指出，该目标具有单调子模性质，贪心算法可获得 $1-1&#x2F;e$ 的近似保证。</p>
+
+$$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det \left( \sum_{j\in J}L_jL_j^\top+\eta I \right) \right].$$
+
+
+<p>论文指出，该目标具有单调子模性质，贪心算法可获得 $1-1/e$ 的近似保证。</p>
 <h2 id="7-完整训练流程"><a href="#7-完整训练流程" class="headerlink" title="7. 完整训练流程"></a>7. 完整训练流程</h2><p>PEMBOT 可以整理为以下流程：</p>
 <ol>
 <li>准备共享特征和 $M$ 个二分类标签；</li>
@@ -448,7 +484,7 @@ $$
 </tr>
 </tbody></table>
 <p>若以 XGBoost 为参照，<code>op_loss2</code> 的 Value Recall 从 31.30% 提升到 40.00%，相对提升约 27.8%。论文将这一显著增益归因于：发生率最低的任务能通过共享树干借用其他任务的标签协同信息。</p>
-<h3 id="8-4-消融实验"><a href="#8-4-消融实验" class="headerlink" title="8.4 消融实验"></a>8.4 消融实验</h3><p>固定 $k&#x3D;10$ 时，三种选择方式的结果如下：</p>
+<h3 id="8-4-消融实验"><a href="#8-4-消融实验" class="headerlink" title="8.4 消融实验"></a>8.4 消融实验</h3><p>固定 $k=10$ 时，三种选择方式的结果如下：</p>
 <table>
 <thead>
 <tr>
@@ -711,7 +747,7 @@ $$
 
       <!--noindex-->
       <div class="post-toc-wrap sidebar-panel">
-          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%AE%BA%E6%96%87%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">1. 论文信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-PEMBOT"><span class="nav-number">2.</span> <span class="nav-text">2. 为什么需要 PEMBOT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Pareto-%E6%9C%80%E4%BC%98%E5%9F%BA%E7%A1%80"><span class="nav-number">3.</span> <span class="nav-text">3. Pareto 最优基础</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#min-theta-mathbf-F-theta"><span class="nav-number"></span> <span class="nav-text">$$\min_{\theta}\ \mathbf{F}(\theta)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#F-i-theta"><span class="nav-number"></span> <span class="nav-text">$$F_i(\theta)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-PEMBOT-%E6%96%B9%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">4. PEMBOT 方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E5%85%B1%E4%BA%AB-GBT"><span class="nav-number">1.1.</span> <span class="nav-text">4.1 多任务共享 GBT</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#nabla-F-theta"><span class="nav-number"></span> <span class="nav-text">$$\nabla F(\theta)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%85%B1%E4%BA%AB%E6%A0%91%E5%B9%B2%E4%B8%8E%E4%BB%BB%E5%8A%A1%E4%B8%93%E5%B1%9E%E5%88%86%E6%94%AF"><span class="nav-number">0.1.</span> <span class="nav-text">4.2 共享树干与任务专属分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E9%87%87%E6%A0%B7-Pareto-%E5%89%8D%E6%B2%BF"><span class="nav-number">0.2.</span> <span class="nav-text">4.3 采样 Pareto 前沿</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#operatorname-pred-i-x"><span class="nav-number"></span> <span class="nav-text">$$\operatorname{pred}_i(x)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%A6%82%E4%BD%95%E8%A1%A8%E7%A4%BA%E4%B8%80%E6%A3%B5-GBT"><span class="nav-number">1.</span> <span class="nav-text">5. 如何表示一棵 GBT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-Greedy-DPP%EF%BC%9A%E5%85%BC%E9%A1%BE%E8%B4%A8%E9%87%8F%E4%B8%8E%E5%A4%9A%E6%A0%B7%E6%80%A7"><span class="nav-number">2.</span> <span class="nav-text">6. Greedy DPP：兼顾质量与多样性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-DPP-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">2.1.</span> <span class="nav-text">6.1 DPP 的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E8%B4%AA%E5%BF%83%E6%B1%82%E8%A7%A3"><span class="nav-number">2.2.</span> <span class="nav-text">6.2 贪心求解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%AE%8C%E6%95%B4%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">7. 完整训练流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%AE%9E%E9%AA%8C%E4%B8%80%EF%BC%9A%E7%94%B5%E5%95%86%E6%8D%9F%E5%A4%B1%E9%A2%84%E9%98%B2"><span class="nav-number">4.</span> <span class="nav-text">8. 实验一：电商损失预防</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E6%95%B0%E6%8D%AE%E4%B8%8E%E8%AF%84%E4%BC%B0"><span class="nav-number">4.1.</span> <span class="nav-text">8.1 数据与评估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-AUC-PR"><span class="nav-number">4.2.</span> <span class="nav-text">8.2 AUC-PR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-Top-5-Value-Recall"><span class="nav-number">4.3.</span> <span class="nav-text">8.3 Top 5% Value Recall</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-4-%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C"><span class="nav-number">4.4.</span> <span class="nav-text">8.4 消融实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-5-%E5%9C%A8%E7%BA%BF%E6%80%A7%E8%83%BD%E4%B8%8E%E4%B8%9A%E5%8A%A1%E6%95%88%E6%9E%9C"><span class="nav-number">4.5.</span> <span class="nav-text">8.5 在线性能与业务效果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E5%AE%9E%E9%AA%8C%E4%BA%8C%EF%BC%9A%E8%91%A1%E8%90%84%E9%85%92%E8%B4%A8%E9%87%8F%E9%A2%84%E6%B5%8B"><span class="nav-number">5.</span> <span class="nav-text">9. 实验二：葡萄酒质量预测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E6%96%B9%E6%B3%95%E4%BC%98%E5%8A%BF"><span class="nav-number">6.</span> <span class="nav-text">10. 方法优势</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#10-1-%E9%80%82%E5%90%88%E8%A1%A8%E6%A0%BC%E5%A4%9A%E4%BB%BB%E5%8A%A1%E9%97%AE%E9%A2%98"><span class="nav-number">6.1.</span> <span class="nav-text">10.1 适合表格多任务问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-2-%E4%B8%8D%E4%BE%9D%E8%B5%96%E5%94%AF%E4%B8%80%E7%9A%84%E4%BB%BB%E5%8A%A1%E6%9D%83%E9%87%8D"><span class="nav-number">6.2.</span> <span class="nav-text">10.2 不依赖唯一的任务权重</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-3-%E5%AF%B9%E5%B0%91%E6%95%B0%E4%BB%BB%E5%8A%A1%E6%9B%B4%E5%8F%8B%E5%A5%BD"><span class="nav-number">6.3.</span> <span class="nav-text">10.3 对少数任务更友好</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-4-%E8%B4%A8%E9%87%8F%E3%80%81%E5%A4%9A%E6%A0%B7%E6%80%A7%E4%B8%8E%E5%BB%B6%E8%BF%9F%E7%BB%9F%E4%B8%80%E4%BC%98%E5%8C%96"><span class="nav-number">6.4.</span> <span class="nav-text">10.4 质量、多样性与延迟统一优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%B1%80%E9%99%90%E4%B8%8E%E6%80%9D%E8%80%83"><span class="nav-number">7.</span> <span class="nav-text">11. 局限与思考</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#11-1-%E8%AE%AD%E7%BB%83%E6%88%90%E6%9C%AC%E8%BE%83%E9%AB%98"><span class="nav-number">7.1.</span> <span class="nav-text">11.1 训练成本较高</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-2-%E7%BA%BF%E6%80%A7%E6%A0%87%E9%87%8F%E5%8C%96%E4%B8%8D%E8%83%BD%E8%A6%86%E7%9B%96%E6%89%80%E6%9C%89-Pareto-%E5%89%8D%E6%B2%BF"><span class="nav-number">7.2.</span> <span class="nav-text">11.2 线性标量化不能覆盖所有 Pareto 前沿</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-3-Pareto-%E9%A9%BB%E7%82%B9%E4%B8%8D%E7%AD%89%E4%BA%8E%E5%85%A8%E5%B1%80-Pareto-%E6%9C%80%E4%BC%98"><span class="nav-number">7.3.</span> <span class="nav-text">11.3 Pareto 驻点不等于全局 Pareto 最优</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-4-%E5%A4%9A%E6%A0%B7%E6%80%A7%E8%A1%A8%E7%A4%BA%E4%BB%8D%E6%98%AF%E5%90%AF%E5%8F%91%E5%BC%8F%E8%AE%BE%E8%AE%A1"><span class="nav-number">7.4.</span> <span class="nav-text">11.4 多样性表示仍是启发式设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-5-%E8%B4%A8%E9%87%8F%E5%88%86%E6%95%B0%E4%B8%8E%E6%9C%80%E7%BB%88%E6%8C%87%E6%A0%87%E5%8F%AF%E8%83%BD%E4%B8%8D%E4%B8%80%E8%87%B4"><span class="nav-number">7.5.</span> <span class="nav-text">11.5 质量分数与最终指标可能不一致</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-6-%E5%AE%9E%E9%AA%8C%E4%BB%8D%E6%9C%89%E6%89%A9%E5%B1%95%E7%A9%BA%E9%97%B4"><span class="nav-number">7.6.</span> <span class="nav-text">11.6 实验仍有扩展空间</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E5%A4%8D%E7%8E%B0%E6%97%B6%E7%9A%84%E5%85%B3%E9%94%AE%E9%97%AE%E9%A2%98"><span class="nav-number">8.</span> <span class="nav-text">12. 复现时的关键问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E6%80%BB%E7%BB%93"><span class="nav-number">9.</span> <span class="nav-text">13. 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">10.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%AE%BA%E6%96%87%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">1. 论文信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-PEMBOT"><span class="nav-number">2.</span> <span class="nav-text">2. 为什么需要 PEMBOT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Pareto-%E6%9C%80%E4%BC%98%E5%9F%BA%E7%A1%80"><span class="nav-number">3.</span> <span class="nav-text">3. Pareto 最优基础</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-PEMBOT-%E6%96%B9%E6%B3%95"><span class="nav-number">4.</span> <span class="nav-text">4. PEMBOT 方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E5%85%B1%E4%BA%AB-GBT"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 多任务共享 GBT</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%85%B1%E4%BA%AB%E6%A0%91%E5%B9%B2%E4%B8%8E%E4%BB%BB%E5%8A%A1%E4%B8%93%E5%B1%9E%E5%88%86%E6%94%AF"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 共享树干与任务专属分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E9%87%87%E6%A0%B7-Pareto-%E5%89%8D%E6%B2%BF"><span class="nav-number">4.3.</span> <span class="nav-text">4.3 采样 Pareto 前沿</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%A6%82%E4%BD%95%E8%A1%A8%E7%A4%BA%E4%B8%80%E6%A3%B5-GBT"><span class="nav-number">5.</span> <span class="nav-text">5. 如何表示一棵 GBT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-Greedy-DPP%EF%BC%9A%E5%85%BC%E9%A1%BE%E8%B4%A8%E9%87%8F%E4%B8%8E%E5%A4%9A%E6%A0%B7%E6%80%A7"><span class="nav-number">6.</span> <span class="nav-text">6. Greedy DPP：兼顾质量与多样性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-DPP-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">6.1.</span> <span class="nav-text">6.1 DPP 的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E8%B4%AA%E5%BF%83%E6%B1%82%E8%A7%A3"><span class="nav-number">6.2.</span> <span class="nav-text">6.2 贪心求解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%AE%8C%E6%95%B4%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B"><span class="nav-number">7.</span> <span class="nav-text">7. 完整训练流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%AE%9E%E9%AA%8C%E4%B8%80%EF%BC%9A%E7%94%B5%E5%95%86%E6%8D%9F%E5%A4%B1%E9%A2%84%E9%98%B2"><span class="nav-number">8.</span> <span class="nav-text">8. 实验一：电商损失预防</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E6%95%B0%E6%8D%AE%E4%B8%8E%E8%AF%84%E4%BC%B0"><span class="nav-number">8.1.</span> <span class="nav-text">8.1 数据与评估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-AUC-PR"><span class="nav-number">8.2.</span> <span class="nav-text">8.2 AUC-PR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-Top-5-Value-Recall"><span class="nav-number">8.3.</span> <span class="nav-text">8.3 Top 5% Value Recall</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-4-%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C"><span class="nav-number">8.4.</span> <span class="nav-text">8.4 消融实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-5-%E5%9C%A8%E7%BA%BF%E6%80%A7%E8%83%BD%E4%B8%8E%E4%B8%9A%E5%8A%A1%E6%95%88%E6%9E%9C"><span class="nav-number">8.5.</span> <span class="nav-text">8.5 在线性能与业务效果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E5%AE%9E%E9%AA%8C%E4%BA%8C%EF%BC%9A%E8%91%A1%E8%90%84%E9%85%92%E8%B4%A8%E9%87%8F%E9%A2%84%E6%B5%8B"><span class="nav-number">9.</span> <span class="nav-text">9. 实验二：葡萄酒质量预测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E6%96%B9%E6%B3%95%E4%BC%98%E5%8A%BF"><span class="nav-number">10.</span> <span class="nav-text">10. 方法优势</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#10-1-%E9%80%82%E5%90%88%E8%A1%A8%E6%A0%BC%E5%A4%9A%E4%BB%BB%E5%8A%A1%E9%97%AE%E9%A2%98"><span class="nav-number">10.1.</span> <span class="nav-text">10.1 适合表格多任务问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-2-%E4%B8%8D%E4%BE%9D%E8%B5%96%E5%94%AF%E4%B8%80%E7%9A%84%E4%BB%BB%E5%8A%A1%E6%9D%83%E9%87%8D"><span class="nav-number">10.2.</span> <span class="nav-text">10.2 不依赖唯一的任务权重</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-3-%E5%AF%B9%E5%B0%91%E6%95%B0%E4%BB%BB%E5%8A%A1%E6%9B%B4%E5%8F%8B%E5%A5%BD"><span class="nav-number">10.3.</span> <span class="nav-text">10.3 对少数任务更友好</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-4-%E8%B4%A8%E9%87%8F%E3%80%81%E5%A4%9A%E6%A0%B7%E6%80%A7%E4%B8%8E%E5%BB%B6%E8%BF%9F%E7%BB%9F%E4%B8%80%E4%BC%98%E5%8C%96"><span class="nav-number">10.4.</span> <span class="nav-text">10.4 质量、多样性与延迟统一优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%B1%80%E9%99%90%E4%B8%8E%E6%80%9D%E8%80%83"><span class="nav-number">11.</span> <span class="nav-text">11. 局限与思考</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#11-1-%E8%AE%AD%E7%BB%83%E6%88%90%E6%9C%AC%E8%BE%83%E9%AB%98"><span class="nav-number">11.1.</span> <span class="nav-text">11.1 训练成本较高</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-2-%E7%BA%BF%E6%80%A7%E6%A0%87%E9%87%8F%E5%8C%96%E4%B8%8D%E8%83%BD%E8%A6%86%E7%9B%96%E6%89%80%E6%9C%89-Pareto-%E5%89%8D%E6%B2%BF"><span class="nav-number">11.2.</span> <span class="nav-text">11.2 线性标量化不能覆盖所有 Pareto 前沿</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-3-Pareto-%E9%A9%BB%E7%82%B9%E4%B8%8D%E7%AD%89%E4%BA%8E%E5%85%A8%E5%B1%80-Pareto-%E6%9C%80%E4%BC%98"><span class="nav-number">11.3.</span> <span class="nav-text">11.3 Pareto 驻点不等于全局 Pareto 最优</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-4-%E5%A4%9A%E6%A0%B7%E6%80%A7%E8%A1%A8%E7%A4%BA%E4%BB%8D%E6%98%AF%E5%90%AF%E5%8F%91%E5%BC%8F%E8%AE%BE%E8%AE%A1"><span class="nav-number">11.4.</span> <span class="nav-text">11.4 多样性表示仍是启发式设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-5-%E8%B4%A8%E9%87%8F%E5%88%86%E6%95%B0%E4%B8%8E%E6%9C%80%E7%BB%88%E6%8C%87%E6%A0%87%E5%8F%AF%E8%83%BD%E4%B8%8D%E4%B8%80%E8%87%B4"><span class="nav-number">11.5.</span> <span class="nav-text">11.5 质量分数与最终指标可能不一致</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-6-%E5%AE%9E%E9%AA%8C%E4%BB%8D%E6%9C%89%E6%89%A9%E5%B1%95%E7%A9%BA%E9%97%B4"><span class="nav-number">11.6.</span> <span class="nav-text">11.6 实验仍有扩展空间</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E5%A4%8D%E7%8E%B0%E6%97%B6%E7%9A%84%E5%85%B3%E9%94%AE%E9%97%AE%E9%A2%98"><span class="nav-number">12.</span> <span class="nav-text">12. 复现时的关键问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E6%80%BB%E7%BB%93"><span class="nav-number">13.</span> <span class="nav-text">13. 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">14.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
       </div>
       <!--/noindex-->
 

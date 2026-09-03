@@ -197,7 +197,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2026-09-03 11:58:38 / 修改时间：14:56:43" itemprop="dateCreated datePublished" datetime="2026-09-03T11:58:38+08:00">2026-09-03</time>
+              <time title="创建时间：2026-09-03 11:58:38 / 修改时间：15:01:55" itemprop="dateCreated datePublished" datetime="2026-09-03T11:58:38+08:00">2026-09-03</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -246,19 +246,31 @@
 <p>不寻找一个对所有任务都“最好”的模型，而是采样多个互不支配的折中模型，再从中选择少量高质量且多样的模型进行集成。</p>
 </blockquote>
 <h2 id="3-Pareto-最优基础"><a href="#3-Pareto-最优基础" class="headerlink" title="3. Pareto 最优基础"></a>3. Pareto 最优基础</h2><p>设有 $M$ 个二分类任务，模型参数为 $\theta$，第 $i$ 个任务的损失为 $F_i(\theta)$，则多目标优化问题为：</p>
-<h1 id="min-theta-mathbf-F-theta"><a href="#min-theta-mathbf-F-theta" class="headerlink" title="$$\min_{\theta}\ \mathbf{F}(\theta)"></a>$$<br>\min_{\theta}\ \mathbf{F}(\theta)</h1><p>\min_{\theta}\ \bigl(F_1(\theta),F_2(\theta),\ldots,F_M(\theta)\bigr).<br>$$</p>
+
+$$\min_{\theta}\ \mathbf{F}(\theta)=\min_{\theta}\ \bigl(F_1(\theta),F_2(\theta),\ldots,F_M(\theta)\bigr).$$
+
+
 <p>第 $i$ 个任务采用二元交叉熵。按最小化损失的通常写法：</p>
-<h1 id="F-i-theta"><a href="#F-i-theta" class="headerlink" title="$$F_i(\theta)"></a>$$<br>F_i(\theta)</h1><p>-\sum_{j&#x3D;1}^{N_i}<br>\left[<br>y_j\log p_j(\theta)+(1-y_j)\log(1-p_j(\theta))<br>\right].<br>$$</p>
+
+$$F_i(\theta)=-\sum_{j=1}^{N_i}\left[y_j\log p_j(\theta)+(1-y_j)\log\bigl(1-p_j(\theta)\bigr)\right].$$
+
+
 <p>如果存在方向 $q(\theta_k)$，使所有任务在一次更新后都不变差，则有：</p>
-<p>$$<br>F_i(\theta_{k+1})\le F_i(\theta_k),\qquad \forall i\in{1,\ldots,M}.<br>$$</p>
+
+$$F_i(\theta_{k+1})\le F_i(\theta_k),\qquad \forall i\in\{1,\ldots,M\}.$$
+
+
 <p>一种寻找公共下降方向的方法，是求解梯度凸组合的最小范数问题：</p>
 
 $$\underset{\boldsymbol{\alpha}}{\operatorname{minimize}}\; \left\lVert \sum_{i=1}^{M}\alpha_i\nabla F_i(\theta_k) \right\rVert_2^2 \quad \text{subject to}\quad \alpha_i\geq 0,\; \sum_{i=1}^{M}\alpha_i=1.$$ 
 
 
 <p>对应方向为：</p>
-<p>$$<br>q(\theta_k)<br>&#x3D;-\sum_{i&#x3D;1}^{M}\alpha_i^*\nabla F_i(\theta_k).<br>$$</p>
-<p>当梯度的凸包包含零向量时，最优凸组合满足 $q(\theta_k)&#x3D;0$。此时不存在一个能同时降低所有任务损失的方向，该点称为 <strong>Pareto 驻点</strong>。所有不同权衡下的 Pareto 驻点共同描述 Pareto 前沿。</p>
+
+$$q(\theta_k) =-\sum_{i=1}^{M}\alpha_i^*\nabla F_i(\theta_k).$$
+
+
+<p>当梯度的凸包包含零向量时，最优凸组合满足 $q(\theta_k)=0$。此时不存在一个能同时降低所有任务损失的方向，该点称为 <strong>Pareto 驻点</strong>。所有不同权衡下的 Pareto 驻点共同描述 Pareto 前沿。</p>
 <p>这里需要区分两个概念：</p>
 <ul>
 <li><strong>Pareto 最优</strong>：通常是全局意义上的互不支配解；</li>
@@ -266,13 +278,25 @@ $$\underset{\boldsymbol{\alpha}}{\operatorname{minimize}}\; \left\lVert \sum_{i=
 </ul>
 <p>论文的训练过程实际保证的是局部 Pareto 驻点，因此“Pareto-optimal trees”更准确地说是不同权重下得到的 Pareto 驻点模型。</p>
 <h2 id="4-PEMBOT-方法"><a href="#4-PEMBOT-方法" class="headerlink" title="4. PEMBOT 方法"></a>4. PEMBOT 方法</h2><h3 id="4-1-多任务共享-GBT"><a href="#4-1-多任务共享-GBT" class="headerlink" title="4.1 多任务共享 GBT"></a>4.1 多任务共享 GBT</h3><p>标准梯度提升树逐轮添加弱学习器：</p>
-<p>$$<br>S_m(x)&#x3D;S_{m-1}(x)+\gamma h_m(x),<br>$$</p>
+
+$$S_m(x)=S_{m-1}(x)+\gamma h_m(x),$$
+
+
 <p>其中 $h_m$ 是第 $m$ 轮拟合伪残差的决策树，$\gamma$ 是学习率。伪残差为：</p>
-<p>$$<br>r_{jm}<br>&#x3D;-\frac{\partial f(y_j,S_{m-1}(x_j))}<br>{\partial S_{m-1}(x_j)}.<br>$$</p>
+
+$$r_{jm} =-\frac{\partial f(y_j,S_{m-1}(x_j))} {\partial S_{m-1}(x_j)}.$$
+
+
 <p>PEMBOT 首先将多个任务损失线性标量化：</p>
-<p>$$<br>F(\theta)&#x3D;\sum_{i&#x3D;1}^{M}\alpha_iF_i(\theta),<br>\qquad<br>\alpha_i\ge 0,<br>\qquad<br>\sum_{i&#x3D;1}^{M}\alpha_i&#x3D;1.<br>$$</p>
+
+$$F(\theta)=\sum_{i=1}^{M}\alpha_iF_i(\theta), \qquad \alpha_i\ge 0, \qquad \sum_{i=1}^{M}\alpha_i=1.$$
+
+
 <p>当共享 GBT 收敛时：</p>
-<h1 id="nabla-F-theta"><a href="#nabla-F-theta" class="headerlink" title="$$\nabla F(\theta)"></a>$$<br>\nabla F(\theta)</h1><p>\sum_{i&#x3D;1}^{M}\alpha_i\nabla F_i(\theta)<br>\approx 0,<br>$$</p>
+
+$$\nabla F(\theta) = \sum_{i=1}^{M}\alpha_i\nabla F_i(\theta) \approx 0,$$
+
+
 <p>这与 Pareto 驻点的一阶条件一致。因此，每组权重 $\boldsymbol{\alpha}$ 都可训练出一个局部 Pareto 驻点模型。</p>
 <h3 id="4-2-共享树干与任务专属分支"><a href="#4-2-共享树干与任务专属分支" class="headerlink" title="4.2 共享树干与任务专属分支"></a>4.2 共享树干与任务专属分支</h3><p>共享 GBT 收敛后，PEMBOT 不直接将它用于全部任务，而是针对每个任务继续执行若干轮 boosting：</p>
 <ul>
@@ -296,7 +320,10 @@ $$
 <p>共享阶段能够让标签稀少或类别严重不平衡的任务借用其他任务中的有效信号，专属阶段则减轻纯共享模型无法表达任务差异的问题。</p>
 <h3 id="4-3-采样-Pareto-前沿"><a href="#4-3-采样-Pareto-前沿" class="headerlink" title="4.3 采样 Pareto 前沿"></a>4.3 采样 Pareto 前沿</h3><p>固定一组 $\boldsymbol{\alpha}$ 仍然只能得到一种任务权衡。为覆盖更广的 Pareto 前沿，论文随机采样约 $N_\alpha\approx100$ 组满足单纯形约束的权重，并为每组权重训练一套模型。</p>
 <p>第 $j$ 个共享模型经过第 $i$ 个任务的专属 boosting 后记为 $T_j^i$。若不考虑推理成本，可直接对全部候选模型求和或取平均：</p>
-<h1 id="operatorname-pred-i-x"><a href="#operatorname-pred-i-x" class="headerlink" title="$$\operatorname{pred}_i(x)"></a>$$<br>\operatorname{pred}_i(x)</h1><p>\frac{1}{N_\alpha}<br>\sum_{j&#x3D;1}^{N_\alpha}T_j^i(x).<br>$$</p>
+
+$$\operatorname{pred}_i(x) = \frac{1}{N_\alpha} \sum_{j=1}^{N_\alpha}T_j^i(x).$$
+
+
 <p>论文公式写成求和；若 $T_j^i$ 表示概率，工程实现中通常还需除以模型数量，或在后续阈值标定时吸收这一尺度。</p>
 <p>全量集成能降低单一权重带来的偏差，但约 100 套模型不适合高吞吐在线服务。于是 PEMBOT 再通过 DPP 将其压缩到约 10 套模型。</p>
 <h2 id="5-如何表示一棵-GBT"><a href="#5-如何表示一棵-GBT" class="headerlink" title="5. 如何表示一棵 GBT"></a>5. 如何表示一棵 GBT</h2><p>DPP 需要计算模型之间的相似性，因此首先要把每个 GBT 转换为向量。论文比较了三种基于树分裂特征的表示：</p>
@@ -306,13 +333,19 @@ $$
 <li>特征 coverage 的自然对数。</li>
 </ol>
 <p>假设一个 GBT 有 $t$ 棵树，原始特征数为 $f$。每棵树产生一个 $f$ 维向量，再将 $t$ 个向量拼接，得到 $tf$ 维模型表示。实验中效果最好的是 <strong>log information gain</strong>。</p>
-<p>随后对高维稀疏表示执行 SVD，得到每个模型的 $d$ 维稠密向量；论文使用 $d&#x3D;128$。模型间可使用余弦相似度或欧氏距离衡量差异。</p>
+<p>随后对高维稀疏表示执行 SVD，得到每个模型的 $d$ 维稠密向量；论文使用 $d=128$。模型间可使用余弦相似度或欧氏距离衡量差异。</p>
 <p>这种表示的直觉是：如果两个 GBT 在不同 boosting 轮次中反复依赖相同特征，并产生相近的信息增益结构，那么它们学到的决策规律也更相似。</p>
 <h2 id="6-Greedy-DPP：兼顾质量与多样性"><a href="#6-Greedy-DPP：兼顾质量与多样性" class="headerlink" title="6. Greedy DPP：兼顾质量与多样性"></a>6. Greedy DPP：兼顾质量与多样性</h2><h3 id="6-1-DPP-的作用"><a href="#6-1-DPP-的作用" class="headerlink" title="6.1 DPP 的作用"></a>6.1 DPP 的作用</h3><p>行列式点过程（Determinantal Point Process，DPP）为集合赋予概率。对于固定大小为 $k$ 的子集 $J$：</p>
-<p>$$<br>P(J)\propto\det(S_{JJ}),\qquad |J|&#x3D;k,<br>$$</p>
+
+$$P(J)\propto\det(S_{JJ}),\qquad |J|=k,$$
+
+
 <p>其中 $S$ 是候选项的相似度矩阵。几何上，行列式对应所选向量张成平行多面体的平方体积：向量越不相似，体积通常越大。</p>
 <p>仅追求差异性可能选中质量较差的模型，因此论文定义：</p>
-<p>$$<br>\max_{J:|J|&#x3D;k}<br>\left[<br>\sum_{j\in J}q_j<br>+<br>\lambda\log\det(S_{JJ}+\eta I)<br>\right].<br>$$</p>
+
+$$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det(S_{JJ}+\eta I) \right].$$
+
+
 <p>各符号含义如下：</p>
 <ul>
 <li>$q_j$：第 $j$ 个模型在验证集上的 F1 质量分数；</li>
@@ -327,11 +360,14 @@ $$
 <li>用质量最高的模型初始化集合 $J$；</li>
 <li>对每个尚未选择的模型，计算加入后的目标增益；</li>
 <li>加入增益最大的模型；</li>
-<li>重复直到 $|J|&#x3D;k$。</li>
+<li>重复直到 $|J|=k$。</li>
 </ol>
 <p>利用模型嵌入 $L_j$，其选择目标可写为：</p>
-<p>$$<br>\max_{J:|J|&#x3D;k}<br>\left[<br>\sum_{j\in J}q_j<br>+<br>\lambda\log\det<br>\left(<br>\sum_{j\in J}L_jL_j^\top+\eta I<br>\right)<br>\right].<br>$$</p>
-<p>论文指出，该目标具有单调子模性质，贪心算法可获得 $1-1&#x2F;e$ 的近似保证。</p>
+
+$$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det \left( \sum_{j\in J}L_jL_j^\top+\eta I \right) \right].$$
+
+
+<p>论文指出，该目标具有单调子模性质，贪心算法可获得 $1-1/e$ 的近似保证。</p>
 <h2 id="7-完整训练流程"><a href="#7-完整训练流程" class="headerlink" title="7. 完整训练流程"></a>7. 完整训练流程</h2><p>PEMBOT 可以整理为以下流程：</p>
 <ol>
 <li>准备共享特征和 $M$ 个二分类标签；</li>
@@ -439,7 +475,7 @@ $$
 </tr>
 </tbody></table>
 <p>若以 XGBoost 为参照，<code>op_loss2</code> 的 Value Recall 从 31.30% 提升到 40.00%，相对提升约 27.8%。论文将这一显著增益归因于：发生率最低的任务能通过共享树干借用其他任务的标签协同信息。</p>
-<h3 id="8-4-消融实验"><a href="#8-4-消融实验" class="headerlink" title="8.4 消融实验"></a>8.4 消融实验</h3><p>固定 $k&#x3D;10$ 时，三种选择方式的结果如下：</p>
+<h3 id="8-4-消融实验"><a href="#8-4-消融实验" class="headerlink" title="8.4 消融实验"></a>8.4 消融实验</h3><p>固定 $k=10$ 时，三种选择方式的结果如下：</p>
 <table>
 <thead>
 <tr>
