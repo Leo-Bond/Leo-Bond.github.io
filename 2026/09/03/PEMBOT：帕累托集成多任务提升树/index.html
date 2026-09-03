@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=2">
+<meta name="theme-color" content="#222">
+<meta name="generator" content="Hexo 6.3.0">
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+<link rel="stylesheet" href="/lib/font-awesome/css/all.min.css">
+  <link rel="stylesheet" href="/lib/pace/pace-theme-minimal.min.css">
+  <script src="/lib/pace/pace.min.js"></script>
+
+<script id="hexo-configurations">
+    var NexT = window.NexT || {};
+    var CONFIG = {"hostname":"leo-bond.github.io","root":"/","scheme":"Gemini","version":"7.8.0","exturl":false,"sidebar":{"position":"left","display":"post","padding":18,"offset":12,"onmobile":false},"copycode":{"enable":false,"show_result":false,"style":null},"back2top":{"enable":true,"sidebar":false,"scrollpercent":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"fancybox":false,"mediumzoom":false,"lazyload":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"algolia":{"hits":{"per_page":10},"labels":{"input_placeholder":"Search for Posts","hits_empty":"We didn't find any results for the search: ${query}","hits_stats":"${hits} results found in ${time} ms"}},"localsearch":{"enable":false,"trigger":"auto","top_n_per_article":1,"unescape":false,"preload":false},"motion":{"enable":true,"async":false,"transition":{"post_block":"fadeIn","post_header":"slideDownIn","post_body":"slideDownIn","coll_header":"slideLeftIn","sidebar":"slideUpIn"}}};
+  </script>
+
+  <meta name="description" content="1. 论文信息 标题：PEMBOT: Pareto-Ensembled Multi-task Boosted Trees 作者：Gokul Swamy、Anoop Saladi、Arunita Das、Shobhit Niranjan 会议：KDD 2024 DOI：10.1145&#x2F;3637528.3671619  PEMBOT（Pareto-Ensembled Multi-task B">
+<meta property="og:type" content="article">
+<meta property="og:title" content="PEMBOT：帕累托集成多任务提升树">
+<meta property="og:url" content="https://leo-bond.github.io/2026/09/03/PEMBOT%EF%BC%9A%E5%B8%95%E7%B4%AF%E6%89%98%E9%9B%86%E6%88%90%E5%A4%9A%E4%BB%BB%E5%8A%A1%E6%8F%90%E5%8D%87%E6%A0%91/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="1. 论文信息 标题：PEMBOT: Pareto-Ensembled Multi-task Boosted Trees 作者：Gokul Swamy、Anoop Saladi、Arunita Das、Shobhit Niranjan 会议：KDD 2024 DOI：10.1145&#x2F;3637528.3671619  PEMBOT（Pareto-Ensembled Multi-task B">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-09-03T03:58:38.000Z">
+<meta property="article:modified_time" content="2026-09-03T06:04:08.134Z">
+<meta property="article:author" content="wdy">
+<meta property="article:tag" content="多任务学习">
+<meta property="article:tag" content="梯度提升树">
+<meta property="article:tag" content="多目标优化">
+<meta property="article:tag" content="Pareto 最优">
+<meta property="article:tag" content="DPP">
+<meta name="twitter:card" content="summary">
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/09/03/PEMBOT%EF%BC%9A%E5%B8%95%E7%B4%AF%E6%89%98%E9%9B%86%E6%88%90%E5%A4%9A%E4%BB%BB%E5%8A%A1%E6%8F%90%E5%8D%87%E6%A0%91/">
+
+
+<script id="page-configurations">
+  // https://hexo.io/docs/variables.html
+  CONFIG.page = {
+    sidebar: "",
+    isHome : false,
+    isPost : true,
+    lang   : 'zh-CN'
+  };
+</script>
+
+  <title>PEMBOT：帕累托集成多任务提升树 | wdy's blog</title>
+  
+
+
+
+
+
+
+  <noscript>
+  <style>
+  .use-motion .brand,
+  .use-motion .menu-item,
+  .sidebar-inner,
+  .use-motion .post-block,
+  .use-motion .pagination,
+  .use-motion .comments,
+  .use-motion .post-header,
+  .use-motion .post-body,
+  .use-motion .collection-header { opacity: initial; }
+
+  .use-motion .site-title,
+  .use-motion .site-subtitle {
+    opacity: initial;
+    top: initial;
+  }
+
+  .use-motion .logo-line-before i { left: initial; }
+  .use-motion .logo-line-after i { right: initial; }
+  </style>
+</noscript>
+
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage">
+  <div class="container use-motion">
+    <div class="headband"></div>
+
+    <header class="header" itemscope itemtype="http://schema.org/WPHeader">
+      <div class="header-inner"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏">
+      <span class="toggle-line toggle-line-first"></span>
+      <span class="toggle-line toggle-line-middle"></span>
+      <span class="toggle-line toggle-line-last"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <span class="logo-line-before"><i></i></span>
+      <h1 class="site-title">wdy's blog</h1>
+      <span class="logo-line-after"><i></i></span>
+    </a>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger">
+    </div>
+  </div>
+</div>
+
+
+
+
+<nav class="site-nav">
+  <ul id="menu" class="main-menu menu">
+        <li class="menu-item menu-item-home">
+
+    <a href="/" rel="section"><i class="home fa-fw"></i>首页</a>
+
+  </li>
+        <li class="menu-item menu-item-archives">
+
+    <a href="/archives/" rel="section"><i class="archive fa-fw"></i>归档</a>
+
+  </li>
+        <li class="menu-item menu-item-categories">
+
+    <a href="/categories/" rel="section"><i class="th fa-fw"></i>分类</a>
+
+  </li>
+        <li class="menu-item menu-item-tags">
+
+    <a href="/tags/" rel="section"><i class="tags fa-fw"></i>标签</a>
+
+  </li>
+        <li class="menu-item menu-item-about">
+
+    <a href="/about/" rel="section"><i class="user fa-fw"></i>关于</a>
+
+  </li>
+        <li class="menu-item menu-item-resources">
+
+    <a href="/resources/" rel="section"><i class="download fa-fw"></i>资源</a>
+
+  </li>
+        <li class="menu-item menu-item-resume">
+
+    <a href="/resume/" rel="section"><i class="file-pdf fa-fw"></i>简历</a>
+
+  </li>
+  </ul>
+</nav>
+
+
+
+
+</div>
+    </header>
+
+    
+  <div class="back-to-top">
+    <i class="fa fa-arrow-up"></i>
+    <span>0%</span>
+  </div>
+
+
+    <main class="main">
+      <div class="main-inner">
+        <div class="content-wrap">
+          
+
+          <div class="content post posts-expand">
+            
+
+    
+  
+  
+  <article itemscope itemtype="http://schema.org/Article" class="post-block" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/09/03/PEMBOT%EF%BC%9A%E5%B8%95%E7%B4%AF%E6%89%98%E9%9B%86%E6%88%90%E5%A4%9A%E4%BB%BB%E5%8A%A1%E6%8F%90%E5%8D%87%E6%A0%91/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+      <meta itemprop="description" content="">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          PEMBOT：帕累托集成多任务提升树
+        </h1>
+
+        <div class="post-meta">
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-calendar"></i>
+              </span>
+              <span class="post-meta-item-text">发表于</span>
+              
+
+              <time title="创建时间：2026-09-03 11:58:38 / 修改时间：14:04:08" itemprop="dateCreated datePublished" datetime="2026-09-03T11:58:38+08:00">2026-09-03</time>
+            </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">论文阅读</span></a>
+                </span>
+            </span>
+
+          
+
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody">
+
+      
+        <h2 id="1-论文信息"><a href="#1-论文信息" class="headerlink" title="1. 论文信息"></a>1. 论文信息</h2><ul>
+<li><strong>标题</strong>：PEMBOT: Pareto-Ensembled Multi-task Boosted Trees</li>
+<li><strong>作者</strong>：Gokul Swamy、Anoop Saladi、Arunita Das、Shobhit Niranjan</li>
+<li><strong>会议</strong>：KDD 2024</li>
+<li><strong>DOI</strong>：<a target="_blank" rel="noopener" href="https://doi.org/10.1145/3637528.3671619">10.1145&#x2F;3637528.3671619</a></li>
+</ul>
+<p>PEMBOT（<strong>P</strong>areto-<strong>E</strong>nsembled <strong>M</strong>ulti-task <strong>BO</strong>osted <strong>T</strong>rees）是一个面向表格数据的多任务分类框架。它先训练一组位于不同 Pareto 权衡位置的共享 GBT，再为每个任务追加专属树，最后利用 DPP 从候选模型中挑选兼具质量与差异性的子集进行集成。</p>
+<p>这篇论文试图解决三个相互关联的问题：</p>
+<ol>
+<li>多任务之间既共享信息，又可能存在目标冲突；</li>
+<li>线性加权损失依赖人工指定任务权重，单一权重只能对应一种权衡；</li>
+<li>大量 Pareto 模型虽然有利于集成，却难以满足在线推理的延迟要求。</li>
+</ol>
+<h2 id="2-为什么需要-PEMBOT"><a href="#2-为什么需要-PEMBOT" class="headerlink" title="2. 为什么需要 PEMBOT"></a>2. 为什么需要 PEMBOT</h2><p>在电商履约中，一个订单可能面临多种风险，例如包裹未收到、商品损坏或货不对板、退回错误或虚假商品。不同风险共享商品、用户和物流链路中的信息，但对应的干预措施并不相同，因此需要分别预测。</p>
+<p>常见方案各有局限：</p>
+<ul>
+<li><strong>每个任务单独建模</strong>：无法利用任务间协同信息，且训练、部署和维护成本较高；</li>
+<li><strong>固定权重的联合建模</strong>：结果对权重敏感，并可能出现某个任务提升、其他任务退化的负迁移；</li>
+<li><strong>深度多任务模型</strong>：适合部分场景，但在典型表格数据上不一定优于 GBT；</li>
+<li><strong>进化式多目标决策树</strong>：可搜索 Pareto 解，但计算成本随问题规模快速增长。</li>
+</ul>
+<p>PEMBOT 的核心思路可以概括为：</p>
+<blockquote>
+<p>不寻找一个对所有任务都“最好”的模型，而是采样多个互不支配的折中模型，再从中选择少量高质量且多样的模型进行集成。</p>
+</blockquote>
+<h2 id="3-Pareto-最优基础"><a href="#3-Pareto-最优基础" class="headerlink" title="3. Pareto 最优基础"></a>3. Pareto 最优基础</h2><p>设有 $M$ 个二分类任务，模型参数为 $\theta$，第 $i$ 个任务的损失为 $F_i(\theta)$，则多目标优化问题为：</p>
+<h1 id="min-theta-mathbf-F-theta"><a href="#min-theta-mathbf-F-theta" class="headerlink" title="$$\min_{\theta}\ \mathbf{F}(\theta)"></a>$$<br>\min_{\theta}\ \mathbf{F}(\theta)</h1><p>\min_{\theta}\left{F_1(\theta),F_2(\theta),\ldots,F_M(\theta)\right}.<br>$$</p>
+<p>第 $i$ 个任务采用二元交叉熵。按最小化损失的通常写法：</p>
+<h1 id="F-i-theta"><a href="#F-i-theta" class="headerlink" title="$$F_i(\theta)"></a>$$<br>F_i(\theta)</h1><p>-\sum_{j&#x3D;1}^{N_i}<br>\left[<br>y_j\log p_j(\theta)+(1-y_j)\log(1-p_j(\theta))<br>\right].<br>$$</p>
+<p>如果存在方向 $q(\theta_k)$，使所有任务在一次更新后都不变差，则有：</p>
+<p>$$<br>F_i(\theta_{k+1})\le F_i(\theta_k),\qquad \forall i\in{1,\ldots,M}.<br>$$</p>
+<p>一种寻找公共下降方向的方法，是求解梯度凸组合的最小范数问题：</p>
+<p>$$<br>\begin{aligned}<br>\min_{\boldsymbol{\alpha}}\quad<br>&amp;\left|\sum_{i&#x3D;1}^{M}\alpha_i\nabla F_i(\theta_k)\right|<em>2^2\<br>\text{s.t.}\quad<br>&amp;\alpha_i\ge 0,\<br>&amp;\sum</em>{i&#x3D;1}^{M}\alpha_i&#x3D;1.<br>\end{aligned}<br>$$</p>
+<p>对应方向为：</p>
+<p>$$<br>q(\theta_k)<br>&#x3D;-\sum_{i&#x3D;1}^{M}\alpha_i^*\nabla F_i(\theta_k).<br>$$</p>
+<p>当梯度的凸包包含零向量时，最优凸组合满足 $q(\theta_k)&#x3D;0$。此时不存在一个能同时降低所有任务损失的方向，该点称为 <strong>Pareto 驻点</strong>。所有不同权衡下的 Pareto 驻点共同描述 Pareto 前沿。</p>
+<p>这里需要区分两个概念：</p>
+<ul>
+<li><strong>Pareto 最优</strong>：通常是全局意义上的互不支配解；</li>
+<li><strong>Pareto 驻点</strong>：局部一阶条件下不存在共同下降方向。</li>
+</ul>
+<p>论文的训练过程实际保证的是局部 Pareto 驻点，因此“Pareto-optimal trees”更准确地说是不同权重下得到的 Pareto 驻点模型。</p>
+<h2 id="4-PEMBOT-方法"><a href="#4-PEMBOT-方法" class="headerlink" title="4. PEMBOT 方法"></a>4. PEMBOT 方法</h2><h3 id="4-1-多任务共享-GBT"><a href="#4-1-多任务共享-GBT" class="headerlink" title="4.1 多任务共享 GBT"></a>4.1 多任务共享 GBT</h3><p>标准梯度提升树逐轮添加弱学习器：</p>
+<p>$$<br>S_m(x)&#x3D;S_{m-1}(x)+\gamma h_m(x),<br>$$</p>
+<p>其中 $h_m$ 是第 $m$ 轮拟合伪残差的决策树，$\gamma$ 是学习率。伪残差为：</p>
+<p>$$<br>r_{jm}<br>&#x3D;-\frac{\partial f(y_j,S_{m-1}(x_j))}<br>{\partial S_{m-1}(x_j)}.<br>$$</p>
+<p>PEMBOT 首先将多个任务损失线性标量化：</p>
+<p>$$<br>F(\theta)&#x3D;\sum_{i&#x3D;1}^{M}\alpha_iF_i(\theta),<br>\qquad<br>\alpha_i\ge 0,<br>\qquad<br>\sum_{i&#x3D;1}^{M}\alpha_i&#x3D;1.<br>$$</p>
+<p>当共享 GBT 收敛时：</p>
+<h1 id="nabla-F-theta"><a href="#nabla-F-theta" class="headerlink" title="$$\nabla F(\theta)"></a>$$<br>\nabla F(\theta)</h1><p>\sum_{i&#x3D;1}^{M}\alpha_i\nabla F_i(\theta)<br>\approx 0,<br>$$</p>
+<p>这与 Pareto 驻点的一阶条件一致。因此，每组权重 $\boldsymbol{\alpha}$ 都可训练出一个局部 Pareto 驻点模型。</p>
+<h3 id="4-2-共享树干与任务专属分支"><a href="#4-2-共享树干与任务专属分支" class="headerlink" title="4.2 共享树干与任务专属分支"></a>4.2 共享树干与任务专属分支</h3><p>共享 GBT 收敛后，PEMBOT 不直接将它用于全部任务，而是针对每个任务继续执行若干轮 boosting：</p>
+<ul>
+<li>前 $n_{\text{boost}}$ 轮使用联合损失，学习任务间的共性；</li>
+<li>后 $n_{\text{additional}}$ 轮只使用任务 $i$ 的损失，学习任务特有模式。</li>
+</ul>
+<p>这相当于树模型版本的“共享表示 + 任务专属头”：</p>
+<p>$$<br>\text{Shared GBT}<br>\longrightarrow<br>\begin{cases}<br>T^1 &amp; \text{任务 1 专属 boosting}\<br>T^2 &amp; \text{任务 2 专属 boosting}\<br>\vdots\<br>T^M &amp; \text{任务 }M\text{ 专属 boosting}<br>\end{cases}<br>$$</p>
+<p>共享阶段能够让标签稀少或类别严重不平衡的任务借用其他任务中的有效信号，专属阶段则减轻纯共享模型无法表达任务差异的问题。</p>
+<h3 id="4-3-采样-Pareto-前沿"><a href="#4-3-采样-Pareto-前沿" class="headerlink" title="4.3 采样 Pareto 前沿"></a>4.3 采样 Pareto 前沿</h3><p>固定一组 $\boldsymbol{\alpha}$ 仍然只能得到一种任务权衡。为覆盖更广的 Pareto 前沿，论文随机采样约 $N_\alpha\approx100$ 组满足单纯形约束的权重，并为每组权重训练一套模型。</p>
+<p>第 $j$ 个共享模型经过第 $i$ 个任务的专属 boosting 后记为 $T_j^i$。若不考虑推理成本，可直接对全部候选模型求和或取平均：</p>
+<h1 id="operatorname-pred-i-x"><a href="#operatorname-pred-i-x" class="headerlink" title="$$\operatorname{pred}_i(x)"></a>$$<br>\operatorname{pred}_i(x)</h1><p>\frac{1}{N_\alpha}<br>\sum_{j&#x3D;1}^{N_\alpha}T_j^i(x).<br>$$</p>
+<p>论文公式写成求和；若 $T_j^i$ 表示概率，工程实现中通常还需除以模型数量，或在后续阈值标定时吸收这一尺度。</p>
+<p>全量集成能降低单一权重带来的偏差，但约 100 套模型不适合高吞吐在线服务。于是 PEMBOT 再通过 DPP 将其压缩到约 10 套模型。</p>
+<h2 id="5-如何表示一棵-GBT"><a href="#5-如何表示一棵-GBT" class="headerlink" title="5. 如何表示一棵 GBT"></a>5. 如何表示一棵 GBT</h2><p>DPP 需要计算模型之间的相似性，因此首先要把每个 GBT 转换为向量。论文比较了三种基于树分裂特征的表示：</p>
+<ol>
+<li>特征是否出现的 one-hot 编码；</li>
+<li>特征 information gain 的自然对数；</li>
+<li>特征 coverage 的自然对数。</li>
+</ol>
+<p>假设一个 GBT 有 $t$ 棵树，原始特征数为 $f$。每棵树产生一个 $f$ 维向量，再将 $t$ 个向量拼接，得到 $tf$ 维模型表示。实验中效果最好的是 <strong>log information gain</strong>。</p>
+<p>随后对高维稀疏表示执行 SVD，得到每个模型的 $d$ 维稠密向量；论文使用 $d&#x3D;128$。模型间可使用余弦相似度或欧氏距离衡量差异。</p>
+<p>这种表示的直觉是：如果两个 GBT 在不同 boosting 轮次中反复依赖相同特征，并产生相近的信息增益结构，那么它们学到的决策规律也更相似。</p>
+<h2 id="6-Greedy-DPP：兼顾质量与多样性"><a href="#6-Greedy-DPP：兼顾质量与多样性" class="headerlink" title="6. Greedy DPP：兼顾质量与多样性"></a>6. Greedy DPP：兼顾质量与多样性</h2><h3 id="6-1-DPP-的作用"><a href="#6-1-DPP-的作用" class="headerlink" title="6.1 DPP 的作用"></a>6.1 DPP 的作用</h3><p>行列式点过程（Determinantal Point Process，DPP）为集合赋予概率。对于固定大小为 $k$ 的子集 $J$：</p>
+<p>$$<br>P(J)\propto\det(S_{JJ}),\qquad |J|&#x3D;k,<br>$$</p>
+<p>其中 $S$ 是候选项的相似度矩阵。几何上，行列式对应所选向量张成平行多面体的平方体积：向量越不相似，体积通常越大。</p>
+<p>仅追求差异性可能选中质量较差的模型，因此论文定义：</p>
+<p>$$<br>\max_{J:|J|&#x3D;k}<br>\left[<br>\sum_{j\in J}q_j<br>+<br>\lambda\log\det(S_{JJ}+\eta I)<br>\right].<br>$$</p>
+<p>各符号含义如下：</p>
+<ul>
+<li>$q_j$：第 $j$ 个模型在验证集上的 F1 质量分数；</li>
+<li>$S_{JJ}$：候选子集的相似度子矩阵；</li>
+<li>$\lambda$：质量与多样性的平衡系数；</li>
+<li>$\eta I$：保证矩阵正定和 log-det 数值稳定的正则项；</li>
+<li>$k$：最终参与集成的模型数。</li>
+</ul>
+<p>第一项偏好单模型效果好，第二项偏好模型之间差异大。</p>
+<h3 id="6-2-贪心求解"><a href="#6-2-贪心求解" class="headerlink" title="6.2 贪心求解"></a>6.2 贪心求解</h3><p>精确搜索 $k$ 个模型需要枚举组合，成本很高。论文采用 Greedy DPP：</p>
+<ol>
+<li>用质量最高的模型初始化集合 $J$；</li>
+<li>对每个尚未选择的模型，计算加入后的目标增益；</li>
+<li>加入增益最大的模型；</li>
+<li>重复直到 $|J|&#x3D;k$。</li>
+</ol>
+<p>利用模型嵌入 $L_j$，其选择目标可写为：</p>
+<p>$$<br>\max_{J:|J|&#x3D;k}<br>\left[<br>\sum_{j\in J}q_j<br>+<br>\lambda\log\det<br>\left(<br>\sum_{j\in J}L_jL_j^\top+\eta I<br>\right)<br>\right].<br>$$</p>
+<p>论文指出，该目标具有单调子模性质，贪心算法可获得 $1-1&#x2F;e$ 的近似保证。</p>
+<h2 id="7-完整训练流程"><a href="#7-完整训练流程" class="headerlink" title="7. 完整训练流程"></a>7. 完整训练流程</h2><p>PEMBOT 可以整理为以下流程：</p>
+<ol>
+<li>准备共享特征和 $M$ 个二分类标签；</li>
+<li>采样 $N_\alpha$ 组位于概率单纯形上的任务权重；</li>
+<li>对每组权重训练联合损失 GBT，得到共享 Pareto 驻点模型；</li>
+<li>从每个共享模型出发，为每个任务追加专属 boosting 轮次；</li>
+<li>根据树中分裂特征的 log information gain 构造模型向量；</li>
+<li>使用 SVD 将模型表示压缩到 128 维；</li>
+<li>用验证集 F1 作为质量分数，通过 Greedy DPP 选择 $k$ 个模型；</li>
+<li>对所选模型的任务输出进行集成，得到最终预测。</li>
+</ol>
+<p>论文给出的经验配置是：</p>
+<ul>
+<li>$N_\alpha\approx30\times N_{\text{tasks}}$；</li>
+<li>最终模型数约为 $N_\alpha$ 的 10%；</li>
+<li>电商实验中约训练 100 个候选模型，最终选 10 个；</li>
+<li>XGBoost 最大深度在 7 到 15 之间随机采样；</li>
+<li>学习率为 0.07；</li>
+<li>模型嵌入维度为 128；</li>
+<li>每组实验重复 10 次并报告均值。</li>
+</ul>
+<h2 id="8-实验一：电商损失预防"><a href="#8-实验一：电商损失预防" class="headerlink" title="8. 实验一：电商损失预防"></a>8. 实验一：电商损失预防</h2><h3 id="8-1-数据与评估"><a href="#8-1-数据与评估" class="headerlink" title="8.1 数据与评估"></a>8.1 数据与评估</h3><p>数据包含三类运营损失任务，论文以 <code>op_loss1</code>、<code>op_loss2</code> 和 <code>op_loss3</code> 匿名表示。每个订单有 187 个商品、物流和用户历史聚合特征，三类损失的合计发生率低于 5%。</p>
+<p>训练集采用分层采样：保留全部损失订单，并抽取 10% 正常履约订单；测试集来自未来时间段。对比模型包括：</p>
+<ul>
+<li>XGBoost</li>
+<li>LightGBM</li>
+<li>GATE</li>
+<li>ResNet</li>
+<li>SAINT</li>
+<li>TabNet</li>
+<li>TabTransformer</li>
+<li>FT-Transformer</li>
+</ul>
+<p>由于业务只干预风险最高的 5% 订单，论文除 AUC-PR 和 AUC-ROC 外，还重点考察 top 5% 风险订单覆盖的金额召回率（Value Recall）。</p>
+<h3 id="8-2-AUC-PR"><a href="#8-2-AUC-PR" class="headerlink" title="8.2 AUC-PR"></a>8.2 AUC-PR</h3><table>
+<thead>
+<tr>
+<th>任务</th>
+<th align="right">PEMBOT</th>
+<th align="right">XGBoost</th>
+<th align="right">LightGBM</th>
+<th align="right">最强基线</th>
+<th align="center">PEMBOT 是否最佳</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>op_loss1</td>
+<td align="right"><strong>16.21%</strong></td>
+<td align="right">13.16%</td>
+<td align="right">10.30%</td>
+<td align="right">SAINT：14.46%</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td>op_loss2</td>
+<td align="right"><strong>17.25%</strong></td>
+<td align="right">14.11%</td>
+<td align="right">12.50%</td>
+<td align="right">SAINT：14.71%</td>
+<td align="center">是</td>
+</tr>
+<tr>
+<td>op_loss3</td>
+<td align="right"><strong>35.58%</strong></td>
+<td align="right">32.86%</td>
+<td align="right">31.70%</td>
+<td align="right">SAINT：33.52%</td>
+<td align="center">是</td>
+</tr>
+</tbody></table>
+<h3 id="8-3-Top-5-Value-Recall"><a href="#8-3-Top-5-Value-Recall" class="headerlink" title="8.3 Top 5% Value Recall"></a>8.3 Top 5% Value Recall</h3><table>
+<thead>
+<tr>
+<th>任务</th>
+<th align="right">PEMBOT</th>
+<th align="right">XGBoost</th>
+<th align="right">LightGBM</th>
+<th align="right">最强基线</th>
+<th align="right">相对最强基线提升</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>op_loss1</td>
+<td align="right"><strong>23.30%</strong></td>
+<td align="right">20.12%</td>
+<td align="right">20.52%</td>
+<td align="right">GATE：22.47%</td>
+<td align="right">3.7%</td>
+</tr>
+<tr>
+<td>op_loss2</td>
+<td align="right"><strong>40.00%</strong></td>
+<td align="right">31.30%</td>
+<td align="right">29.05%</td>
+<td align="right">TabNet：37.31%</td>
+<td align="right">7.2%</td>
+</tr>
+<tr>
+<td>op_loss3</td>
+<td align="right"><strong>57.75%</strong></td>
+<td align="right">55.52%</td>
+<td align="right">37.73%</td>
+<td align="right">XGBoost：55.52%</td>
+<td align="right">4.0%</td>
+</tr>
+</tbody></table>
+<p>若以 XGBoost 为参照，<code>op_loss2</code> 的 Value Recall 从 31.30% 提升到 40.00%，相对提升约 27.8%。论文将这一显著增益归因于：发生率最低的任务能通过共享树干借用其他任务的标签协同信息。</p>
+<h3 id="8-4-消融实验"><a href="#8-4-消融实验" class="headerlink" title="8.4 消融实验"></a>8.4 消融实验</h3><p>固定 $k&#x3D;10$ 时，三种选择方式的结果如下：</p>
+<table>
+<thead>
+<tr>
+<th>选择方式</th>
+<th align="right">op_loss1</th>
+<th align="right">op_loss2</th>
+<th align="right">op_loss3</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>随机选择普通 GBT</td>
+<td align="right">1.16%</td>
+<td align="right">32.66%</td>
+<td align="right">56.10%</td>
+</tr>
+<tr>
+<td>随机选择 Pareto 模型</td>
+<td align="right">22.32%</td>
+<td align="right">37.49%</td>
+<td align="right">57.14%</td>
+</tr>
+<tr>
+<td>Greedy DPP 选择 Pareto 模型</td>
+<td align="right"><strong>23.30%</strong></td>
+<td align="right"><strong>40.00%</strong></td>
+<td align="right"><strong>57.75%</strong></td>
+</tr>
+</tbody></table>
+<p>结果支持两个结论：</p>
+<ol>
+<li>Pareto 多任务训练本身比普通随机 GBT 更有效；</li>
+<li>在 Pareto 候选模型中，DPP 比随机抽取更有效。</li>
+</ol>
+<p>随着 $k$ 从 1 增加到 8，三个任务的召回率持续上升；$k\ge8$ 后收益趋于饱和。因此，保留约 10 个模型是效果与延迟之间较合理的平衡点。</p>
+<h3 id="8-5-在线性能与业务效果"><a href="#8-5-在线性能与业务效果" class="headerlink" title="8.5 在线性能与业务效果"></a>8.5 在线性能与业务效果</h3><p>平均单订单推理延迟如下：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th align="right">延迟</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>LightGBM</td>
+<td align="right">0.01 ms</td>
+</tr>
+<tr>
+<td>XGBoost</td>
+<td align="right">0.02 ms</td>
+</tr>
+<tr>
+<td>PEMBOT</td>
+<td align="right">0.7 ms</td>
+</tr>
+<tr>
+<td>SAINT</td>
+<td align="right">17.6 ms</td>
+</tr>
+<tr>
+<td>TabTransformer</td>
+<td align="right">21.2 ms</td>
+</tr>
+<tr>
+<td>FT-Transformer</td>
+<td align="right">21.31 ms</td>
+</tr>
+<tr>
+<td>TabNet</td>
+<td align="right">56.8 ms</td>
+</tr>
+</tbody></table>
+<p>尽管 PEMBOT 比单个 XGBoost 慢，但仍低于 1 ms，并明显快于所比较的深度学习模型。论文称该模型已部署于一个新兴电商市场，每天处理数百万订单，相比旧 GBT 系统额外避免了相当于收入 <strong>5 个基点</strong>的运营损失，并产生数百万美元成本节约。</p>
+<p>需要注意，树模型与深度模型的延迟测试硬件不同：前者使用 64 核 vCPU，后者使用 NVIDIA T4 GPU 实例，因此该表更适合说明工程可用性，而不是进行严格的同硬件速度排名。</p>
+<h2 id="9-实验二：葡萄酒质量预测"><a href="#9-实验二：葡萄酒质量预测" class="headerlink" title="9. 实验二：葡萄酒质量预测"></a>9. 实验二：葡萄酒质量预测</h2><p>论文将 UCI 红、白葡萄酒数据合并，共得到 6,492 条样本和 11 个理化特征。质量等级 9 只有 5 条样本，因此被移除；其余质量等级 3 至 8 被拆成 6 个二分类任务，训练集与测试集按 80%&#x2F;20% 划分。</p>
+<table>
+<thead>
+<tr>
+<th>质量等级</th>
+<th align="right">PEMBOT</th>
+<th align="right">XGBoost</th>
+<th align="right">LightGBM</th>
+<th align="right">最强基线</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>3</td>
+<td align="right">10.01%</td>
+<td align="right">8.05%</td>
+<td align="right">8.48%</td>
+<td align="right"><strong>FT-Transformer：13.66%</strong></td>
+</tr>
+<tr>
+<td>4</td>
+<td align="right"><strong>28.45%</strong></td>
+<td align="right">24.49%</td>
+<td align="right">25.56%</td>
+<td align="right">LightGBM：25.56%</td>
+</tr>
+<tr>
+<td>5</td>
+<td align="right"><strong>76.56%</strong></td>
+<td align="right">75.67%</td>
+<td align="right">74.81%</td>
+<td align="right">XGBoost：75.67%</td>
+</tr>
+<tr>
+<td>6</td>
+<td align="right"><strong>75.61%</strong></td>
+<td align="right">73.24%</td>
+<td align="right">73.35%</td>
+<td align="right">LightGBM：73.35%</td>
+</tr>
+<tr>
+<td>7</td>
+<td align="right"><strong>66.66%</strong></td>
+<td align="right">62.27%</td>
+<td align="right">64.30%</td>
+<td align="right">LightGBM：64.30%</td>
+</tr>
+<tr>
+<td>8</td>
+<td align="right"><strong>48.81%</strong></td>
+<td align="right">40.30%</td>
+<td align="right">45.15%</td>
+<td align="right">LightGBM：45.15%</td>
+</tr>
+</tbody></table>
+<p>除质量等级 3 外，PEMBOT 在其余任务上的 AUC-PR 均为最高。质量等级 4 和 8 等少数类上的增益更明显，再次体现了跨任务共享对稀缺标签的帮助。但质量等级 3 只有 30 条样本，结果方差和划分敏感性都可能较大，不宜仅凭单个均值做过强结论。</p>
+<h2 id="10-方法优势"><a href="#10-方法优势" class="headerlink" title="10. 方法优势"></a>10. 方法优势</h2><h3 id="10-1-适合表格多任务问题"><a href="#10-1-适合表格多任务问题" class="headerlink" title="10.1 适合表格多任务问题"></a>10.1 适合表格多任务问题</h3><p>PEMBOT 保留了 GBT 对异构表格特征、非线性关系和类别特征交互的建模能力，同时引入多任务共享机制。</p>
+<h3 id="10-2-不依赖唯一的任务权重"><a href="#10-2-不依赖唯一的任务权重" class="headerlink" title="10.2 不依赖唯一的任务权重"></a>10.2 不依赖唯一的任务权重</h3><p>它并未声称权重不再存在，而是通过采样多组权重、覆盖多种任务权衡并最终集成，降低了对某一组手工权重的依赖。</p>
+<h3 id="10-3-对少数任务更友好"><a href="#10-3-对少数任务更友好" class="headerlink" title="10.3 对少数任务更友好"></a>10.3 对少数任务更友好</h3><p>共享树干能从数据更充足的相关任务中迁移有效模式。在论文两个数据集上，收益都更集中于标签稀少或类别不平衡较严重的任务。</p>
+<h3 id="10-4-质量、多样性与延迟统一优化"><a href="#10-4-质量、多样性与延迟统一优化" class="headerlink" title="10.4 质量、多样性与延迟统一优化"></a>10.4 质量、多样性与延迟统一优化</h3><p>全量 Pareto 集成提高稳健性，DPP 则将其压缩成小规模但互补的模型子集，使在线推理成为可能。</p>
+<h2 id="11-局限与思考"><a href="#11-局限与思考" class="headerlink" title="11. 局限与思考"></a>11. 局限与思考</h2><h3 id="11-1-训练成本较高"><a href="#11-1-训练成本较高" class="headerlink" title="11.1 训练成本较高"></a>11.1 训练成本较高</h3><p>PEMBOT 需要为多组 $\boldsymbol{\alpha}$ 训练共享模型，并为每个任务追加专属 boosting。其训练成本大致随候选权重数和任务数增长，只是这些训练过程具有较强的并行性。</p>
+<h3 id="11-2-线性标量化不能覆盖所有-Pareto-前沿"><a href="#11-2-线性标量化不能覆盖所有-Pareto-前沿" class="headerlink" title="11.2 线性标量化不能覆盖所有 Pareto 前沿"></a>11.2 线性标量化不能覆盖所有 Pareto 前沿</h3><p>当 Pareto 前沿非凸时，简单的加权和通常无法覆盖全部 Pareto 解。因此“随机采样权重即可代表整个 Pareto 前沿”是一种工程近似，而不是严格保证。</p>
+<h3 id="11-3-Pareto-驻点不等于全局-Pareto-最优"><a href="#11-3-Pareto-驻点不等于全局-Pareto-最优" class="headerlink" title="11.3 Pareto 驻点不等于全局 Pareto 最优"></a>11.3 Pareto 驻点不等于全局 Pareto 最优</h3><p>GBT 训练是非凸过程，收敛到加权损失的局部稳定点，并不能证明得到全局互不支配解。论文在表述上将 Pareto 驻点和 Pareto 最优模型交替使用，阅读时应注意这一差别。</p>
+<h3 id="11-4-多样性表示仍是启发式设计"><a href="#11-4-多样性表示仍是启发式设计" class="headerlink" title="11.4 多样性表示仍是启发式设计"></a>11.4 多样性表示仍是启发式设计</h3><p>用分裂特征及 information gain 描述模型结构简单高效，但结构不同不一定意味着预测误差互补。可进一步比较：</p>
+<ul>
+<li>验证集预测向量的相关性；</li>
+<li>样本级错误分歧；</li>
+<li>叶节点路径嵌入；</li>
+<li>结构多样性与预测多样性的联合表示。</li>
+</ul>
+<h3 id="11-5-质量分数与最终指标可能不一致"><a href="#11-5-质量分数与最终指标可能不一致" class="headerlink" title="11.5 质量分数与最终指标可能不一致"></a>11.5 质量分数与最终指标可能不一致</h3><p>DPP 中使用 F1 作为 $q_j$，而电商核心指标是 top 5% Value Recall。若业务目标明确，直接用业务指标或多指标组合定义质量分数，可能更一致。</p>
+<h3 id="11-6-实验仍有扩展空间"><a href="#11-6-实验仍有扩展空间" class="headerlink" title="11.6 实验仍有扩展空间"></a>11.6 实验仍有扩展空间</h3><p>论文只使用一个内部数据集和一个规模较小的公开数据集。若要进一步验证方法的普适性，还需要更多多标签、多任务表格基准，以及训练成本、权重采样策略、任务相关性和统计显著性的系统实验。</p>
+<h2 id="12-复现时的关键问题"><a href="#12-复现时的关键问题" class="headerlink" title="12. 复现时的关键问题"></a>12. 复现时的关键问题</h2><p>论文给出了总体框架，但完整复现仍需自行确定若干细节：</p>
+<ul>
+<li>$\boldsymbol{\alpha}$ 的具体采样分布是否为均匀 Dirichlet；</li>
+<li>共享 boosting 与任务专属 boosting 的轮数及早停方式；</li>
+<li>不同任务样本如何拼接、采样和归一化损失；</li>
+<li>DPP 中 $\lambda$、$\eta$ 的取值及调参范围；</li>
+<li>多任务的 F1 如何合并成单个模型质量分数；</li>
+<li>最终集成使用概率均值、得分求和还是校准后的加权平均；</li>
+<li>SVD 是仅在训练候选模型上拟合，还是包含验证阶段信息。</li>
+</ul>
+<p>一个较稳妥的工程实现应当：</p>
+<ol>
+<li>在训练集上训练候选模型；</li>
+<li>在独立验证集上计算 $q_j$ 和预测多样性；</li>
+<li>仅用验证信息选择 DPP 子集与阈值；</li>
+<li>在完全隔离的测试集上报告最终结果；</li>
+<li>对不同随机种子重复实验，并报告均值和置信区间。</li>
+</ol>
+<h2 id="13-总结"><a href="#13-总结" class="headerlink" title="13. 总结"></a>13. 总结</h2><p>PEMBOT 将三个成熟思想组合成了一个实用的表格多任务框架：</p>
+<ul>
+<li>用多任务加权 GBT 学习共享结构；</li>
+<li>用多组权重近似采样 Pareto 前沿；</li>
+<li>用任务专属 boosting 补充个性化能力；</li>
+<li>用 Greedy DPP 选择高质量且多样的模型；</li>
+<li>用小规模集成兼顾精度和在线延迟。</li>
+</ul>
+<p>它最值得借鉴的并非某一个全新的基础算法，而是完整的工程化组合：面对无法用单一权重定义“最佳模型”的多任务问题，保留多种合理权衡，再通过质量与多样性约束完成压缩和集成。对于标签相关、类别不平衡且要求低延迟的表格预测任务，这是一条很有参考价值的技术路线。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li>Swamy, G., Saladi, A., Das, A., &amp; Niranjan, S. (2024). <em>PEMBOT: Pareto-Ensembled Multi-task Boosted Trees</em>. KDD 2024. <a target="_blank" rel="noopener" href="https://doi.org/10.1145/3637528.3671619">https://doi.org/10.1145/3637528.3671619</a></li>
+<li>Sener, O., &amp; Koltun, V. (2018). <em>Multi-Task Learning as Multi-Objective Optimization</em>.</li>
+<li>Lin, X., et al. (2019). <em>Pareto Multi-Task Learning</em>.</li>
+<li>Chen, L., Zhang, G., &amp; Zhou, H. (2018). <em>Fast Greedy MAP Inference for Determinantal Point Process to Improve Recommendation Diversity</em>.</li>
+<li>Chen, T., &amp; Guestrin, C. (2016). <em>XGBoost: A Scalable Tree Boosting System</em>.</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+      <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%A4%9A%E4%BB%BB%E5%8A%A1%E5%AD%A6%E4%B9%A0/" rel="tag"># 多任务学习</a>
+              <a href="/tags/%E6%A2%AF%E5%BA%A6%E6%8F%90%E5%8D%87%E6%A0%91/" rel="tag"># 梯度提升树</a>
+              <a href="/tags/%E5%A4%9A%E7%9B%AE%E6%A0%87%E4%BC%98%E5%8C%96/" rel="tag"># 多目标优化</a>
+              <a href="/tags/Pareto-%E6%9C%80%E4%BC%98/" rel="tag"># Pareto 最优</a>
+              <a href="/tags/DPP/" rel="tag"># DPP</a>
+          </div>
+
+        
+
+
+        
+    <div class="post-nav">
+      <div class="post-nav-item">
+    <a href="/2026/08/05/%E5%9F%BA%E4%BA%8E%E5%8F%8C%E8%BE%B9%E4%BA%BA%E5%B2%97%E5%8C%B9%E9%85%8D%E5%9C%BA%E6%99%AF%E4%B8%8B%E7%9A%84%E5%87%86%E5%BA%A6%E9%87%8F%E5%AD%A6%E4%B9%A0/" rel="prev" title="基于双边人岗匹配场景下的准度量学习">
+      <i class="fa fa-chevron-left"></i> 基于双边人岗匹配场景下的准度量学习
+    </a></div>
+      <div class="post-nav-item"></div>
+    </div>
+      </footer>
+    
+  </article>
+  
+  
+  
+
+
+
+          </div>
+          
+
+<script>
+  window.addEventListener('tabs:register', () => {
+    let { activeClass } = CONFIG.comments;
+    if (CONFIG.comments.storage) {
+      activeClass = localStorage.getItem('comments_active') || activeClass;
+    }
+    if (activeClass) {
+      let activeTab = document.querySelector(`a[href="#comment-${activeClass}"]`);
+      if (activeTab) {
+        activeTab.click();
+      }
+    }
+  });
+  if (CONFIG.comments.storage) {
+    window.addEventListener('tabs:click', event => {
+      if (!event.target.matches('.tabs-comment .tab-content .tab-pane')) return;
+      let commentClass = event.target.classList[1];
+      localStorage.setItem('comments_active', commentClass);
+    });
+  }
+</script>
+
+        </div>
+          
+  
+  <div class="toggle sidebar-toggle">
+    <span class="toggle-line toggle-line-first"></span>
+    <span class="toggle-line toggle-line-middle"></span>
+    <span class="toggle-line toggle-line-last"></span>
+  </div>
+
+  <aside class="sidebar">
+    <div class="sidebar-inner">
+
+      <ul class="sidebar-nav motion-element">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <!--noindex-->
+      <div class="post-toc-wrap sidebar-panel">
+          <div class="post-toc motion-element"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%AE%BA%E6%96%87%E4%BF%A1%E6%81%AF"><span class="nav-number">1.</span> <span class="nav-text">1. 论文信息</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%9C%80%E8%A6%81-PEMBOT"><span class="nav-number">2.</span> <span class="nav-text">2. 为什么需要 PEMBOT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Pareto-%E6%9C%80%E4%BC%98%E5%9F%BA%E7%A1%80"><span class="nav-number">3.</span> <span class="nav-text">3. Pareto 最优基础</span></a></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#min-theta-mathbf-F-theta"><span class="nav-number"></span> <span class="nav-text">$$\min_{\theta}\ \mathbf{F}(\theta)</span></a></li><li class="nav-item nav-level-1"><a class="nav-link" href="#F-i-theta"><span class="nav-number"></span> <span class="nav-text">$$F_i(\theta)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#4-PEMBOT-%E6%96%B9%E6%B3%95"><span class="nav-number">1.</span> <span class="nav-text">4. PEMBOT 方法</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E5%85%B1%E4%BA%AB-GBT"><span class="nav-number">1.1.</span> <span class="nav-text">4.1 多任务共享 GBT</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#nabla-F-theta"><span class="nav-number"></span> <span class="nav-text">$$\nabla F(\theta)</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%85%B1%E4%BA%AB%E6%A0%91%E5%B9%B2%E4%B8%8E%E4%BB%BB%E5%8A%A1%E4%B8%93%E5%B1%9E%E5%88%86%E6%94%AF"><span class="nav-number">0.1.</span> <span class="nav-text">4.2 共享树干与任务专属分支</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E9%87%87%E6%A0%B7-Pareto-%E5%89%8D%E6%B2%BF"><span class="nav-number">0.2.</span> <span class="nav-text">4.3 采样 Pareto 前沿</span></a></li></ol></li></ol></li><li class="nav-item nav-level-1"><a class="nav-link" href="#operatorname-pred-i-x"><span class="nav-number"></span> <span class="nav-text">$$\operatorname{pred}_i(x)</span></a><ol class="nav-child"><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%A6%82%E4%BD%95%E8%A1%A8%E7%A4%BA%E4%B8%80%E6%A3%B5-GBT"><span class="nav-number">1.</span> <span class="nav-text">5. 如何表示一棵 GBT</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-Greedy-DPP%EF%BC%9A%E5%85%BC%E9%A1%BE%E8%B4%A8%E9%87%8F%E4%B8%8E%E5%A4%9A%E6%A0%B7%E6%80%A7"><span class="nav-number">2.</span> <span class="nav-text">6. Greedy DPP：兼顾质量与多样性</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-DPP-%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">2.1.</span> <span class="nav-text">6.1 DPP 的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E8%B4%AA%E5%BF%83%E6%B1%82%E8%A7%A3"><span class="nav-number">2.2.</span> <span class="nav-text">6.2 贪心求解</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%AE%8C%E6%95%B4%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B"><span class="nav-number">3.</span> <span class="nav-text">7. 完整训练流程</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%AE%9E%E9%AA%8C%E4%B8%80%EF%BC%9A%E7%94%B5%E5%95%86%E6%8D%9F%E5%A4%B1%E9%A2%84%E9%98%B2"><span class="nav-number">4.</span> <span class="nav-text">8. 实验一：电商损失预防</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E6%95%B0%E6%8D%AE%E4%B8%8E%E8%AF%84%E4%BC%B0"><span class="nav-number">4.1.</span> <span class="nav-text">8.1 数据与评估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-AUC-PR"><span class="nav-number">4.2.</span> <span class="nav-text">8.2 AUC-PR</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-Top-5-Value-Recall"><span class="nav-number">4.3.</span> <span class="nav-text">8.3 Top 5% Value Recall</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-4-%E6%B6%88%E8%9E%8D%E5%AE%9E%E9%AA%8C"><span class="nav-number">4.4.</span> <span class="nav-text">8.4 消融实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-5-%E5%9C%A8%E7%BA%BF%E6%80%A7%E8%83%BD%E4%B8%8E%E4%B8%9A%E5%8A%A1%E6%95%88%E6%9E%9C"><span class="nav-number">4.5.</span> <span class="nav-text">8.5 在线性能与业务效果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E5%AE%9E%E9%AA%8C%E4%BA%8C%EF%BC%9A%E8%91%A1%E8%90%84%E9%85%92%E8%B4%A8%E9%87%8F%E9%A2%84%E6%B5%8B"><span class="nav-number">5.</span> <span class="nav-text">9. 实验二：葡萄酒质量预测</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E6%96%B9%E6%B3%95%E4%BC%98%E5%8A%BF"><span class="nav-number">6.</span> <span class="nav-text">10. 方法优势</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#10-1-%E9%80%82%E5%90%88%E8%A1%A8%E6%A0%BC%E5%A4%9A%E4%BB%BB%E5%8A%A1%E9%97%AE%E9%A2%98"><span class="nav-number">6.1.</span> <span class="nav-text">10.1 适合表格多任务问题</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-2-%E4%B8%8D%E4%BE%9D%E8%B5%96%E5%94%AF%E4%B8%80%E7%9A%84%E4%BB%BB%E5%8A%A1%E6%9D%83%E9%87%8D"><span class="nav-number">6.2.</span> <span class="nav-text">10.2 不依赖唯一的任务权重</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-3-%E5%AF%B9%E5%B0%91%E6%95%B0%E4%BB%BB%E5%8A%A1%E6%9B%B4%E5%8F%8B%E5%A5%BD"><span class="nav-number">6.3.</span> <span class="nav-text">10.3 对少数任务更友好</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-4-%E8%B4%A8%E9%87%8F%E3%80%81%E5%A4%9A%E6%A0%B7%E6%80%A7%E4%B8%8E%E5%BB%B6%E8%BF%9F%E7%BB%9F%E4%B8%80%E4%BC%98%E5%8C%96"><span class="nav-number">6.4.</span> <span class="nav-text">10.4 质量、多样性与延迟统一优化</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%B1%80%E9%99%90%E4%B8%8E%E6%80%9D%E8%80%83"><span class="nav-number">7.</span> <span class="nav-text">11. 局限与思考</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#11-1-%E8%AE%AD%E7%BB%83%E6%88%90%E6%9C%AC%E8%BE%83%E9%AB%98"><span class="nav-number">7.1.</span> <span class="nav-text">11.1 训练成本较高</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-2-%E7%BA%BF%E6%80%A7%E6%A0%87%E9%87%8F%E5%8C%96%E4%B8%8D%E8%83%BD%E8%A6%86%E7%9B%96%E6%89%80%E6%9C%89-Pareto-%E5%89%8D%E6%B2%BF"><span class="nav-number">7.2.</span> <span class="nav-text">11.2 线性标量化不能覆盖所有 Pareto 前沿</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-3-Pareto-%E9%A9%BB%E7%82%B9%E4%B8%8D%E7%AD%89%E4%BA%8E%E5%85%A8%E5%B1%80-Pareto-%E6%9C%80%E4%BC%98"><span class="nav-number">7.3.</span> <span class="nav-text">11.3 Pareto 驻点不等于全局 Pareto 最优</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-4-%E5%A4%9A%E6%A0%B7%E6%80%A7%E8%A1%A8%E7%A4%BA%E4%BB%8D%E6%98%AF%E5%90%AF%E5%8F%91%E5%BC%8F%E8%AE%BE%E8%AE%A1"><span class="nav-number">7.4.</span> <span class="nav-text">11.4 多样性表示仍是启发式设计</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-5-%E8%B4%A8%E9%87%8F%E5%88%86%E6%95%B0%E4%B8%8E%E6%9C%80%E7%BB%88%E6%8C%87%E6%A0%87%E5%8F%AF%E8%83%BD%E4%B8%8D%E4%B8%80%E8%87%B4"><span class="nav-number">7.5.</span> <span class="nav-text">11.5 质量分数与最终指标可能不一致</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#11-6-%E5%AE%9E%E9%AA%8C%E4%BB%8D%E6%9C%89%E6%89%A9%E5%B1%95%E7%A9%BA%E9%97%B4"><span class="nav-number">7.6.</span> <span class="nav-text">11.6 实验仍有扩展空间</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#12-%E5%A4%8D%E7%8E%B0%E6%97%B6%E7%9A%84%E5%85%B3%E9%94%AE%E9%97%AE%E9%A2%98"><span class="nav-number">8.</span> <span class="nav-text">12. 复现时的关键问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#13-%E6%80%BB%E7%BB%93"><span class="nav-number">9.</span> <span class="nav-text">13. 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">10.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+      </div>
+      <!--/noindex-->
+
+      <div class="site-overview-wrap sidebar-panel">
+        <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description"></div>
+</div>
+<div class="site-state-wrap motion-element">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+          <a href="/archives/">
+        
+          <span class="site-state-item-count">20</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+            <a href="/categories/">
+          
+        <span class="site-state-item-count">1</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+            <a href="/tags/">
+          
+        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+
+
+      </div>
+
+    </div>
+  </aside>
+  <div id="sidebar-dimmer"></div>
+
+
+      </div>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">
+        
+
+        
+
+<div class="copyright">
+  
+  &copy; 
+  <span itemprop="copyrightYear">2026</span>
+  <span class="with-love">
+    <i class="fa fa-heart"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">wdy</span>
+</div>
+  <div class="powered-by">由 <a href="https://hexo.io/" class="theme-link" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.org/" class="theme-link" rel="noopener" target="_blank">NexT.Gemini</a> 强力驱动
+  </div>
+
+        
+
+
+
+
+
+
+
+
+      </div>
+    </footer>
+  </div>
+
+  
+  <script color='' opacity='' zIndex='' count='' src="/lib/canvas-nest/canvas-nest-nomobile.min.js"></script>
+  <script src="/lib/anime.min.js"></script>
+  <script src="/lib/velocity/velocity.min.js"></script>
+  <script src="/lib/velocity/velocity.ui.min.js"></script>
+
+<script src="/js/utils.js"></script>
+
+<script src="/js/motion.js"></script>
+
+
+<script src="/js/schemes/pisces.js"></script>
+
+
+<script src="/js/next-boot.js"></script>
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+<script>
+document.querySelectorAll('.pdfobject-container').forEach(element => {
+  let url = element.dataset.target;
+  let pdfOpenParams = {
+    navpanes : 0,
+    toolbar  : 0,
+    statusbar: 0,
+    pagemode : 'thumbs',
+    view     : 'FitH'
+  };
+  let pdfOpenFragment = '#' + Object.entries(pdfOpenParams).map(([key, value]) => `${key}=${encodeURIComponent(value)}`).join('&');
+  let fullURL = `/lib/pdf/web/viewer.html?file=${encodeURIComponent(url)}${pdfOpenFragment}`;
+
+  if (NexT.utils.supportsPDFs()) {
+    element.innerHTML = `<embed class="pdfobject" src="${url + pdfOpenFragment}" type="application/pdf" style="height: ${element.dataset.height};">`;
+  } else {
+    element.innerHTML = `<iframe src="${fullURL}" style="height: ${element.dataset.height};" frameborder="0"></iframe>`;
+  }
+});
+</script>
+
+
+
+
+  
+
+  
+      
+
+<script>
+  if (typeof MathJax === 'undefined') {
+    window.MathJax = {
+      loader: {
+        source: {
+          '[tex]/amsCd': '[tex]/amscd',
+          '[tex]/AMScd': '[tex]/amscd'
+        }
+      },
+      tex: {
+        inlineMath: {'[+]': [['$', '$']]},
+        tags: 'ams'
+      },
+      options: {
+        renderActions: {
+          findScript: [10, doc => {
+            document.querySelectorAll('script[type^="math/tex"]').forEach(node => {
+              const display = !!node.type.match(/; *mode=display/);
+              const math = new doc.options.MathItem(node.textContent, doc.inputJax[0], display);
+              const text = document.createTextNode('');
+              node.parentNode.replaceChild(text, node);
+              math.start = {node: text, delim: '', n: 0};
+              math.end = {node: text, delim: '', n: 0};
+              doc.math.push(math);
+            });
+          }, '', false],
+          insertedScript: [200, () => {
+            document.querySelectorAll('mjx-container').forEach(node => {
+              let target = node.parentNode;
+              if (target.nodeName.toLowerCase() === 'li') {
+                target.parentNode.classList.add('has-jax');
+              }
+            });
+          }, '', false]
+        }
+      }
+    };
+    (function () {
+      var script = document.createElement('script');
+      script.src = '//cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js';
+      script.defer = true;
+      document.head.appendChild(script);
+    })();
+  } else {
+    MathJax.startup.document.state(0);
+    MathJax.texReset();
+    MathJax.typeset();
+  }
+</script>
+
+    
+
+  
+
+</body>
+</html>
