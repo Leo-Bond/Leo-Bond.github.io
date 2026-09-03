@@ -696,9 +696,24 @@ $$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det \left( \sum_{j\in J}L
                 <i class="far fa-calendar"></i>
               </span>
               <span class="post-meta-item-text">发表于</span>
-              
 
-              <time title="创建时间：2026-08-05 15:45:53 / 修改时间：20:51:15" itemprop="dateCreated datePublished" datetime="2026-08-05T15:45:53+08:00">2026-08-05</time>
+              <time title="创建时间：2026-08-05 15:45:53" itemprop="dateCreated datePublished" datetime="2026-08-05T15:45:53+08:00">2026-08-05</time>
+            </span>
+              <span class="post-meta-item">
+                <span class="post-meta-item-icon">
+                  <i class="far fa-calendar-check"></i>
+                </span>
+                <span class="post-meta-item-text">更新于</span>
+                <time title="修改时间：2026-09-03 16:45:48" itemprop="dateModified" datetime="2026-09-03T16:45:48+08:00">2026-09-03</time>
+              </span>
+            <span class="post-meta-item">
+              <span class="post-meta-item-icon">
+                <i class="far fa-folder"></i>
+              </span>
+              <span class="post-meta-item-text">分类于</span>
+                <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+                  <a href="/categories/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" itemprop="url" rel="index"><span itemprop="name">论文阅读</span></a>
+                </span>
             </span>
 
           
@@ -712,15 +727,382 @@ $$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det \left( \sum_{j\in J}L
     <div class="post-body" itemprop="articleBody">
 
       
-          <p>招聘场景中的用户相比其他应用场景更倾向于偏好”相似物品”。因此，捕捉候选人和岗位之间的细粒度相似性对于改进双向人岗匹配至关重要。</p>
-<p>度量学习技术为建模候选人和岗位之间的这种细粒度相似性提供了一种有前景的方法，可以捕捉其交互背后的相似性传播[3]-[8]。如图1(a)所示，度量空间的三角不等式公理d(A, B) ≤ d(A, C) + d(C, B)会将两个实体（如A和B）拉近，如果它们与一个共同实体（如C）相似，从而促进实体之间的细粒度相似性传播。这种相似性传播无法被现有的内积或多层感知机(MLP)方法很好地捕捉[3], [9]，因为它们违反了三角不等式公理</p>
-<p>首先，双向人岗匹配本质上是一个双向选择过程[10]。现有度量学习方法依赖用户之间的对称距离d(·, ·)（即d(c, j) &#x3D; d(j, c)），因此无法建模候选人和雇主之间的非对称关系用于双向人岗匹配。例如，候选人c申请了岗位j但可能被雇主拒绝，表明其关系的非对称性。其次，在度量空间中移除对称性公理在机器学习领域尚未得到充分探索，这使得建模与双向人岗匹配场景无缝对齐的非对称关系具有挑战性。</p>
-<p>此外，候选人和岗位之间的双向交互天然具有关系多样性[11]，导致他们之间在不同类型交互中存在不同的相互影响。社会心理学的证据表明，正面反馈增加人们追求目标的信心，而负面反馈削弱他们追求目标的信心和对成功的期望[12]。具体而言，图1(b)描绘了在线招聘中候选人和岗位之间的双向关系图，其中候选人c₁和c₂虽然偏好相似，但申请了岗位j₁并收到不同的反馈（如拒绝和接受）。这可能进一步影响候选人的行为，例如，候选人c₂相比c₁更有可能申请高级岗位j₂，因为c₂更有信心被j₂接受。</p>
-<p>提出了带有非对称距离的准度量空间，来度量双方用户的偏好。一方面，我们利用准度量空间的三角不等式公理[3]来捕捉候选人和岗位之间的相似性传播。另一方面，我们利用非对称距离进行准度量学习，以建模用户双向选择过程。所提出的准度量空间经过充分考虑，针对在线招聘场景的相似性和竞争力规则进行设计，确保其在理论上与双向人岗匹配场景无缝对齐。</p>
-<p>本文的主要贡献总结如下：</p>
-<p>我们提出了带有非对称距离度量的准度量空间用于双向人岗匹配。据我们所知，这是首次在人岗匹配和推荐任务上探索准度量空间。我们还建立了两条招聘规则来构建准度量空间，使其在理论上与真实招聘场景良好对齐。<br>我们提出探索候选人和雇主之间的异质关系，使用关系感知图卷积网络，可以捕捉不同类型交互背后的相互影响。<br>我们在四个真实数据集上评估了模型，实验结果表明所提方法在双向用户上一致优于最先进的方法。消融实验和案例研究进一步验证了我们方法背后的动机。</p>
-<p>我们观察到在线招聘场景中的用户在类别间表现出更高的集中度，这意味着候选人更偏好具有相似类别的岗位。此外，在”IT测试”相关岗位的序列行为中，用户倾向于申请共享相似关键词的岗位，表明同一类别内用户也偏向相似岗位。因此，招聘场景中的用户相比其他推荐场景更倾向于偏好”相似物品”，这验证了我们捕捉候选人和岗位细粒度相似性的动机。</p>
+          <h2 id="1-论文信息"><a href="#1-论文信息" class="headerlink" title="1. 论文信息"></a>1. 论文信息</h2><ul>
+<li><strong>标题</strong>：Quasi-Metric Learning for Bilateral Person-Job Fit</li>
+<li><strong>作者</strong>：Yingpeng Du、Hongzhi Liu、Hengshu Zhu、Yang Song、Zhi Zheng、Zhonghai Wu</li>
+<li><strong>期刊</strong>：IEEE Transactions on Pattern Analysis and Machine Intelligence（TPAMI）</li>
+<li><strong>卷期</strong>：Vol. 47, No. 5, May 2025</li>
+<li><strong>DOI</strong>：<a target="_blank" rel="noopener" href="https://doi.org/10.1109/TPAMI.2025.3538774">10.1109&#x2F;TPAMI.2025.3538774</a></li>
+</ul>
+<p>论文提出面向双边人岗匹配的<strong>准度量学习</strong>（Quasi-Metric Learning，QML）框架，并进一步结合关系感知图卷积网络，形成完整模型 <strong>rGQML</strong>。</p>
+<p>核心思想是把人岗匹配拆成两个互补因素：</p>
+<ul>
+<li><strong>相似性</strong>：候选人的技能、经历和地点等是否与岗位要求匹配；</li>
+<li><strong>竞争力</strong>：候选人和岗位在招聘市场中的吸引力或竞争力是否对等。</li>
+</ul>
+<p>普通度量学习能够借助三角不等式传播相似性，却要求距离对称；双边招聘关系则天然不对称。论文因此引入不要求对称性的准度量，并通过异质关系图学习不同交互反馈对用户行为的影响。</p>
+<h2 id="2-问题背景"><a href="#2-问题背景" class="headerlink" title="2. 问题背景"></a>2. 问题背景</h2><h3 id="2-1-人岗匹配是双向选择"><a href="#2-1-人岗匹配是双向选择" class="headerlink" title="2.1 人岗匹配是双向选择"></a>2.1 人岗匹配是双向选择</h3><p>普通商品推荐主要预测“用户是否喜欢商品”，但招聘中的成功匹配需要同时满足：</p>
+<ol>
+<li>候选人愿意申请或接受岗位；</li>
+<li>雇主愿意联系或录用候选人。</li>
+</ol>
+<p>候选人喜欢某个岗位，并不意味着雇主同样认可该候选人。例如，候选人可能主动申请高薪岗位，但因经验不足而被拒绝。这意味着候选人到岗位、岗位到候选人的偏好不能由同一个对称分数完整表达。</p>
+<h3 id="2-2-招聘用户更偏好相似对象"><a href="#2-2-招聘用户更偏好相似对象" class="headerlink" title="2.2 招聘用户更偏好相似对象"></a>2.2 招聘用户更偏好相似对象</h3><p>论文比较了招聘、电影、电商和餐饮等推荐场景中的行为分布。招聘用户的行为在类别上更加集中；即使限定在同一职位类别内，用户也倾向于连续申请关键词相似的岗位。</p>
+<p>这一观察说明，人岗推荐不仅需要判断候选人与岗位是否相关，还需要捕捉更细粒度的<strong>相似性传播</strong>。例如，如果候选人同时偏好两个岗位，那么这两个岗位也应在表示空间中相对接近。</p>
+<h3 id="2-3-交互关系具有异质性"><a href="#2-3-交互关系具有异质性" class="headerlink" title="2.3 交互关系具有异质性"></a>2.3 交互关系具有异质性</h3><p>同一对候选人与岗位之间可能存在不同方向和结果的交互：</p>
+<ul>
+<li>候选人主动申请，但被雇主拒绝；</li>
+<li>雇主主动联系，但被候选人拒绝；</li>
+<li>双方接受并达成一致；</li>
+<li>一方忽略另一方的请求。</li>
+</ul>
+<p>这些行为包含不同语义。正向反馈可能提升用户继续追求相似目标的倾向，负向反馈则可能降低信心。若把所有边都当作无向、同质的“发生过交互”，就会丢失行为方向、反馈结果以及竞争力信息。</p>
+<h2 id="3-为什么普通匹配方法不够"><a href="#3-为什么普通匹配方法不够" class="headerlink" title="3. 为什么普通匹配方法不够"></a>3. 为什么普通匹配方法不够</h2><h3 id="3-1-内积和-MLP-缺少三角不等式"><a href="#3-1-内积和-MLP-缺少三角不等式" class="headerlink" title="3.1 内积和 MLP 缺少三角不等式"></a>3.1 内积和 MLP 缺少三角不等式</h3><p>矩阵分解常用内积衡量匹配程度，深度模型则可用 MLP 学习任意打分函数。但这类相似度通常不满足三角不等式，因此难以从共同邻居中稳定传播相似性。</p>
+<p>如果候选人 $c$ 同时喜欢岗位 $j_1$ 和 $j_2$，度量空间中的三角不等式能够约束：</p>
 
+$$d(j_1,j_2)\leq d(j_1,c)+d(c,j_2).$$
+
+
+<p>当候选人与两个岗位的距离都较小时，两个岗位之间的距离也不会太大。这正是论文所强调的细粒度相似性传播。</p>
+<h3 id="3-2-普通度量无法表示双向偏好"><a href="#3-2-普通度量无法表示双向偏好" class="headerlink" title="3.2 普通度量无法表示双向偏好"></a>3.2 普通度量无法表示双向偏好</h3><p>标准度量还必须满足对称性：</p>
+
+$$d(c,j)=d(j,c).$$
+
+
+<p>但招聘中可能出现：</p>
+
+$$q(c,j)<\tau<q(j,c),$$ <p>其中 $q(c,j)$ 较小表示候选人愿意申请岗位，$q(j,c)$ 较大表示雇主不愿接受候选人。因此，对称距离无法直接描述这种单向认可。<p></p>
+<h2 id="4-准度量空间"><a href="#4-准度量空间" class="headerlink" title="4. 准度量空间"></a>4. 准度量空间</h2><h3 id="4-1-定义"><a href="#4-1-定义" class="headerlink" title="4.1 定义"></a>4.1 定义</h3><p>给定非空集合 $S$，若函数 $q:S\times S\rightarrow\mathbb{R}$ 对任意 $s,t,z\in S$ 满足：</p>
+<ol>
+<li>非负性：$q(s,t)\geq 0$；</li>
+<li>同一性：$q(s,t)=q(t,s)=0\Leftrightarrow s=t$；</li>
+<li>三角不等式：$q(s,t)+q(t,z)\geq q(s,z)$；</li>
+</ol>
+<p>那么 $(S,q)$ 构成准度量空间。</p>
+<p>准度量与普通度量的关键区别是：它<strong>不要求对称性</strong>，即允许 $q(s,t)\neq q(t,s)$。因此，普通度量是准度量的特例，反之不成立。</p>
+<h3 id="4-2-两条招聘规则"><a href="#4-2-两条招聘规则" class="headerlink" title="4.2 两条招聘规则"></a>4.2 两条招聘规则</h3><p>论文根据真实招聘过程提出两条建模规则。</p>
+<h4 id="相似性规则"><a href="#相似性规则" class="headerlink" title="相似性规则"></a>相似性规则</h4><p>系统应优先匹配内容相近的候选人与岗位。例如，软件工程师更可能与软件开发岗位匹配。该规则由满足三角不等式的对称度量负责建模。</p>
+<h4 id="竞争力规则"><a href="#竞争力规则" class="headerlink" title="竞争力规则"></a>竞争力规则</h4><p>双方除了考虑内容是否相似，还会比较对方在市场中的竞争力：</p>
+<ul>
+<li>候选人更偏好薪资、福利和发展空间更好的岗位；</li>
+<li>雇主更偏好教育背景、技能和经验更强的候选人。</li>
+</ul>
+<p>即使两名候选人与岗位同样相似，雇主也可能只接受其中竞争力更强的一位。</p>
+<h3 id="4-3-相似性与竞争力的分解"><a href="#4-3-相似性与竞争力的分解" class="headerlink" title="4.3 相似性与竞争力的分解"></a>4.3 相似性与竞争力的分解</h3><p>论文要求准度量满足：</p>
+
+$$q(s,t)-q(t,s)=w(s)-w(t),$$
+
+
+<p>其中 $w:S\rightarrow\mathbb{R}$ 表示实体的竞争力分数。</p>
+<p>论文证明，满足上述关系的准度量可以由普通度量构造：</p>
+
+$$q(s,t)=d(s,t)+\frac{1}{2}\bigl(w(s)-w(t)\bigr),$$
+
+
+<p>其中 $d(s,t)$ 是对称距离，表示候选人与岗位的相似程度；竞争力差值则引入方向性。为满足非负性，还需保证：</p>
+
+$$d(s,t)+\frac{1}{2}\bigl(w(s)-w(t)\bigr)\geq 0.$$
+
+
+<p>该分解的意义是：</p>
+<ul>
+<li>对称部分 $d(s,t)$ 负责“是否相似”；</li>
+<li>反对称部分 $w(s)-w(t)$ 负责“谁更有竞争力”。</li>
+</ul>
+<h2 id="5-可学习的非对称距离"><a href="#5-可学习的非对称距离" class="headerlink" title="5. 可学习的非对称距离"></a>5. 可学习的非对称距离</h2><p>为得到易实现且天然非负的形式，论文采用：</p>
+
+$$q(s,t)=\lVert s-t\rVert_p+\max\bigl(w(s)-w(t),0\bigr),\qquad p\geq 1.$$
+
+
+<p>它由两部分组成：</p>
+<ol>
+<li>$\lVert s-t\rVert_p$：对称的 $p$ 范数距离，描述相似性；</li>
+<li>$\max(w(s)-w(t),0)$：单向竞争力惩罚，描述非对称偏好。</li>
+</ol>
+<p>交换输入顺序后，两者之差恰好为：</p>
+
+$$q(s,t)-q(t,s)=w(s)-w(t).$$
+
+
+<p>该函数同时满足非负性、同一性和三角不等式，因此确实构成准度量。实验中竞争力函数采用线性映射：</p>
+
+$$w(s)=Ws.$$
+
+
+<h3 id="5-1-方向性的直觉"><a href="#5-1-方向性的直觉" class="headerlink" title="5.1 方向性的直觉"></a>5.1 方向性的直觉</h3><p>假设 $w(s)>w(t)$，则：</p>
+
+$$q(s,t)=\lVert s-t\rVert_p+w(s)-w(t),$$
+
+
+<p>而：</p>
+
+$$q(t,s)=\lVert s-t\rVert_p.$$
+
+
+<p>因此，同一对实体在不同方向上的距离不同。竞争力差不会破坏基础相似性结构，却能让模型区分“候选人喜欢岗位”和“岗位认可候选人”。</p>
+<h2 id="6-候选人与岗位表示"><a href="#6-候选人与岗位表示" class="headerlink" title="6. 候选人与岗位表示"></a>6. 候选人与岗位表示</h2><p>设候选人集合为 $C=\{c_1,\ldots,c_N\}$，岗位集合为 $J=\{j_1,\ldots,j_M\}$。模型分别维护候选人和岗位的 ID embedding 矩阵：</p>
+
+$$P\in\mathbb{R}^{N\times d_e},\qquad Q\in\mathbb{R}^{M\times d_e}.$$
+
+
+<p>候选人 $c_i$ 与岗位 $j_k$ 的 ID 表示为：</p>
+
+$$P_i=\operatorname{Onehot}(c_i)P,\qquad Q_k=\operatorname{Onehot}(j_k)Q.$$
+
+
+<p>模型还用 BERT 编码候选人简历和岗位描述，再通过 PCA 将文本向量压缩到 $d_e$ 维。最终混合表示为：</p>
+
+$$x_{c_i}=P_i+\alpha W'_{T_i},\qquad x_{j_k}=Q_k+\alpha W'_{T_k},$$
+
+
+<p>其中 $\alpha$ 是可学习的融合系数。这样既保留协同交互信号，也引入简历和岗位描述中的语义信息。</p>
+<h2 id="7-同时学习非对称与对称关系"><a href="#7-同时学习非对称与对称关系" class="headerlink" title="7. 同时学习非对称与对称关系"></a>7. 同时学习非对称与对称关系</h2><p>QML 并非只拟合一个方向性距离，而是以多任务方式联合学习两类目标。</p>
+<h3 id="7-1-非对称关系损失"><a href="#7-1-非对称关系损失" class="headerlink" title="7.1 非对称关系损失"></a>7.1 非对称关系损失</h3><p>候选人侧和雇主侧分别使用 pairwise hinge loss。记候选人主动或接受的行为集合为 $A_c$，雇主主动或接受的行为集合为 $A_j$，则：</p>
+
+$$\mathcal{L}_{\mathrm{asym}}=\sum_{(c_i,j_k)\in A_c}\left[q(x_{c_i},x_{j_k})-q(x_{c_i},x_{j'_k})+\kappa\right]_++\sum_{(j_k,c_i)\in A_j}\left[q(x_{j_k},x_{c_i})-q(x_{j_k},x_{c'_i})+\kappa\right]_+.$$
+
+
+<p>其中：</p>
+<ul>
+<li>$j'_k$ 是候选人侧负样本；</li>
+<li>$c'_i$ 是雇主侧负样本；</li>
+<li>$\kappa$ 是安全间隔；</li>
+<li>$[z]_+=\max(z,0)$。</li>
+</ul>
+<p>该目标要求正样本的方向距离至少比负样本小一个 margin，并分别学习候选人到岗位、岗位到候选人的偏好。</p>
+<h3 id="7-2-双方一致关系的匹配距离"><a href="#7-2-双方一致关系的匹配距离" class="headerlink" title="7.2 双方一致关系的匹配距离"></a>7.2 双方一致关系的匹配距离</h3><p>当候选人与雇主达成一致时，需要同时考虑两个方向。论文将双边匹配距离定义为：</p>
+
+$$m(c_i,j_k)=q(x_{c_i},x_{j_k})+q(x_{j_k},x_{c_i}).$$
+
+
+<p>代入准度量后可得：</p>
+
+$$m(c_i,j_k)=2\lVert x_{c_i}-x_{j_k}\rVert_p+\left|w(x_{c_i})-w(x_{j_k})\right|.$$
+
+
+<p>第一项要求双方相似，第二项要求双方竞争力接近。也就是说，真正容易达成一致的双方应当同时满足：</p>
+<ul>
+<li><strong>similarity</strong>：能力与要求匹配；</li>
+<li><strong>co-equity</strong>：市场竞争力相当。</li>
+</ul>
+<h3 id="7-3-对称关系损失"><a href="#7-3-对称关系损失" class="headerlink" title="7.3 对称关系损失"></a>7.3 对称关系损失</h3><p>对已达成一致的候选人—岗位对，论文采用 triplet-wise hinge loss：</p>
+
+$$\mathcal{L}_{\mathrm{sym}}=\sum_{(c_i,j_k)\in A_c^{\leftrightarrow}}\left[m(c_i,j_k)-m(c_i,j'_k)-m(c'_i,j_k)+\kappa\right]_+.$$
+
+
+<p>其中 $(c'_i,j'_k)$ 构成负样本，使真实双边匹配相对于候选人侧和岗位侧的不匹配组合具有更小距离。</p>
+<h3 id="7-4-QML-总目标"><a href="#7-4-QML-总目标" class="headerlink" title="7.4 QML 总目标"></a>7.4 QML 总目标</h3><p>基础准度量学习模型的优化目标为：</p>
+
+$$\min_{\Theta}\ \mathcal{L}_{\mathrm{QML}}=\mathcal{L}_{\mathrm{asym}}+\mathcal{L}_{\mathrm{sym}}+\lambda_{\Theta}\lVert\Theta\rVert_2^2.$$
+
+
+<p>非对称任务利用申请、联系等单向行为学习方向偏好；对称任务利用双方达成一致的行为学习最终匹配。二者共享候选人和岗位表示。</p>
+<h2 id="8-关系感知图卷积网络"><a href="#8-关系感知图卷积网络" class="headerlink" title="8. 关系感知图卷积网络"></a>8. 关系感知图卷积网络</h2><h3 id="8-1-异质关系图"><a href="#8-1-异质关系图" class="headerlink" title="8.1 异质关系图"></a>8.1 异质关系图</h3><p>论文将候选人、岗位和不同类型的交互组织成统一图：</p>
+
+$$G=(V,E),\qquad V=C\cup J.$$
+
+
+<p>边类型由行为方向和反馈结果共同决定，包括：</p>
+<ul>
+<li>候选人主动申请但被拒绝；</li>
+<li>候选人拒绝或忽略雇主邀请；</li>
+<li>雇主主动邀请但被拒绝；</li>
+<li>雇主拒绝或忽略候选人申请；</li>
+<li>双方接受并达成一致。</li>
+</ul>
+<p>由于不同关系对后续行为的影响不同，rGQML 为每种关系 $v$ 学习一个对角矩阵：</p>
+
+$$M_v\in\mathbb{R}^{d_e\times d_e}.$$
+
+
+<h3 id="8-2-关系感知注意力"><a href="#8-2-关系感知注意力" class="headerlink" title="8.2 关系感知注意力"></a>8.2 关系感知注意力</h3><p>候选人 $c_i$ 从相邻岗位聚合信息：</p>
+
+$$e_{c_i}^{(l)}=e_{c_i}^{(l-1)}+\sigma\left(\sum_{j_k\in\mathcal{N}(c_i)}a_{ik}e_{j_k}^{(l-1)}\right).$$
+
+
+<p>邻居权重由关系特定的二次距离决定：</p>
+
+$$a_{ik}=\frac{\exp\left(-\Delta_{ik}^{\top}M_{v(i,k)}\Delta_{ik}\right)}{\sum_{j_{k'}\in\mathcal{N}(c_i)}\exp\left(-\Delta_{ik'}^{\top}M_{v(i,k')}\Delta_{ik'}\right)},\qquad \Delta_{ik}=e_{c_i}^{(l-1)}-e_{j_k}^{(l-1)}.$$
+
+
+<p>关系空间中越接近的邻居，传播到目标节点的信息越多。不同 $M_v$ 使同一个邻居在不同交互语义下产生不同影响。</p>
+<p>参考 LightGCN，模型不使用额外线性变换，并采用恒等激活函数。最终表示是各层表示的平均池化：</p>
+
+$$x_{c_i}^{\mathrm{gcn}}=\operatorname{AveragePool}\left(e_{c_i}^{(0)},e_{c_i}^{(1)},\ldots,e_{c_i}^{(L)}\right).$$
+
+
+<p>岗位侧以对称方式聚合候选人邻居。</p>
+<h3 id="8-3-rGQML-总目标"><a href="#8-3-rGQML-总目标" class="headerlink" title="8.3 rGQML 总目标"></a>8.3 rGQML 总目标</h3><p>将关系感知 GCN 输出代入准度量损失，得到：</p>
+
+$$\min_{\Theta}\ \mathcal{L}_{\mathrm{rGQML}}=\mathcal{L}_{\mathrm{asym}}^{\mathrm{gcn}}+\mathcal{L}_{\mathrm{sym}}^{\mathrm{gcn}}+\lambda_{\Theta}\lVert\Theta\rVert_2^2.$$
+
+
+<p>模型使用小批量样本训练：每轮分别采样候选人侧行为、雇主侧行为、双方一致行为及其负样本，通过梯度下降更新 ID embedding、融合系数、竞争力映射和关系矩阵等参数。</p>
+<h2 id="9-模型结构总结"><a href="#9-模型结构总结" class="headerlink" title="9. 模型结构总结"></a>9. 模型结构总结</h2><p>rGQML 的完整流程可以概括为：</p>
+<ol>
+<li>用 ID embedding 表示候选人和岗位；</li>
+<li>用 BERT 编码简历和岗位描述，并通过 PCA 降维；</li>
+<li>融合 ID 表示与文本表示；</li>
+<li>构造包含方向和反馈类型的异质二部图；</li>
+<li>使用关系感知 GCN 聚合不同类型的邻居信息；</li>
+<li>用 $p$ 范数建模对称相似性；</li>
+<li>用竞争力差构造非对称准度量；</li>
+<li>联合优化单向偏好损失和双边一致损失；</li>
+<li>分别为候选人排序岗位、为岗位排序候选人。</li>
+</ol>
+<p>从建模角度看，rGQML 同时回答三个问题：</p>
+<ul>
+<li><strong>像不像</strong>：由度量空间和三角不等式回答；</li>
+<li><strong>谁更强</strong>：由竞争力函数和非对称距离回答；</li>
+<li><strong>历史反馈如何影响未来行为</strong>：由关系感知 GCN 回答。</li>
+</ul>
+<h2 id="10-实验设置"><a href="#10-实验设置" class="headerlink" title="10. 实验设置"></a>10. 实验设置</h2><h3 id="10-1-数据集"><a href="#10-1-数据集" class="headerlink" title="10.1 数据集"></a>10.1 数据集</h3><p>论文在四个真实招聘数据集上进行实验：</p>
+<ul>
+<li>BOSS 直聘设计行业数据；</li>
+<li>BOSS 直聘销售行业数据；</li>
+<li>BOSS 直聘技术行业数据；</li>
+<li>智联招聘公开数据集。</li>
+</ul>
+<p>前三个数据集包含连续 106 天的线上交互日志：前 84 天作为训练集，后 22 天平均划分为验证集和测试集。智联数据缺少时间戳，因此等比例划分训练集、验证集和测试集。</p>
+<p>所有数据均包含候选人与岗位的文本，以及带方向和反馈的双边行为。每个正样本从未交互记录中采样 20 个负样本，实验使用 5 个随机初始化重复运行并报告均值。</p>
+<h3 id="10-2-评估任务与指标"><a href="#10-2-评估任务与指标" class="headerlink" title="10.2 评估任务与指标"></a>10.2 评估任务与指标</h3><p>论文同时评估两个方向：</p>
+<ul>
+<li>为候选人推荐岗位；</li>
+<li>为岗位推荐候选人。</li>
+</ul>
+<p>Top-N 中 $N=5$，指标包括：</p>
+<ul>
+<li>Recall@5；</li>
+<li>Precision@5；</li>
+<li>NDCG@5；</li>
+<li>MRR。</li>
+</ul>
+<h3 id="10-3-对比方法"><a href="#10-3-对比方法" class="headerlink" title="10.3 对比方法"></a>10.3 对比方法</h3><p>基线覆盖内容、协同过滤、图学习和双边匹配模型：</p>
+<ul>
+<li>BPJFNN</li>
+<li>BPR</li>
+<li>NCF</li>
+<li>LFRR</li>
+<li>LightGCN-BERT</li>
+<li>IPJF</li>
+<li>PJFFF</li>
+<li>DPGNN</li>
+</ul>
+<p>其中 DPGNN 和 LightGCN-BERT 能利用图结构，LFRR、IPJF 和 DPGNN 则以不同方式考虑双向偏好。</p>
+<h3 id="10-4-实现细节"><a href="#10-4-实现细节" class="headerlink" title="10.4 实现细节"></a>10.4 实现细节</h3><p>论文统一采用：</p>
+<ul>
+<li>embedding 维度：64；</li>
+<li>batch size：1024；</li>
+<li>学习率：0.001；</li>
+<li>正则系数：0.0001；</li>
+<li>关系感知 GCN 层数：3；</li>
+<li>准度量：2 范数；</li>
+<li>early stopping patience：50。</li>
+</ul>
+<h2 id="11-实验结果"><a href="#11-实验结果" class="headerlink" title="11. 实验结果"></a>11. 实验结果</h2><h3 id="11-1-整体性能"><a href="#11-1-整体性能" class="headerlink" title="11.1 整体性能"></a>11.1 整体性能</h3><p>rGQML 在四个数据集、两个推荐方向和各项指标上均优于对比方法。论文从结果中总结出以下现象：</p>
+<ol>
+<li>同时利用交互图和文本的混合模型整体更强；</li>
+<li>DPGNN 与 LightGCN-BERT 的表现说明图结构信息十分重要；</li>
+<li>LFRR 即使采用相对简单的矩阵分解，只要显式建模两个方向，也能取得有竞争力的效果；</li>
+<li>仅依赖文本的 BPJFNN 表现较弱，原因可能是简历和岗位描述存在默认、无意义或错误内容；</li>
+<li>rGQML 的优势来自准度量、双任务目标和异质关系传播的共同作用。</li>
+</ol>
+<h3 id="11-2-消融实验"><a href="#11-2-消融实验" class="headerlink" title="11.2 消融实验"></a>11.2 消融实验</h3><p>论文设计了五个变体：</p>
+<table>
+<thead>
+<tr>
+<th>变体</th>
+<th>移除或替换的能力</th>
+<th>验证目标</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>woAsys</td>
+<td>将非对称准度量替换为欧氏距离</td>
+<td>非对称关系与竞争力规则</td>
+</tr>
+<tr>
+<td>woTri</td>
+<td>用内积替代满足三角不等式的距离</td>
+<td>相似性传播</td>
+</tr>
+<tr>
+<td>woMT</td>
+<td>仅保留对称匹配目标</td>
+<td>多任务联合学习</td>
+</tr>
+<tr>
+<td>woRGCN</td>
+<td>移除关系感知 GCN，退化为 QML</td>
+<td>图结构传播</td>
+</tr>
+<tr>
+<td>woHetero</td>
+<td>将关系矩阵替换为单位矩阵</td>
+<td>异质关系语义</td>
+</tr>
+</tbody></table>
+<p>完整 rGQML 在所有场景中均优于这些变体：</p>
+<ul>
+<li>优于 woAsys，说明方向性和竞争力建模有效；</li>
+<li>优于 woTri，说明三角不等式带来的相似性传播有效；</li>
+<li>woMT 在多数场景下降明显，说明单向行为与双边一致需要联合学习；</li>
+<li>优于 woRGCN，说明邻居传播能补充实体表示；</li>
+<li>优于 woHetero，说明不能把申请、邀请、拒绝和接受视为同一种边。</li>
+</ul>
+<h3 id="11-3-超参数分析"><a href="#11-3-超参数分析" class="headerlink" title="11.3 超参数分析"></a>11.3 超参数分析</h3><p>论文主要分析 GCN 层数 $L$ 和范数阶数 $p$：</p>
+<ul>
+<li>GCN 层数过少时传播不足，过多时可能引入噪声或过度平滑，因此适中的层数更好；</li>
+<li>在比较的范数中，2 范数表现最佳，论文建议使用欧氏距离建模相似性。</li>
+</ul>
+<h3 id="11-4-案例分析"><a href="#11-4-案例分析" class="headerlink" title="11.4 案例分析"></a>11.4 案例分析</h3><p>论文选取两名候选人和两个相似岗位进行分析。两名候选人都申请了岗位 $j_1$，但一人被接受，另一人被拒绝。对于要求更高且与 $j_1$ 相似的岗位 $j_2$：</p>
+<ul>
+<li>DPGNN 主要依据相似性，倾向于预测两名候选人都可能申请；</li>
+<li>rGQML 同时利用拒绝反馈和竞争力差异，正确降低了被拒候选人与高级岗位的匹配程度。</li>
+</ul>
+<p>该案例说明，“相似岗位之间传播偏好”并不总是充分的。负反馈会改变用户对相似目标的后续行为，而异质关系和竞争力建模能够修正单纯相似性传播带来的误判。</p>
+<h2 id="12-方法优势"><a href="#12-方法优势" class="headerlink" title="12. 方法优势"></a>12. 方法优势</h2><h3 id="12-1-理论结构与业务过程一致"><a href="#12-1-理论结构与业务过程一致" class="headerlink" title="12.1 理论结构与业务过程一致"></a>12.1 理论结构与业务过程一致</h3><p>准度量保留三角不等式，同时允许方向不对称，分别对应招聘中的相似性和双向选择。</p>
+<h3 id="12-2-区分相似性与竞争力"><a href="#12-2-区分相似性与竞争力" class="headerlink" title="12.2 区分相似性与竞争力"></a>12.2 区分相似性与竞争力</h3><p>模型不再把所有匹配因素压缩成一个黑盒分数，而是将距离解释为“内容差异 + 单向竞争力惩罚”，具有更清晰的业务含义。</p>
+<h3 id="12-3-充分利用不同反馈"><a href="#12-3-充分利用不同反馈" class="headerlink" title="12.3 充分利用不同反馈"></a>12.3 充分利用不同反馈</h3><p>申请、邀请、接受和拒绝被建模为不同关系类型，避免把语义相反的行为混入同一种邻接关系。</p>
+<h3 id="12-4-同时服务双边用户"><a href="#12-4-同时服务双边用户" class="headerlink" title="12.4 同时服务双边用户"></a>12.4 同时服务双边用户</h3><p>模型分别学习候选人侧和雇主侧排序，并使用双方一致目标约束最终匹配，符合双边推荐平台的真实目标。</p>
+<h2 id="13-局限与思考"><a href="#13-局限与思考" class="headerlink" title="13. 局限与思考"></a>13. 局限与思考</h2><h3 id="13-1-竞争力被压缩为一个标量"><a href="#13-1-竞争力被压缩为一个标量" class="headerlink" title="13.1 竞争力被压缩为一个标量"></a>13.1 竞争力被压缩为一个标量</h3><p>线性函数 $w(s)=Ws$ 将竞争力表示为单一数值，但真实招聘市场中的竞争力通常是多维且职位相关的。例如，学历、经验、地点和薪资的影响会随职位类别变化。可以考虑条件化竞争力函数：</p>
+
+$$w(s\mid \text{context}),$$
+
+
+<p>使竞争力依赖行业、岗位类别、城市和时间等上下文。</p>
+<h3 id="13-2-文本编码与主体模型并非完全端到端"><a href="#13-2-文本编码与主体模型并非完全端到端" class="headerlink" title="13.2 文本编码与主体模型并非完全端到端"></a>13.2 文本编码与主体模型并非完全端到端</h3><p>论文先用 BERT 编码文本，再通过 PCA 降维。该流程高效，但文本表示未必针对人岗匹配目标进行充分优化。可进一步研究端到端文本编码、参数高效微调或大语言模型生成的结构化技能表示。</p>
+<h3 id="13-3-静态图难以描述行为演化"><a href="#13-3-静态图难以描述行为演化" class="headerlink" title="13.3 静态图难以描述行为演化"></a>13.3 静态图难以描述行为演化</h3><p>模型把一段时间内的交互组织成统一图，未显式刻画行为顺序。实际中，用户收到拒绝或接受反馈后的偏好会随时间变化。论文也将序列行为建模列为未来方向。</p>
+<h3 id="13-4-准度量的表达范围存在结构约束"><a href="#13-4-准度量的表达范围存在结构约束" class="headerlink" title="13.4 准度量的表达范围存在结构约束"></a>13.4 准度量的表达范围存在结构约束</h3><p>模型将方向性归结为两个实体竞争力标量之差。该形式理论清晰，但不能表达所有可能的非对称关系。例如，同一候选人在不同岗位语境中的优势可能无法用全局标量完全描述。</p>
+<h3 id="13-5-离线指标不等于市场整体收益"><a href="#13-5-离线指标不等于市场整体收益" class="headerlink" title="13.5 离线指标不等于市场整体收益"></a>13.5 离线指标不等于市场整体收益</h3><p>Recall、NDCG 和 MRR 衡量局部排序质量，但双边市场还涉及曝光公平性、岗位供需平衡、申请拥挤、雇主响应率和长期留存。生产系统中还需结合市场机制与长期实验评估。</p>
+<h2 id="14-工程复现要点"><a href="#14-工程复现要点" class="headerlink" title="14. 工程复现要点"></a>14. 工程复现要点</h2><p>复现时需要重点确认以下细节：</p>
+<ol>
+<li>根据行为发起方和反馈结果准确拆分关系类型；</li>
+<li>负采样必须分别针对候选人侧、雇主侧和双方一致关系；</li>
+<li>时间数据应按时间切分，避免未来交互泄漏；</li>
+<li>BERT 与 PCA 只能在训练流程允许的数据范围内拟合；</li>
+<li>关系矩阵采用对角形式，可降低参数量和计算成本；</li>
+<li>推理时距离越小表示匹配程度越高，排序方向不要写反；</li>
+<li>分别评估候选人到岗位、岗位到候选人两个方向；</li>
+<li>除完整模型外，应至少复现对称距离、无三角约束、无异质关系三个关键消融版本。</li>
+</ol>
+<h2 id="15-总结"><a href="#15-总结" class="headerlink" title="15. 总结"></a>15. 总结</h2><p>这篇论文的关键贡献，不只是把对称距离替换为非对称距离，而是构建了一套与招聘机制对应的建模框架：</p>
+<ul>
+<li>用三角不等式捕捉候选人与岗位之间的相似性传播；</li>
+<li>用竞争力差构造方向相关的准度量；</li>
+<li>用非对称损失分别学习候选人和雇主的单向偏好；</li>
+<li>用对称损失学习双方达成一致的匹配关系；</li>
+<li>用关系感知 GCN 表达申请、邀请、接受和拒绝等异质反馈。</li>
+</ul>
+<p>对于招聘、婚恋、导师—学生匹配等需要双方共同接受的推荐问题，准度量提供了一个值得借鉴的视角：匹配不只是“彼此相似”，还取决于双方在市场中的相对吸引力，以及历史反馈对未来选择产生的影响。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li>Du, Y., Liu, H., Zhu, H., Song, Y., Zheng, Z., &amp; Wu, Z. (2025). <em>Quasi-Metric Learning for Bilateral Person-Job Fit</em>. IEEE Transactions on Pattern Analysis and Machine Intelligence, 47(5), 3947–3960. <a target="_blank" rel="noopener" href="https://doi.org/10.1109/TPAMI.2025.3538774">https://doi.org/10.1109/TPAMI.2025.3538774</a></li>
+<li>Hsieh, C.-K., et al. (2017). <em>Collaborative Metric Learning</em>. WWW 2017.</li>
+<li>Yang, C., et al. (2022). <em>Modeling Two-Way Selection Preference for Person-Job Fit</em>. RecSys 2022.</li>
+<li>Weinberger, K. Q., &amp; Saul, L. K. (2009). <em>Distance Metric Learning for Large Margin Nearest Neighbor Classification</em>. JMLR.</li>
+<li>He, X., et al. (2020). <em>LightGCN: Simplifying and Powering Graph Convolution Network for Recommendation</em>. SIGIR 2020.</li>
+</ol>
+</\tau<q(j,c),$$>
       
     </div>
 
@@ -3060,7 +3442,7 @@ $$\max_{J:|J|=k} \left[ \sum_{j\in J}q_j + \lambda\log\det \left( \sum_{j\in J}L
       <div class="site-state-item site-state-tags">
             <a href="/tags/">
           
-        <span class="site-state-item-count">5</span>
+        <span class="site-state-item-count">10</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
