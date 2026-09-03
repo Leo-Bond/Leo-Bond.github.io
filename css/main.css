@@ -1142,7 +1142,7 @@ pre code {
   vertical-align: middle;
 }
 .links-of-author a::before {
-  background: #bd0993;
+  background: #123c1a;
   display: inline-block;
   margin-right: 3px;
   transform: translateY(-2px);
@@ -2507,10 +2507,10 @@ body {
   background: #fafaf8;
 }
 .brand {
-  background: #6f7f8f;
+  background: #222;
 }
 .brand:hover {
-  background: #627383;
+  background: #222;
 }
 .site-title,
 .site-subtitle,
