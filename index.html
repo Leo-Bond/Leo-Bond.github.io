@@ -197,7 +197,7 @@
               <span class="post-meta-item-text">发表于</span>
               
 
-              <time title="创建时间：2026-09-03 11:58:38 / 修改时间：14:53:47" itemprop="dateCreated datePublished" datetime="2026-09-03T11:58:38+08:00">2026-09-03</time>
+              <time title="创建时间：2026-09-03 11:58:38 / 修改时间：14:56:43" itemprop="dateCreated datePublished" datetime="2026-09-03T11:58:38+08:00">2026-09-03</time>
             </span>
             <span class="post-meta-item">
               <span class="post-meta-item-icon">
@@ -253,15 +253,7 @@
 <p>$$<br>F_i(\theta_{k+1})\le F_i(\theta_k),\qquad \forall i\in{1,\ldots,M}.<br>$$</p>
 <p>一种寻找公共下降方向的方法，是求解梯度凸组合的最小范数问题：</p>
 
-$$
-\begin{aligned}
-\min_{\boldsymbol{\alpha}}\quad
-& \left\lVert \sum_{i=1}^{M}\alpha_i\nabla F_i(\theta_k) \right\rVert_2^2 \\
-\text{s.t.}\quad
-& \alpha_i\ge 0, \\
-& \sum_{i=1}^{M}\alpha_i=1.
-\end{aligned}
-$$
+$$\underset{\boldsymbol{\alpha}}{\operatorname{minimize}}\; \left\lVert \sum_{i=1}^{M}\alpha_i\nabla F_i(\theta_k) \right\rVert_2^2 \quad \text{subject to}\quad \alpha_i\geq 0,\; \sum_{i=1}^{M}\alpha_i=1.$$ 
 
 
 <p>对应方向为：</p>
