@@ -217,7 +217,7 @@
       <span class="post-meta-item-text">发表于</span>
       
 
-      <time title="创建时间：2026-09-08 16:30:12 / 修改时间：16:43:01" itemprop="dateCreated datePublished" datetime="2026-09-08T16:30:12+08:00">2026-09-08</time>
+      <time title="创建时间：2026-09-08 16:30:12 / 修改时间：16:57:14" itemprop="dateCreated datePublished" datetime="2026-09-08T16:30:12+08:00">2026-09-08</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -242,16 +242,28 @@
     <div class="post-body" itemprop="articleBody"><p>推荐系统通常从用户点击、观看或购买等隐式反馈中学习偏好，但真实的用户—物品交互图非常稀疏；为缓解稀疏问题而引入的标题、类别、图片等侧信息，又可能存在噪声、异构和缺失问题。WSDM 2024 论文 <strong>LLMRec: Large Language Models with Graph Augmentation for Recommendation</strong> 提出一种务实的思路：不让大语言模型直接承担全量排序，而是把它作为离线数据增强器，为传统推荐模型补充更有语义的边和节点特征。</p>
 <span id="more"></span>
 
-<h2 id="1-问题定义"><a href="#1-问题定义" class="headerlink" title="1. 问题定义"></a>1. 问题定义</h2><p>设用户集合为 $\mathcal{U}$，物品集合为 $\mathcal{I}$，观测到的正反馈边为 $\mathcal{E}^{+}$。协同过滤模型需要学习用户和物品的 ID 表征 $\mathbf{E}&#x3D;{\mathbf{E}_u,\mathbf{E}_i}$，使它们尽可能编码交互关系：</p>
-<p>$$<br>\mathbf{E}^{*}&#x3D;\arg\max_{\mathbf{E}}p(\mathbf{E}\mid\mathcal{E}^{+}).<br>$$</p>
-<p>预测分数可以写成 $\hat y_{u,i}&#x3D;\mathbf{h}_u^{\top}\mathbf{h}_i$。问题在于，隐式反馈不等价于真实偏好：</p>
+<h2 id="1-问题定义"><a href="#1-问题定义" class="headerlink" title="1. 问题定义"></a>1. 问题定义</h2><p>设用户集合为 $\mathcal{U}$，物品集合为 $\mathcal{I}$，观测到的正反馈边为 $\mathcal{E}^{+}$。协同过滤模型需要学习用户和物品的 ID 表征 $\mathbf{E}=\{\mathbf{E}_u,\mathbf{E}_i\}$，使它们尽可能编码交互关系：</p>
+
+$$
+\mathbf{E}^{*}=\arg\max_{\mathbf{E}}p(\mathbf{E}\mid\mathcal{E}^{+}).
+$$
+
+
+<p>预测分数可以写成 $\hat y_{u,i}=\mathbf{h}_u^{\top}\mathbf{h}_i$。问题在于，隐式反馈不等价于真实偏好：</p>
 <ul>
 <li>已交互物品可能来自误触、曝光偏差或流行度效应，即“假正例”；</li>
 <li>未交互物品只是没有得到曝光，不一定代表用户不喜欢，即“假负例”；</li>
 <li>物品标题、海报等侧信息可能不完整，用户属性还会受到隐私和采集成本限制。</li>
 </ul>
-<p>LLMRec 因此同时增强交互边 $\mathcal{E}<em>{\mathcal A}$ 和节点特征 $\mathbf{F}</em>{\mathcal A}$，将学习目标扩展为：</p>
-<p>$$<br>\Theta^{*}&#x3D;\arg\max_{\Theta}p!\left(\Theta\mid<br>{\mathbf{F},\mathbf{F}<em>{\mathcal A}},<br>{\mathcal{E}^{+},\mathcal{E}</em>{\mathcal A}}\right).<br>$$</p>
+<p>LLMRec 因此同时增强交互边 $\mathcal{E}_{\mathcal A}$ 和节点特征 $\mathbf{F}_{\mathcal A}$，将学习目标扩展为：</p>
+
+$$
+\Theta^{*}=\arg\max_{\Theta}p\!\left(\Theta\mid
+\{\mathbf{F},\mathbf{F}_{\mathcal A}\},
+\{\mathcal{E}^{+},\mathcal{E}_{\mathcal A}\}\right).
+$$
+
+
 <h2 id="2-整体思路"><a href="#2-整体思路" class="headerlink" title="2. 整体思路"></a>2. 整体思路</h2><p>LLMRec 包含三种基于 LLM 的增强方式：</p>
 <ol>
 <li><strong>交互边增强</strong>：根据用户历史和候选物品，生成用户可能喜欢的正样本和可能不喜欢的负样本；</li>
@@ -262,34 +274,116 @@
 <figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">原始交互与侧信息</span><br><span class="line">        │</span><br><span class="line">        ├── 基础推荐器生成候选集 ── LLM 选择正/负样本 ── 增强交互边</span><br><span class="line">        ├── 用户历史 ───────────── LLM 归纳画像 ─────── 增强用户特征</span><br><span class="line">        └── 物品属性 ───────────── LLM 补全属性 ─────── 增强物品特征</span><br><span class="line">                                      │</span><br><span class="line">                         投影 + 图传播 + 特征融合</span><br><span class="line">                                      │</span><br><span class="line">                       BPR 样本剪枝 + MAE 特征重建</span><br><span class="line">                                      │</span><br><span class="line">                                  Top-K 推荐</span><br></pre></td></tr></table></figure>
 
 <h2 id="3-用-LLM-增强隐式反馈"><a href="#3-用-LLM-增强隐式反馈" class="headerlink" title="3. 用 LLM 增强隐式反馈"></a>3. 用 LLM 增强隐式反馈</h2><h3 id="3-1-在候选集内选择"><a href="#3-1-在候选集内选择" class="headerlink" title="3.1 在候选集内选择"></a>3.1 在候选集内选择</h3><p>LLM 不适合对数万甚至数百万物品进行全库打分。LLMRec 先让基础推荐器为用户 $u$ 生成高分候选集：</p>
-<p>$$<br>\mathcal C_u&#x3D;{i_{u,1},i_{u,2},\ldots,i_{u,|\mathcal C_u|}}.<br>$$</p>
+
+$$
+\mathcal C_u=\{i_{u,1},i_{u,2},\ldots,i_{u,|\mathcal C_u|}\}.
+$$
+
+
 <p>这些候选物品是传统推荐器难以区分的 hard samples。提示词包含任务说明、用户历史、候选物品及固定输出格式；物品使用标题、年份和类型等自然语言描述，而非无语义的 ID。LLM 再选择一个偏好物品 $i_u^{+}$ 和一个不偏好物品 $i_u^{-}$：</p>
-<p>$$<br>i_u^{+},i_u^{-}&#x3D;\operatorname{LLM}(\mathbb P_u^{UI}),<br>$$</p>
-<p>$$<br>\mathcal E_{\mathcal A}&#x3D;{(u,i_u^{+},i_u^{-})},\qquad<br>\mathcal E_{BPR}&#x3D;\mathcal E\cup\mathcal E_{\mathcal A}.<br>$$</p>
+
+$$
+i_u^{+},i_u^{-}=\operatorname{LLM}(\mathbb P_u^{UI}),
+$$
+
+
+
+$$
+\mathcal E_{\mathcal A}=\{(u,i_u^{+},i_u^{-})\},\qquad
+\mathcal E_{BPR}=\mathcal E\cup\mathcal E_{\mathcal A}.
+$$
+
+
 <p>关键并非让 LLM 凭空推荐，而是让它在基础模型提供的有限、困难候选中进行语义重排。这样既控制推理成本，也把 LLM 的常识和文本理解用于修正假正例与假负例。</p>
 <h3 id="3-2-BPR-训练"><a href="#3-2-BPR-训练" class="headerlink" title="3.2 BPR 训练"></a>3.2 BPR 训练</h3><p>模型在原始样本和增强样本的并集上优化 BPR 损失：</p>
-<p>$$<br>\mathcal L_{BPR}&#x3D;\sum_{(u,i^{+},i^{-})\in\mathcal E\cup\mathcal E_{\mathcal A}}<br>-\log\sigma(\hat y_{u,i^{+}}-\hat y_{u,i^{-}})<br>+\omega_2|\Theta|_2^2.<br>$$</p>
-<p>每个 batch 中只混入一定比例的增强样本，论文用 $|\mathcal E_{\mathcal A}|&#x3D;\omega_3B$ 控制数量。实验显示增强样本并非越多越好：比例过高时，伪标签噪声会反过来损害模型。</p>
+
+$$
+\mathcal L_{BPR}=\sum_{(u,i^{+},i^{-})\in\mathcal E\cup\mathcal E_{\mathcal A}}
+-\log\sigma(\hat y_{u,i^{+}}-\hat y_{u,i^{-}})
++\omega_2\|\Theta\|_2^2.
+$$
+
+
+<p>每个 batch 中只混入一定比例的增强样本，论文用 $|\mathcal E_{\mathcal A}|=\omega_3B$ 控制数量。实验显示增强样本并非越多越好：比例过高时，伪标签噪声会反过来损害模型。</p>
 <h2 id="4-用-LLM-增强节点属性"><a href="#4-用-LLM-增强节点属性" class="headerlink" title="4. 用 LLM 增强节点属性"></a>4. 用 LLM 增强节点属性</h2><h3 id="4-1-用户画像与物品属性补全"><a href="#4-1-用户画像与物品属性补全" class="headerlink" title="4.1 用户画像与物品属性补全"></a>4.1 用户画像与物品属性补全</h3><p>用户侧提示词以历史交互及物品信息为输入，要求 LLM 总结用户画像；物品侧提示词则根据已有元数据补全属性。生成文本随后再由语言模型编码成向量：</p>
-<p>$$<br>\begin{aligned}<br>\mathbb A_u&amp;&#x3D;\operatorname{LLM}(\mathbb P_u^U), &amp;<br>\mathbf f_{\mathcal A,u}&amp;&#x3D;\operatorname{Embed}(\mathbb A_u),\<br>\mathbb A_i&amp;&#x3D;\operatorname{LLM}(\mathbb P_i^I), &amp;<br>\mathbf f_{\mathcal A,i}&amp;&#x3D;\operatorname{Embed}(\mathbb A_i).<br>\end{aligned}<br>$$</p>
+
+$$
+\begin{aligned}
+\mathbb A_u&=\operatorname{LLM}(\mathbb P_u^U), &
+\mathbf f_{\mathcal A,u}&=\operatorname{Embed}(\mathbb A_u),\\
+\mathbb A_i&=\operatorname{LLM}(\mathbb P_i^I), &
+\mathbf f_{\mathcal A,i}&=\operatorname{Embed}(\mathbb A_i).
+\end{aligned}
+$$
+
+
 <p>自然语言在这里充当统一接口：分散在类别字段、标题和用户历史中的异构信息，先被转换为文本语义，再映射到同一个嵌入空间。</p>
 <p>论文生成的年龄、性别等画像只是从行为推断出的潜在属性，不是真实人口统计信息。实际应用中应将其视为弱监督特征，并评估隐私、公平性和刻板印象风险。</p>
 <h3 id="4-2-投影、图传播与融合"><a href="#4-2-投影、图传播与融合" class="headerlink" title="4.2 投影、图传播与融合"></a>4.2 投影、图传播与融合</h3><p>LLM 特征维度 $d_{LLM}$ 通常远大于推荐模型维度 $d$，因此先通过带 Dropout 的线性层投影：</p>
-<p>$$<br>\overline{\mathbf F}<em>{\mathcal A}&#x3D;\operatorname{Linear}(\mathbf F</em>{\mathcal A}).<br>$$</p>
+
+$$
+\overline{\mathbf F}_{\mathcal A}=\operatorname{Linear}(\mathbf F_{\mathcal A}).
+$$
+
+
 <p>然后利用轻量 GNN 在用户—物品图上传播，让增强语义特征获得高阶协同上下文。最终，归一化后的原始多模态特征与 LLM 增强特征作为残差项加入 ID 表征：</p>
-<p>$$<br>\mathbf h_u&#x3D;\mathbf e_u+\omega_1\sum_{k\in\mathcal M\cup\mathbb A_u}<br>\frac{\overline{\mathbf f}_u^k}{|\overline{\mathbf f}_u^k|_2},<br>$$</p>
-<p>$$<br>\mathbf h_i&#x3D;\mathbf e_i+\omega_1\sum_{k\in\mathcal M\cup\mathbb A_i}<br>\frac{\overline{\mathbf f}_i^k}{|\overline{\mathbf f}_i^k|_2}.<br>$$</p>
+
+$$
+\mathbf h_u=\mathbf e_u+\omega_1\sum_{k\in\mathcal M\cup\mathbb A_u}
+\frac{\overline{\mathbf f}_u^k}{\|\overline{\mathbf f}_u^k\|_2},
+$$
+
+
+
+$$
+\mathbf h_i=\mathbf e_i+\omega_1\sum_{k\in\mathcal M\cup\mathbb A_i}
+\frac{\overline{\mathbf f}_i^k}{\|\overline{\mathbf f}_i^k\|_2}.
+$$
+
+
 <p>这种设计保留成熟的 ID 协同信号，同时用 $\omega_1$ 控制新增语义信息的影响，避免完全依赖可能产生幻觉的 LLM 特征。</p>
 <h2 id="5-增强数据的去噪"><a href="#5-增强数据的去噪" class="headerlink" title="5. 增强数据的去噪"></a>5. 增强数据的去噪</h2><h3 id="5-1-高损失样本剪枝"><a href="#5-1-高损失样本剪枝" class="headerlink" title="5.1 高损失样本剪枝"></a>5.1 高损失样本剪枝</h3><p>LLM 产生的正负样本仍可能出错。LLMRec 在每轮训练中按三元组损失排序，丢弃比例为 $\omega_4$ 的高损失样本，只保留：</p>
-<p>$$<br>N&#x3D;(1-\omega_4)|\mathcal E\cup\mathcal E_{\mathcal A}|<br>$$</p>
+
+$$
+N=(1-\omega_4)|\mathcal E\cup\mathcal E_{\mathcal A}|
+$$
+
+
 <p>个样本参与反向传播。其直觉是：当所谓正样本的得分无法高于负样本时，该三元组更可能与当前数据分布冲突。过滤它们可以减少错误梯度，但也可能误删“困难而正确”的长尾样本，因此剪枝率需要调优。</p>
 <h3 id="5-2-基于-MAE-的特征恢复"><a href="#5-2-基于-MAE-的特征恢复" class="headerlink" title="5.2 基于 MAE 的特征恢复"></a>5.2 基于 MAE 的特征恢复</h3><p>为了避免模型过度依赖某几个不可靠的生成属性，论文随机选择节点子集 $\widetilde{\mathcal V}$，将对应增强特征替换为掩码向量：</p>
-<p>$$<br>\widetilde{\overline{\mathbf f}}<em>{\mathcal A,v}&#x3D;<br>\begin{cases}<br>\mathbf f</em>{[MASK]},&amp;v\in\widetilde{\mathcal V},\<br>\overline{\mathbf f}_{\mathcal A,v},&amp;v\notin\widetilde{\mathcal V}.<br>\end{cases}<br>$$</p>
+
+$$
+\widetilde{\overline{\mathbf f}}_{\mathcal A,v}=
+\begin{cases}
+\mathbf f_{[MASK]},&v\in\widetilde{\mathcal V},\\
+\overline{\mathbf f}_{\mathcal A,v},&v\notin\widetilde{\mathcal V}.
+\end{cases}
+$$
+
+
 <p>模型再利用图上下文恢复原特征，并以缩放余弦误差作为恢复损失：</p>
-<p>$$<br>\mathcal L_{FR}&#x3D;\frac{1}{|\widetilde{\mathcal V}|}<br>\sum_{v\in\widetilde{\mathcal V}}<br>\left(1-\frac{\widetilde{\overline{\mathbf f}}<em>{\mathcal A,v}^{\top}<br>\overline{\mathbf f}</em>{\mathcal A,v}}<br>{|\widetilde{\overline{\mathbf f}}_{\mathcal A,v}|<em>2<br>|\overline{\mathbf f}</em>{\mathcal A,v}|_2}\right)^{\gamma}.<br>$$</p>
+
+$$
+\mathcal L_{FR}=\frac{1}{|\widetilde{\mathcal V}|}
+\sum_{v\in\widetilde{\mathcal V}}
+\left(1-\frac{\widetilde{\overline{\mathbf f}}_{\mathcal A,v}^{\top}
+\overline{\mathbf f}_{\mathcal A,v}}
+{\|\widetilde{\overline{\mathbf f}}_{\mathcal A,v}\|_2
+\|\overline{\mathbf f}_{\mathcal A,v}\|_2}\right)^{\gamma}.
+$$
+
+
 <p>最终目标是去噪后的 $\mathcal L_{BPR}$ 与 $\mathcal L_{FR}$ 的加权和。边剪枝约束伪标签质量，MAE 约束生成特征质量，分别处理图增强中的“边噪声”和“点噪声”。</p>
-<h2 id="6-为什么增强能够改善优化"><a href="#6-为什么增强能够改善优化" class="headerlink" title="6. 为什么增强能够改善优化"></a>6. 为什么增强能够改善优化</h2><p>对单个 BPR 三元组，令 $\Delta&#x3D;\hat y_{u,i^{+}}-\hat y_{u,i^{-}}$，则：</p>
-<p>$$<br>\frac{\partial\mathcal L_{BPR}}{\partial\hat y_{u,i^{+}}}<br>&#x3D;-(1-\sigma(\Delta)),\qquad<br>\frac{\partial\mathcal L_{BPR}}{\partial\hat y_{u,i^{-}}}<br>&#x3D;1-\sigma(\Delta).<br>$$</p>
+<h2 id="6-为什么增强能够改善优化"><a href="#6-为什么增强能够改善优化" class="headerlink" title="6. 为什么增强能够改善优化"></a>6. 为什么增强能够改善优化</h2><p>对单个 BPR 三元组，令 $\Delta=\hat y_{u,i^{+}}-\hat y_{u,i^{-}}$，则：</p>
+
+$$
+\frac{\partial\mathcal L_{BPR}}{\partial\hat y_{u,i^{+}}}
+=-(1-\sigma(\Delta)),\qquad
+\frac{\partial\mathcal L_{BPR}}{\partial\hat y_{u,i^{-}}}
+=1-\sigma(\Delta).
+$$
+
+
 <p>三元组标签错误时，梯度方向也会错误，在模型对该排序缺乏信心时还可能具有较大幅度。LLMRec 利用自然语言知识补充 ID 空间，在候选集内寻找更可信的正负关系，再通过剪枝减少不可靠增强样本的影响。这不能证明 LLM 偏好一定正确，但解释了为什么少量高质量 pair-wise 监督可能比大量随机负样本更有效。</p>
 <h2 id="7-实验结果"><a href="#7-实验结果" class="headerlink" title="7. 实验结果"></a>7. 实验结果</h2><p>论文在 Netflix 和 MovieLens 上进行全量排序评估，报告五次独立运行的平均结果。基础编码器建立在 LATTICE 的 ID 编码器与特征编码器之上，所有方法统一使用 64 维推荐表示。</p>
 <table>
@@ -353,7 +447,7 @@
 <li>去掉样本剪枝或同时去掉两项质量控制都会降低效果；</li>
 <li>将增强数据接入 LATTICE、MICRO 和 MMSSL 后，Netflix Recall@20 分别相对提升 11.40%、9.29% 和 11.11%，体现出一定的模型无关性。</li>
 </ul>
-<p>候选集太小会限制选择空间，太大则增加判断难度和成本；论文测试的 $|\mathcal C|\in{3,10,30}$ 中，候选数 10 的综合表现最好。较低的 top-p 通常也更可靠，因为任务强调从给定候选中精确选择，而不是创造性生成。</p>
+<p>候选集太小会限制选择空间，太大则增加判断难度和成本；论文测试的 $|\mathcal C|\in\{3,10,30\}$ 中，候选数 10 的综合表现最好。较低的 top-p 通常也更可靠，因为任务强调从给定候选中精确选择，而不是创造性生成。</p>
 <h2 id="8-成本与工程落地"><a href="#8-成本与工程落地" class="headerlink" title="8. 成本与工程落地"></a>8. 成本与工程落地</h2><p>论文使用 <code>gpt-3.5-turbo-0613</code> 生成交互样本和物品属性，使用 <code>gpt-3.5-turbo-16k</code> 生成用户画像，再用 <code>text-embedding-ada-002</code> 编码文本。三类增强在两个实验数据集上的论文报告成本分别约为 15.65、20.40 和 3.12 美元。</p>
 <p>LLMRec 的工程价值在于增强过程可以离线完成：</p>
 <ul>
