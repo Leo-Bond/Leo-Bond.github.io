@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"leo-bond.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat","show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="解读 RankMixer 如何结合多头 Token Mixing、Per-token FFN 与稀疏 MoE 扩展工业推荐排序模型，分析参数规模、FLOPs、MFU、推理延迟之间的关系及线上实验结果。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="RankMixer：面向工业推荐的可扩展排序模型">
+<meta property="og:url" content="https://leo-bond.github.io/2026/09/09/RankMixer/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="解读 RankMixer 如何结合多头 Token Mixing、Per-token FFN 与稀疏 MoE 扩展工业推荐排序模型，分析参数规模、FLOPs、MFU、推理延迟之间的关系及线上实验结果。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://leo-bond.github.io/2026/09/09/RankMixer/architecture.png">
+<meta property="og:image" content="https://leo-bond.github.io/2026/09/09/RankMixer/sparse-moe.png">
+<meta property="og:image" content="https://leo-bond.github.io/2026/09/09/RankMixer/scaling-laws.png">
+<meta property="article:published_time" content="2026-09-09T03:36:56.000Z">
+<meta property="article:author" content="wdy">
+<meta property="article:tag" content="MoE">
+<meta property="article:tag" content="RankMixer">
+<meta property="article:tag" content="Scaling Laws">
+<meta property="article:tag" content="Token Mixing">
+<meta property="article:tag" content="推荐系统">
+<meta property="article:tag" content="论文阅读">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://leo-bond.github.io/2026/09/09/RankMixer/architecture.png">
+
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/09/09/RankMixer/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://leo-bond.github.io/2026/09/09/RankMixer/","path":"2026/09/09/RankMixer/","title":"RankMixer：面向工业推荐的可扩展排序模型"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>RankMixer：面向工业推荐的可扩展排序模型 | wdy's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","display_overflow":"scroll","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js","integrity":"sha256-ihPtDDm7pTmSF9ViEsItlvsrBTsNkz0MOXMchzOwCQw="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">wdy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-resume"><a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>resume</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%85%88%E7%9C%8B%E6%B8%85%E9%97%AE%E9%A2%98%EF%BC%9A%E5%8F%82%E6%95%B0%E9%87%8F%E3%80%81FLOPs-%E5%92%8C%E5%BB%B6%E8%BF%9F%E6%98%AF%E4%B8%89%E4%B8%AA%E6%8C%87%E6%A0%87"><span class="nav-number">1.</span> <span class="nav-text">1. 先看清问题：参数量、FLOPs 和延迟是三个指标</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%BB%8E%E5%BC%82%E6%9E%84%E7%89%B9%E5%BE%81%E5%88%B0-Token%EF%BC%9A%E5%85%88%E5%86%B3%E5%AE%9A%E4%BF%A1%E6%81%AF%E5%A6%82%E4%BD%95%E5%88%86%E7%BB%84"><span class="nav-number">2.</span> <span class="nav-text">2. 从异构特征到 Token：先决定信息如何分组</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Token-Mixing%EF%BC%9A%E9%80%9A%E8%BF%87%E9%87%8D%E6%8E%92%EF%BC%8C%E8%AE%A9%E6%AF%8F%E4%B8%AA%E8%BE%93%E5%87%BA%E7%9C%8B%E5%88%B0%E6%89%80%E6%9C%89%E8%BE%93%E5%85%A5"><span class="nav-number">3.</span> <span class="nav-text">3. Token Mixing：通过重排，让每个输出看到所有输入</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Per-token-FFN%EF%BC%9A%E6%AF%8F%E4%B8%AA%E4%BD%8D%E7%BD%AE%E6%8B%A5%E6%9C%89%E8%87%AA%E5%B7%B1%E7%9A%84%E5%8F%82%E6%95%B0"><span class="nav-number">4.</span> <span class="nav-text">4. Per-token FFN：每个位置拥有自己的参数</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E4%B8%80%E4%B8%AA%E5%AE%8C%E6%95%B4-Block-%E5%A6%82%E4%BD%95%E5%B7%A5%E4%BD%9C%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">5. 一个完整 Block 如何工作？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E7%BB%A7%E7%BB%AD%E6%89%A9%E5%A4%A7%E5%AE%B9%E9%87%8F%EF%BC%9A%E7%A8%80%E7%96%8F-MoE-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%98%E8%A6%81%E6%94%B9%E8%B7%AF%E7%94%B1%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">6. 继续扩大容量：稀疏 MoE 为什么还要改路由？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%AE%9E%E9%AA%8C%E5%88%B0%E5%BA%95%E6%94%AF%E6%8C%81%E4%BA%86%E5%93%AA%E4%BA%9B%E5%88%A4%E6%96%AD%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">7. 实验到底支持了哪些判断？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E7%BA%A6-70-%E5%80%8D%E5%8F%82%E6%95%B0%EF%BC%8C%E4%B8%BA%E4%BD%95%E6%B2%A1%E6%9C%89%E5%B8%A6%E6%9D%A5%E7%BA%A6-70-%E5%80%8D%E5%BB%B6%E8%BF%9F%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">8. 约 70 倍参数，为何没有带来约 70 倍延迟？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E7%BA%BF%E4%B8%8A%E6%94%B6%E7%9B%8A%E4%B8%8E%E7%BB%93%E8%AE%BA%E8%BE%B9%E7%95%8C"><span class="nav-number">9.</span> <span class="nav-text">9. 线上收益与结论边界</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">10.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">22</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">98</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/09/09/RankMixer/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="RankMixer：面向工业推荐的可扩展排序模型 | wdy's blog">
+      <meta itemprop="description" content="解读 RankMixer 如何结合多头 Token Mixing、Per-token FFN 与稀疏 MoE 扩展工业推荐排序模型，分析参数规模、FLOPs、MFU、推理延迟之间的关系及线上实验结果。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          RankMixer：面向工业推荐的可扩展排序模型
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-09 11:36:56 / 修改时间：11:37:35" itemprop="dateCreated datePublished" datetime="2026-09-09T11:36:56+08:00">2026-09-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">推荐系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">解读 RankMixer 如何结合多头 Token Mixing、Per-token FFN 与稀疏 MoE 扩展工业推荐排序模型，分析参数规模、FLOPs、MFU、推理延迟之间的关系及线上实验结果。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>推荐模型的规模化，最终要回答一个实际问题：更大的模型能否在严格的在线延迟和成本预算下，带来持续的效果收益？</p>
+<p>字节跳动的 RankMixer 给出了一组值得关注的结果：相对于 15.8M 参数的线上基线，1.1B 参数的排序模型将参数规模扩大约 70 倍，报告的推理延迟从 14.5 ms 变为 14.3 ms。与此同时，抖音主端整体用户活跃天数提升 0.2908%，App 使用时长提升 1.0836%。这些是论文报告的特定生产系统实验结果，并非任意硬件上都能直接复现的性能承诺。<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2507.15551v3">论文表 4、表 6</a></p>
+<p>支撑这组结果的，是一套围绕推荐特征与 GPU 执行效率共同设计的架构：用多头 Token Mixing 交换特征，用 Per-token FFN 分配模型容量，再通过稀疏 MoE 探索更高的参数与计算比。</p>
+<span id="more"></span>
+
+<p>本文依据《RankMixer: Scaling Up Ranking Models in Industrial Recommenders》arXiv v3（2025 年 7 月 26 日）撰写。实验数字均来自该版本，示例、伪代码和公式推导用于辅助理解，不代表作者开源实现或独立复现实验。</p>
+<h2 id="1-先看清问题：参数量、FLOPs-和延迟是三个指标"><a href="#1-先看清问题：参数量、FLOPs-和延迟是三个指标" class="headerlink" title="1. 先看清问题：参数量、FLOPs 和延迟是三个指标"></a>1. 先看清问题：参数量、FLOPs 和延迟是三个指标</h2><p>推荐排序模型通常接收数百个异构特征：用户 ID、视频 ID、作者 ID、统计特征、行为序列表示，以及用户与候选之间的交叉特征。模型需要综合这些信息，预测完播、跳过、点赞等行为。</p>
+<p>如果直接把原有 MLP 加宽或把交叉模块堆得更深，参数确实会增加，但收益未必按预期增长。论文指出，许多传统特征交叉结构由 CPU 时代的设计演化而来；在 GPU 上，访存、碎片化算子和执行开销可能限制计算效率。</p>
+<p>因此，衡量扩大模型的代价，至少需要区分三件事：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>解释</th>
+<th>不能直接推出什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>参数量</td>
+<td>模型保存了多少可学习参数</td>
+<td>参数多不意味着每次请求都激活全部参数</td>
+</tr>
+<tr>
+<td>FLOPs</td>
+<td>一次指定计算过程需要多少浮点运算</td>
+<td>运算少不一定延迟低</td>
+</tr>
+<tr>
+<td>实测延迟与吞吐</td>
+<td>软硬件系统实际完成工作的速度</td>
+<td>不能仅由参数量推断</td>
+</tr>
+</tbody></table>
+<p>RankMixer 用 MFU（Model FLOPs Utilization）描述模型实际利用硬件理论浮点吞吐能力的程度。一个 FLOPs 更高但主要执行大矩阵乘法的模型，可能比 FLOPs 较低、却受访存和小算子限制的模型更快。论文的设计由此转向：把模型容量放在容易被 GPU 高效执行的结构上。<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2507.15551v3">论文 §1、§4.6</a></p>
+<h2 id="2-从异构特征到-Token：先决定信息如何分组"><a href="#2-从异构特征到-Token：先决定信息如何分组" class="headerlink" title="2. 从异构特征到 Token：先决定信息如何分组"></a>2. 从异构特征到 Token：先决定信息如何分组</h2><p>RankMixer 改造的是排序模型的特征交互主干。原始 ID 仍然需要 Embedding，行为序列也先经过序列模块得到表示；这篇论文没有把全部用户行为直接变成语言模型式的词序列。</p>
+<p>它首先按照语义关系和领域知识组织特征。例如，用户侧信息、候选侧信息、序列兴趣和交叉特征可以形成不同的语义组合。随后按照论文的构造方式拼接、分段，再投影到统一隐藏维度 D，得到 T 个 feature token：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">用户特征、候选特征、序列表示、交叉特征</span><br><span class="line">                    ↓</span><br><span class="line">       语义组织 → 拼接与分段 → 线性投影</span><br><span class="line">                    ↓</span><br><span class="line">              X，形状 [B, T, D]</span><br></pre></td></tr></table></figure>
+
+<p>B 是 batch 大小。这里的 token 是一个特征向量块，不是自然语言中的一个词。</p>
+<p>Token 数量涉及建模与执行效率的权衡。若每个字段都独占一个 token，数百个 token 可能让单个计算块太小，也把容量分得过碎；若把全部输入压成一个 token，模型又接近普通 DNN，难以保留不同特征子空间的独立处理能力。</p>
+<p>语义分组并不保证只有一种正确方案。论文给出的是一种组织输入的原则，没有披露可直接迁移到所有业务的完整分组规则。[论文 §3.2]</p>
+<h2 id="3-Token-Mixing：通过重排，让每个输出看到所有输入"><a href="#3-Token-Mixing：通过重排，让每个输出看到所有输入" class="headerlink" title="3. Token Mixing：通过重排，让每个输出看到所有输入"></a>3. Token Mixing：通过重排，让每个输出看到所有输入</h2><p>RankMixer 的交互模块不计算 Q、K、V，也不构造输入相关的注意力权重矩阵。它先将每个 token 的 D 维向量切成 H 份，然后将不同 token 的同一份拼到一起。</p>
+<p>设输入有 3 个 token，每个 token 有 6 维，并令 H &#x3D; T &#x3D; 3。将两维视为一组：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">输入：</span><br><span class="line">x1 = [a1 | a2 | a3]</span><br><span class="line">x2 = [b1 | b2 | b3]</span><br><span class="line">x3 = [c1 | c2 | c3]</span><br><span class="line"></span><br><span class="line">每个 a、b、c 块都有 2 维。</span><br><span class="line"></span><br><span class="line">重排后：</span><br><span class="line">s1 = [a1 | b1 | c1]</span><br><span class="line">s2 = [a2 | b2 | c2]</span><br><span class="line">s3 = [a3 | b3 | c3]</span><br></pre></td></tr></table></figure>
+
+<p>每个输出 token 都取得了所有输入 token 的一部分信息。对应论文公式：</p>
+
+$$
+\mathbf{s}_h=\operatorname{Concat}\left(\mathbf{x}_1^{(h)},\mathbf{x}_2^{(h)},\ldots,\mathbf{x}_T^{(h)}\right).
+$$
+
+
+<p>一般情况下，输出形状是 [B, H, T·D&#x2F;H]。论文设置 H &#x3D; T，使输出恢复为 [B, T, D]，便于做残差连接。D 也需要能被 H 整除。</p>
+<p>用 PyTorch 风格的伪代码表达，就是：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 仅解释重排过程，省略残差、LayerNorm 和底层性能优化。</span></span><br><span class="line">B, T, D = x.shape</span><br><span class="line">H = T</span><br><span class="line">mixed = (</span><br><span class="line">    x.reshape(B, T, H, D // H)</span><br><span class="line">     .transpose(<span class="number">1</span>, <span class="number">2</span>)</span><br><span class="line">     .reshape(B, H, T * D // H)</span><br><span class="line">)</span><br></pre></td></tr></table></figure>
+
+<p>这个模块没有可学习参数，但并不等于没有运行成本：转置后的内存布局调整仍可能产生数据搬运。它的优势是没有注意力权重计算，逻辑结构也更简单。</p>
+<p>更关键的是，重排本身只是重新组织信息；后面的非线性网络才负责学习这些信息之间的关系。因此，理解 RankMixer 时，应把 Token Mixing 与 FFN 看成配合工作的两部分。</p>
+<p>论文认为，推荐特征来自异构空间，直接学习跨空间的内积相似度较困难；其消融实验中，自注意力替代方案也没有取得更好结果。这支持了该实验设置下的选择，但不足以推出“Attention 不适合所有推荐任务”。尤其行为序列建模与本文的异构字段交互，不应混为一谈。[论文 §3.3.1、表 3]</p>
+<h2 id="4-Per-token-FFN：每个位置拥有自己的参数"><a href="#4-Per-token-FFN：每个位置拥有自己的参数" class="headerlink" title="4. Per-token FFN：每个位置拥有自己的参数"></a>4. Per-token FFN：每个位置拥有自己的参数</h2><p>完成信息重排后，RankMixer 为每个 token 配置独立的两层 FFN：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">v_t = GELU(s_t W_t,1 + b_t,1) W_t,2 + b_t,2</span><br><span class="line"></span><br><span class="line">W_t,1：[D, kD]</span><br><span class="line">W_t,2：[kD, D]</span><br></pre></td></tr></table></figure>
+
+<p>k 是中间层扩展比例。不同 token 使用不同的 W_t,1、W_t,2。</p>
+<p>如果所有 token 共享 FFN，同一套参数必须兼顾所有位置的输入分布。Per-token FFN 则允许各位置使用专属变换。作者将其动机解释为缓解特征子空间之间的主导问题：高频、强信号字段可能掩盖长尾或弱信号。</p>
+<p>这里还有一个容易忽略的细节：经过 Token Mixing 后，每个位置已经混入多个输入来源。因此，“独立建模”是指混合后的 token 位置拥有独立参数，不能机械地说某个 FFN 永远只处理用户年龄或视频类别。</p>
+<p>为什么论文称它能够增加参数，而不改变计算复杂度？可以做一个忽略偏置的比较：</p>
+<table>
+<thead>
+<tr>
+<th>设计</th>
+<th align="right">参数量</th>
+<th align="right">处理 T 个 token 的计算量量级</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>所有 token 共享 FFN</td>
+<td align="right">约 2kD²</td>
+<td align="right">O(TkD²)</td>
+</tr>
+<tr>
+<td>每个 token 独立 FFN</td>
+<td align="right">约 2kTD²</td>
+<td align="right">O(TkD²)</td>
+</tr>
+</tbody></table>
+<p>共享 FFN 虽然只保存一套权重，但仍要对 T 个输入分别计算。独立 FFN 把这些计算分配给不同权重，因此参数存储增加，主矩阵乘法的运算量量级相同。</p>
+<p>这不意味着显存占用、优化器状态或内存带宽成本也不变。它说明的是：在固定 T、D、k 的比较中，能够通过取消参数共享，提高参数容量与 FLOPs 的比值。[论文 §3.3.2；上表为据此进行的推导]</p>
+<h2 id="5-一个完整-Block-如何工作？"><a href="#5-一个完整-Block-如何工作？" class="headerlink" title="5. 一个完整 Block 如何工作？"></a>5. 一个完整 Block 如何工作？</h2><p>RankMixer 沿用残差连接与 LayerNorm。按照论文公式，一个 block 的执行次序为：</p>
+
+$$
+\begin{aligned}
+\mathbf{S}&=\operatorname{LN}\left(\operatorname{TokenMixing}(\mathbf{X})+\mathbf{X}\right),\\
+\mathbf{Y}&=\operatorname{LN}\left(\operatorname{PFFN}(\mathbf{S})+\mathbf{S}\right).
+\end{aligned}
+$$
+
+
+<p>先交换信息，再用独立 FFN 做非线性变换；两步之后各有残差与归一化。堆叠 L 层后，对最终 token 做均值池化，送入不同任务的预测层。</p>
+<img src="/2026/09/09/RankMixer/architecture.png" class="" title="RankMixer 总体架构：Token Mixing、Per-token FFN 和 Sparse MoE">
+
+<p><em>图 1：RankMixer 总体架构。左侧为堆叠的交互主干，右下为特征分头重排，右上为 FFN 的稀疏专家扩展。来源：论文 v3 第 3 页 Figure 1，按原图区域提取。</em></p>
+<p>这条路径把模型拆成清楚的职责：Token Mixing 决定信息流动方式，Per-token FFN 学习变换，任务预测层把表示转成业务行为估计。</p>
+<p>论文给出 dense 版本主干的近似规模公式：</p>
+
+$$
+N_{\mathrm{param}}\approx 2kLTD^2,\qquad
+F_{\mathrm{forward}}\approx 4kLTD^2.
+$$
+
+
+<p>它们主要计算 FFN 项，不能直接当成包含 Embedding、序列模块、输出层和系统开销的全链路精确成本。</p>
+<p>作者比较了增加 token 数 T、宽度 D 和层数 L 的扩展方向。在其测试范围内，相近参数规模下，不同方向的效果接近；从硬件效率看，增加宽度更容易形成较大的矩阵乘法。因此论文使用的配置包括：100M 级别的 D&#x3D;768、T&#x3D;16、L&#x3D;2，以及 1B 级别的 D&#x3D;1536、T&#x3D;32、L&#x3D;2。[论文 §3.1、§3.5、§4.3]</p>
+<h2 id="6-继续扩大容量：稀疏-MoE-为什么还要改路由？"><a href="#6-继续扩大容量：稀疏-MoE-为什么还要改路由？" class="headerlink" title="6. 继续扩大容量：稀疏 MoE 为什么还要改路由？"></a>6. 继续扩大容量：稀疏 MoE 为什么还要改路由？</h2><p>独立 FFN 可以进一步替换为专家网络。对某个 token 保存多个专家，但每次推理只激活一部分，从而让总参数量与实际计算量分离。</p>
+<p>不过，把传统 Top-k 路由直接搬过来会遇到两个问题。第一，不同 token 的信息量不同，固定激活相同数量的专家可能分配不合理。第二，Per-token 结构本来就有多套参数，再叠加独立专家，一些专家可能很少获得有效训练。</p>
+<p>RankMixer 为此结合了两项策略。</p>
+<p>ReLU Routing 将路由权重写成：</p>
+
+$$
+G_{i,j}=\operatorname{ReLU}\left(h(\mathbf{s}_i)_j\right),\qquad
+\mathbf{v}_i=\sum_{j=1}^{N_e}G_{i,j}\,e_{i,j}(\mathbf{s}_i).
+$$
+
+
+<p>正门值对应激活专家，非正输入被 ReLU 置零。不同 token 可以产生不同数量的有效专家。训练目标加入门值的 L1 正则，并用自适应系数控制平均激活预算：</p>
+
+$$
+\mathcal{L}=\mathcal{L}_{\mathrm{task}}+\lambda\mathcal{L}_{\mathrm{reg}},\qquad
+\mathcal{L}_{\mathrm{reg}}=\sum_i\sum_j G_{i,j}.
+$$
+
+
+<p>Dense-training &#x2F; Sparse-inference 则进一步使用训练与推理两套路由器，仅对推理路由施加稀疏正则。目标是在训练时给予专家更充分的更新，在推理时控制计算量。</p>
+<p>两项策略处理的是不同问题：ReLU 路由让计算分配有弹性，密集训练改善专家训练不足。论文的图 3 显示，它们结合后，在较低激活比例下能较好保留 dense 模型效果；正文报告吞吐提升超过 50%。这些结果有其特定实验条件，不能换算成所有平台固定的加速倍数。[论文 §3.4、§4.5]</p>
+<img src="/2026/09/09/RankMixer/sparse-moe.png" class="" title="不同专家激活比例下，RankMixer 稀疏 MoE 变体的 AUC 对比">
+
+<p><em>图 2：专家激活比例从 1 降至 1&#x2F;8 时的效果变化。橙线是密集训练、稀疏推理与 ReLU 路由的组合，蓝线是 dense 1B 参考水平；横轴表示激活比例，越向右激活越少。来源：论文 v3 第 6 页 Figure 3，直接提取原图。</em></p>
+<p>还需要区分两个结果：论文表 6 的线上 1B 部署，对应摘要所称的 dense 参数模型；稀疏 MoE 是进一步扩容的实验方向。不能把“1B 部署延迟不变”全部归功于稀疏激活，也不能写成论文已经完成 10B 全流量部署。</p>
+<h2 id="7-实验到底支持了哪些判断？"><a href="#7-实验到底支持了哪些判断？" class="headerlink" title="7. 实验到底支持了哪些判断？"></a>7. 实验到底支持了哪些判断？</h2><p>论文使用抖音生产数据，包含 300 多个特征，实验数据覆盖两周；训练运行在数百张 GPU 的混合分布式框架上。文中以 AUC、UAUC 衡量完播和跳过任务，以参数、FLOPs、MFU 衡量规模与效率。这是工业私有数据上的研究，不是公开小数据集上的通用排名。</p>
+<p>表 1 中部分结果如下。增益栏保留论文的“+x%”记法，不擅自换算成 AUC 绝对值或百分点；FLOPs 使用该表的 batch&#x3D;512 训练口径：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th align="right">参数量（不含稀疏 Embedding）</th>
+<th align="right">训练 FLOPs&#x2F;Batch</th>
+<th align="right">Finish AUC 报告增益</th>
+<th align="right">Skip UAUC 报告增益</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DLRM-MLP-100M</td>
+<td align="right">95M</td>
+<td align="right">185G</td>
+<td align="right">+0.15%</td>
+<td align="right">未报告</td>
+</tr>
+<tr>
+<td>Wukong</td>
+<td align="right">122M</td>
+<td align="right">442G</td>
+<td align="right">+0.29%</td>
+<td align="right">+0.65%</td>
+</tr>
+<tr>
+<td>RankMixer-100M</td>
+<td align="right">107M</td>
+<td align="right">233G</td>
+<td align="right">+0.64%</td>
+<td align="right">+1.33%</td>
+</tr>
+<tr>
+<td>RankMixer-1B</td>
+<td align="right">1.1B</td>
+<td align="right">2.1T</td>
+<td align="right">+0.95%</td>
+<td align="right">+1.82%</td>
+</tr>
+</tbody></table>
+<p>这里的共同参考是表中的 DLRM-MLP 基线，而不是每一行相对上一行的变化。RankMixer-100M 的 FLOPs 低于 Wukong，但高于 DLRM-MLP-100M；准确的结论是，它在这组对比中提供了更好的效果与计算权衡，而非所有指标都最小。</p>
+<img src="/2026/09/09/RankMixer/scaling-laws.png" class="" title="RankMixer 与其他排序模型在参数量和 FLOPs 两种口径下的扩展曲线">
+
+<p><em>图 3：左图按非稀疏 Embedding 参数量比较，右图按训练 FLOPs&#x2F;Batch 比较，横轴均为对数尺度。红线为 RankMixer；这些曲线反映论文测试范围内的效果趋势。来源：论文 v3 第 5 页 Figure 2，直接提取原图。</em></p>
+<p>消融结果也解释了架构的分工：移除 Token Mixing，ΔAUC 为 −0.50%；将独立 FFN 改成共享 FFN，为 −0.31%；移除残差和 LayerNorm，分别为 −0.07% 和 −0.05%。表 3 的自注意力替代方案则报告 ΔAUC −0.03%、参数 +16%、FLOPs +71.8%。这些数字使用各自表格的对照条件，不宜跨表直接相加。[论文表 1—3]</p>
+<h2 id="8-约-70-倍参数，为何没有带来约-70-倍延迟？"><a href="#8-约-70-倍参数，为何没有带来约-70-倍延迟？" class="headerlink" title="8. 约 70 倍参数，为何没有带来约 70 倍延迟？"></a>8. 约 70 倍参数，为何没有带来约 70 倍延迟？</h2><p>表 6 是理解论文部署结果的关键：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th align="right">线上基线</th>
+<th align="right">RankMixer-1B</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>参数量</td>
+<td align="right">15.8M</td>
+<td align="right">1.1B</td>
+</tr>
+<tr>
+<td>FLOPs（表 6 口径）</td>
+<td align="right">107G</td>
+<td align="right">2106G</td>
+</tr>
+<tr>
+<td>MFU</td>
+<td align="right">4.47%</td>
+<td align="right">44.57%</td>
+</tr>
+<tr>
+<td>计算精度</td>
+<td align="right">FP32</td>
+<td align="right">FP16</td>
+</tr>
+<tr>
+<td>推理延迟</td>
+<td align="right">14.5 ms</td>
+<td align="right">14.3 ms</td>
+</tr>
+</tbody></table>
+<p>作者从三方面解释成本：每参数对应的 FLOPs 降低约 3.6 倍，MFU 提高约 10 倍，以及该部署条件下 FP16 理论浮点吞吐相对 FP32 提高约 2 倍。较大的 GEMM、并行 FFN 的 kernel 融合，以及减少访存和执行开销，共同提高了实际计算效率。</p>
+<p>论文将其概括为一个近似关系：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">计算时间 ≈ FLOPs /（MFU × 硬件理论浮点吞吐）</span><br></pre></td></tr></table></figure>
+
+<p>它适合解释主要计算部分，但不完整覆盖在线请求排队、跨设备通信、Embedding 查询和尾延迟。FP16 的实际收益也依赖硬件与算子配置。</p>
+<p>按表 6 的原始数值，2106&#x2F;107≈19.7，而表内 Change 栏写的是 20.7×；这是该版本的一处数字不一致。因此更稳妥的表述是“FLOPs 增长约 20 倍”，不要把表中的所有倍率当作可以无误相乘的恒等式。[论文 §4.6、表 6]</p>
+<h2 id="9-线上收益与结论边界"><a href="#9-线上收益与结论边界" class="headerlink" title="9. 线上收益与结论边界"></a>9. 线上收益与结论边界</h2><p>抖音主端整体用户的报告结果包括：活跃天数 +0.2908%、使用时长 +1.0836%、点赞 +2.3852%。低活跃用户的活跃天数提升为 +1.7412%，高于整体人群。广告场景报告 ΔAUC +0.73%、ADVV +3.90%；ADVV 在文中指 Advertiser Value，不能直接改写为平台收入增长。[论文表 4—5]</p>
+<p>这些结果说明，作者报告的收益已从离线预测指标延伸到线上业务指标。不过，阅读时仍应保留几条边界：</p>
+<ul>
+<li>活跃天数不是 DAU 的同义词，不能把相应提升直接写成 DAU 增长。</li>
+<li>低活跃用户收益较高，不等于已经严格证明了冷启动能力。</li>
+<li>性能结果依赖私有特征、海量训练数据、分布式框架及底层优化，仅复刻网络层不能保证复现部署成本。</li>
+<li>文中的 scaling 曲线描述了所测范围内的扩展趋势，未构成对任意规模收益的保证。</li>
+<li>Token Mixing 的重排本身没有参数，模型整体仍依赖可训练投影、独立 FFN 和任务层；“无参数交互”不能简化成“模型不需要学习”。</li>
+</ul>
+<p>从模型设计角度看，RankMixer 最值得借鉴的是容量分配的方式：先组织好异构输入，用简单的信息交换连接各特征位置，再把可学习参数放进独立、可并行的大矩阵计算中。对于准备扩展排序模型的团队，一个有价值的起点是同时测量效果、FLOPs、MFU 和实际延迟，并通过消融区分结构收益与扩容收益。这样才能判断新增参数究竟转化成了更好的建模能力，还是更高的运行成本。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p>Jie Zhu、Zhifang Fan 等，<em>RankMixer: Scaling Up Ranking Models in Industrial Recommenders</em>，arXiv:2507.15551v3，2025。</p>
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2507.15551v3">阅读论文 v3</a>。本文的架构解释对应 §3，实验与部署数字对应 §4、表 1—6；未引入其他版本或把作者的实验结果表述为本文作者自己的成果。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" rel="tag"># 推荐系统</a>
+              <a href="/tags/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" rel="tag"># 论文阅读</a>
+              <a href="/tags/RankMixer/" rel="tag"># RankMixer</a>
+              <a href="/tags/Token-Mixing/" rel="tag"># Token Mixing</a>
+              <a href="/tags/MoE/" rel="tag"># MoE</a>
+              <a href="/tags/Scaling-Laws/" rel="tag"># Scaling Laws</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/09/08/LLM4Rec/" rel="prev" title="LLMRec：用大语言模型增强推荐图">
+                  <i class="fa fa-angle-left"></i> LLMRec：用大语言模型增强推荐图
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">wdy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
