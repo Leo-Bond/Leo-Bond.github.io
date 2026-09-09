@@ -1,0 +1,688 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"leo-bond.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat","show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="从 SFT、奖励模型和 Bradley–Terry 偏好模型出发，推导 KL 正则化目标与 DPO 损失，结合数值示例和 PyTorch 代码解释训练流程，并比较 PPO、GRPO、BPR、IPO 与 ORPO。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="从 RLHF 到 DPO：偏好优化的原理、推导与相关概念">
+<meta property="og:url" content="https://leo-bond.github.io/2026/09/09/DPO/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="从 SFT、奖励模型和 Bradley–Terry 偏好模型出发，推导 KL 正则化目标与 DPO 损失，结合数值示例和 PyTorch 代码解释训练流程，并比较 PPO、GRPO、BPR、IPO 与 ORPO。">
+<meta property="og:locale" content="zh_CN">
+<meta property="og:image" content="https://leo-bond.github.io/2026/09/09/DPO/alignment-pipelines.svg">
+<meta property="og:image" content="https://leo-bond.github.io/2026/09/09/DPO/dpo-loss.svg">
+<meta property="og:image" content="https://leo-bond.github.io/2026/09/09/DPO/dpo-computation.svg">
+<meta property="article:published_time" content="2026-09-09T03:47:37.000Z">
+<meta property="article:author" content="wdy">
+<meta property="article:tag" content="DPO">
+<meta property="article:tag" content="PPO">
+<meta property="article:tag" content="RLHF">
+<meta property="article:tag" content="偏好优化">
+<meta property="article:tag" content="大语言模型">
+<meta property="article:tag" content="强化学习">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image" content="https://leo-bond.github.io/2026/09/09/DPO/alignment-pipelines.svg">
+
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/09/09/DPO/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://leo-bond.github.io/2026/09/09/DPO/","path":"2026/09/09/DPO/","title":"从 RLHF 到 DPO：偏好优化的原理、推导与相关概念"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>从 RLHF 到 DPO：偏好优化的原理、推导与相关概念 | wdy's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","display_overflow":"scroll","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js","integrity":"sha256-ihPtDDm7pTmSF9ViEsItlvsrBTsNkz0MOXMchzOwCQw="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">wdy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-resume"><a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>resume</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%85%88%E5%88%86%E6%B8%85%E6%A6%82%E5%BF%B5%E6%89%80%E5%A4%84%E7%9A%84%E5%B1%82%E6%AC%A1"><span class="nav-number">1.</span> <span class="nav-text">1. 先分清概念所处的层次</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%BB%8E-SFT-%E7%9A%84%E7%A4%BA%E8%8C%83%E5%AD%A6%E4%B9%A0%E5%88%B0%E5%81%8F%E5%A5%BD%E5%AD%A6%E4%B9%A0"><span class="nav-number">2.</span> <span class="nav-text">2. 从 SFT 的示范学习到偏好学习</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E2%80%9C%E7%AD%96%E7%95%A5%E2%80%9D%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B9%9F%E6%98%AF%E4%B8%80%E4%B8%AA%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B%EF%BC%9F"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 “策略”为什么也是一个语言模型？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Bradley%E2%80%93Terry%EF%BC%9A%E6%8A%8A%E5%A5%96%E5%8A%B1%E5%B7%AE%E8%BD%AC%E6%8D%A2%E4%B8%BA%E5%81%8F%E5%A5%BD%E6%A6%82%E7%8E%87"><span class="nav-number">3.</span> <span class="nav-text">3. Bradley–Terry：把奖励差转换为偏好概率</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E7%BB%8F%E5%85%B8-PPO-RLHF%EF%BC%9A%E5%85%88%E8%AF%84%E5%88%86%EF%BC%8C%E5%86%8D%E4%BC%98%E5%8C%96%E7%94%9F%E6%88%90%E7%AD%96%E7%95%A5"><span class="nav-number">4.</span> <span class="nav-text">4. 经典 PPO-RLHF：先评分，再优化生成策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%A5%96%E5%8A%B1%E6%9C%80%E5%A4%A7%E5%8C%96%E4%B8%BA%E4%BB%80%E4%B9%88%E8%A6%81%E5%8A%A0-KL%EF%BC%9F"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 奖励最大化为什么要加 KL？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-PPO-%E7%9A%84%E2%80%9C%E8%BF%91%E7%AB%AF%E2%80%9D%E6%98%AF%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 PPO 的“近端”是什么？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-DPO-%E6%8E%A8%E5%AF%BC%EF%BC%9A%E5%A5%96%E5%8A%B1%E5%8F%AF%E4%BB%A5%E7%94%B1%E7%AD%96%E7%95%A5%E6%A6%82%E7%8E%87%E8%A1%A8%E7%A4%BA"><span class="nav-number">5.</span> <span class="nav-text">5. DPO 推导：奖励可以由策略概率表示</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E6%B1%82%E8%A7%A3%E5%B8%A6-KL-%E6%AD%A3%E5%88%99%E7%9A%84%E6%9C%80%E4%BC%98%E7%AD%96%E7%95%A5"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 求解带 KL 正则的最优策略</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E5%8F%8D%E8%BF%87%E6%9D%A5%EF%BC%8C%E6%8A%8A%E5%A5%96%E5%8A%B1%E5%86%99%E6%88%90%E7%AD%96%E7%95%A5%E7%9A%84%E5%87%BD%E6%95%B0"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 反过来，把奖励写成策略的函数</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E4%B8%80%E4%B8%AA%E6%95%B0%E5%80%BC%E4%BE%8B%E5%AD%90%EF%BC%9A%E6%AF%94%E8%BE%83%E7%9A%84%E6%98%AF%E7%9B%B8%E5%AF%B9%E5%8F%98%E5%8C%96"><span class="nav-number">6.</span> <span class="nav-text">6. 一个数值例子：比较的是相对变化</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E2%80%9C%E5%9B%B0%E9%9A%BE%E6%A0%B7%E6%9C%AC%E2%80%9D%E7%9A%84%E6%A2%AF%E5%BA%A6%E6%9B%B4%E5%A4%A7%EF%BC%9F"><span class="nav-number">6.1.</span> <span class="nav-text">6.1 为什么“困难样本”的梯度更大？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E4%BB%8E%E5%85%AC%E5%BC%8F%E5%88%B0%E4%BB%A3%E7%A0%81%EF%BC%9A%E4%B8%80%E6%AC%A1-DPO-%E6%9B%B4%E6%96%B0%E5%81%9A%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">7. 从公式到代码：一次 DPO 更新做了什么？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-PPO%E3%80%81GRPO%E3%80%81DPO%EF%BC%9A%E7%9B%91%E7%9D%A3%E4%BF%A1%E5%8F%B7%E4%B8%8E%E6%9B%B4%E6%96%B0%E6%96%B9%E5%BC%8F%E4%B8%8D%E5%90%8C"><span class="nav-number">8.</span> <span class="nav-text">8. PPO、GRPO、DPO：监督信号与更新方式不同</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E4%B8%8E-DPO-%E7%9B%B8%E9%82%BB%E7%9A%84%E6%A6%82%E5%BF%B5"><span class="nav-number">9.</span> <span class="nav-text">9. 与 DPO 相邻的概念</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#9-1-RLAIF%E3%80%81ORM-%E4%B8%8E-PRM"><span class="nav-number">9.1.</span> <span class="nav-text">9.1 RLAIF、ORM 与 PRM</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-2-BPR%EF%BC%9A%E7%9B%B8%E4%BC%BC%E7%9A%84%E6%8D%9F%E5%A4%B1%E5%A4%96%E5%BD%A2%EF%BC%8C%E4%B8%8D%E5%90%8C%E7%9A%84%E5%88%86%E6%95%B0%E5%AE%9A%E4%B9%89"><span class="nav-number">9.2.</span> <span class="nav-text">9.2 BPR：相似的损失外形，不同的分数定义</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-3-IPO%EF%BC%9A%E7%BB%99%E7%9B%B8%E5%AF%B9%E9%97%B4%E9%9A%94%E4%B8%80%E4%B8%AA%E6%9C%89%E9%99%90%E7%9B%AE%E6%A0%87"><span class="nav-number">9.3.</span> <span class="nav-text">9.3 IPO：给相对间隔一个有限目标</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-4-ORPO%EF%BC%9A%E6%B2%A1%E6%9C%89%E5%8F%82%E8%80%83%E6%A8%A1%E5%9E%8B%EF%BC%8C%E4%B9%9F%E8%A6%81%E4%BF%9D%E7%95%99%E6%AD%A3%E5%90%91%E5%AD%A6%E4%B9%A0"><span class="nav-number">9.4.</span> <span class="nav-text">9.4 ORPO：没有参考模型，也要保留正向学习</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E5%AE%9E%E9%99%85%E8%AF%84%E4%BC%B0%EF%BC%9Aloss-%E4%B8%8B%E9%99%8D%E4%B9%8B%E5%90%8E%E8%BF%98%E8%A6%81%E7%9C%8B%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">10.</span> <span class="nav-text">10. 实际评估：loss 下降之后还要看什么？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E5%9B%9E%E5%88%B0-DPO-%E7%9A%84%E6%A0%B8%E5%BF%83"><span class="nav-number">11.</span> <span class="nav-text">11. 回到 DPO 的核心</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">12.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">102</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/09/09/DPO/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="从 RLHF 到 DPO：偏好优化的原理、推导与相关概念 | wdy's blog">
+      <meta itemprop="description" content="从 SFT、奖励模型和 Bradley–Terry 偏好模型出发，推导 KL 正则化目标与 DPO 损失，结合数值示例和 PyTorch 代码解释训练流程，并比较 PPO、GRPO、BPR、IPO 与 ORPO。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          从 RLHF 到 DPO：偏好优化的原理、推导与相关概念
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-09-09 11:47:37 / 修改时间：11:48:26" itemprop="dateCreated datePublished" datetime="2026-09-09T11:47:37+08:00">2026-09-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E8%87%AA%E7%84%B6%E8%AF%AD%E8%A8%80%E5%A4%84%E7%90%86/" itemprop="url" rel="index"><span itemprop="name">自然语言处理</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">从 SFT、奖励模型和 Bradley–Terry 偏好模型出发，推导 KL 正则化目标与 DPO 损失，结合数值示例和 PyTorch 代码解释训练流程，并比较 PPO、GRPO、BPR、IPO 与 ORPO。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>给同一个问题准备两个回答，标出哪一个更好，模型就能据此学习偏好。难点在于：如何把“这个回答更好”的比较结果，转换为生成模型的训练目标？</p>
+<p><strong>Direct Preference Optimization（DPO，直接偏好优化）</strong> 提供了一种方法：将带 KL 正则的奖励最大化问题重新参数化，直接用偏好对优化语言模型，省去单独拟合奖励模型和在线强化学习采样的标准训练环节。</p>
+<p>本文从一个具体偏好样本出发，串起 SFT、RLHF、Bradley–Terry 模型、奖励函数、参考策略、PPO 与 DPO，再讨论相关变体与实践中的常见误解。公式、示例和配图用于教学，不包含本文独立训练得到的实验成果。</p>
+<span id="more"></span>
+
+<h2 id="1-先分清概念所处的层次"><a href="#1-先分清概念所处的层次" class="headerlink" title="1. 先分清概念所处的层次"></a>1. 先分清概念所处的层次</h2><p>SFT、RLHF、奖励模型和 PPO 经常一起出现，但它们并不是同一层次的概念。</p>
+<table>
+<thead>
+<tr>
+<th>概念</th>
+<th>所处层次</th>
+<th>主要作用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>SFT</td>
+<td>训练方式</td>
+<td>用优质示范输出进行监督微调</td>
+</tr>
+<tr>
+<td>偏好数据</td>
+<td>监督信号</td>
+<td>表达同一输入下哪个输出更受偏好</td>
+</tr>
+<tr>
+<td>奖励模型 RM</td>
+<td>评分模型</td>
+<td>为输入与输出组合预测标量奖励</td>
+</tr>
+<tr>
+<td>RLHF</td>
+<td>方法框架</td>
+<td>利用人类反馈引导策略学习，经典实现包含强化学习阶段</td>
+</tr>
+<tr>
+<td>PPO</td>
+<td>强化学习算法</td>
+<td>根据采样与优势估计更新策略</td>
+</tr>
+<tr>
+<td>DPO</td>
+<td>偏好优化算法</td>
+<td>用模型与参考模型的对数概率比，直接拟合偏好</td>
+</tr>
+<tr>
+<td>KL 正则</td>
+<td>优化约束</td>
+<td>惩罚策略偏离参考分布</td>
+</tr>
+<tr>
+<td>LoRA</td>
+<td>参数高效微调技术</td>
+<td>决定哪些参数如何更新，可与 SFT 或 DPO 配合</td>
+</tr>
+</tbody></table>
+<p>讨论 DPO 是否属于 RLHF 时，最好先说明用词范围：如果 RLHF 特指“奖励模型加在线强化学习”流程，DPO 是替代方案；如果讨论的是更广义的“从人类偏好进行对齐”，它们又属于同一研究方向。DPO 原论文将其称为 RL-free 的偏好优化方法。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2305.18290v3">DPO 原论文 §1—4</a></p>
+<h2 id="2-从-SFT-的示范学习到偏好学习"><a href="#2-从-SFT-的示范学习到偏好学习" class="headerlink" title="2. 从 SFT 的示范学习到偏好学习"></a>2. 从 SFT 的示范学习到偏好学习</h2><p>假设输入是：“解释为什么向量内积可以用于推荐排序。”</p>
+<p>一个 SFT 样本提供输入和示范回答。其训练目标是提高示范回答的似然：</p>
+
+$$
+\mathcal L_{\mathrm{SFT}}=-\mathbb E_{(x,y)}\log\pi_\theta(y\mid x).
+$$
+
+
+<p>偏好样本则包含两个回答：</p>
+<figure class="highlight json"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="punctuation">&#123;</span></span><br><span class="line">  <span class="attr">&quot;prompt&quot;</span><span class="punctuation">:</span> <span class="string">&quot;解释为什么向量内积可以用于推荐排序。&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;chosen&quot;</span><span class="punctuation">:</span> <span class="string">&quot;模型通过排序目标学习用户和物品向量，使相关物品获得更高内积分数。&quot;</span><span class="punctuation">,</span></span><br><span class="line">  <span class="attr">&quot;rejected&quot;</span><span class="punctuation">:</span> <span class="string">&quot;内积分数就是用户点击概率，所以内积为 2 表示点击概率为 200%。&quot;</span></span><br><span class="line"><span class="punctuation">&#125;</span></span><br></pre></td></tr></table></figure>
+
+<p>上例是本文编写的示意数据。chosen 和 rejected 表示相对偏好，实际数据中不一定存在明显的正确与错误：两个答案可能都合理，只是在准确性、表达风格或指令遵循程度上不同。</p>
+<p>只对 chosen 做 SFT，没有直接利用 rejected 所包含的对比信息；偏好优化则显式学习二者的关系。<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2203.02155">InstructGPT 论文</a>展示了示范学习、偏好标注与后续策略优化的经典组合。</p>
+<h3 id="2-1-“策略”为什么也是一个语言模型？"><a href="#2-1-“策略”为什么也是一个语言模型？" class="headerlink" title="2.1 “策略”为什么也是一个语言模型？"></a>2.1 “策略”为什么也是一个语言模型？</h3><p>策略 $\pi_\theta(y\mid x)$ 是给定输入后生成输出的概率分布。自回归语言模型将序列概率分解为 token 条件概率：</p>
+
+$$
+\log\pi_\theta(y\mid x)=\sum_{t=1}^{|y|}\log\pi_\theta(y_t\mid x,y_{<t}).
+$$
+
+
+<p>计算已有回答的概率时，不需要让模型自由生成一遍。可以把正确前缀送入模型，用 teacher forcing 一次前向得到各位置的条件概率。这里训练的是输出概率分布，不是另加一个“好／坏”分类头。</p>
+<h2 id="3-Bradley–Terry：把奖励差转换为偏好概率"><a href="#3-Bradley–Terry：把奖励差转换为偏好概率" class="headerlink" title="3. Bradley–Terry：把奖励差转换为偏好概率"></a>3. Bradley–Terry：把奖励差转换为偏好概率</h2><p>假设存在一个潜在奖励函数 r，奖励越高，回答越受偏好。Bradley–Terry（BT）模型写成：</p>
+
+$$
+p(y_w\succ y_l\mid x)
+=\frac{e^{r(x,y_w)}}{e^{r(x,y_w)}+e^{r(x,y_l)}}
+=\sigma\bigl(r(x,y_w)-r(x,y_l)\bigr).
+$$
+
+
+<p>其中 w、l 分别表示 winner 和 loser，sigmoid 将任意奖励差映射到 0 到 1。</p>
+<p>按这个公式计算，奖励差为 0 时，偏好概率是 0.5；奖励差为 2 时，约为 0.881。这里的“概率”是模型对偏好关系的估计，不是回答客观正确的概率。</p>
+<p>拟合一个显式奖励模型时，可以最小化：</p>
+
+$$
+\mathcal L_{\mathrm{RM}}=-\mathbb E\log\sigma\bigl(r_\phi(x,y_w)-r_\phi(x,y_l)\bigr).
+$$
+
+
+<p>奖励只能通过差值被观察：给同一输入下的所有回答都加上相同常数，不会改变偏好概率。这个性质，正是后面消掉配分函数的关键。BT 模型也是一个假设；复杂、矛盾或循环偏好未必能被单一标量奖励充分表达。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2305.18290v3">DPO 原论文 §3、§5</a></p>
+<h2 id="4-经典-PPO-RLHF：先评分，再优化生成策略"><a href="#4-经典-PPO-RLHF：先评分，再优化生成策略" class="headerlink" title="4. 经典 PPO-RLHF：先评分，再优化生成策略"></a>4. 经典 PPO-RLHF：先评分，再优化生成策略</h2><p>典型流程是先做 SFT，再根据偏好对训练奖励模型，最后让策略生成回答，并用奖励信号优化策略。</p>
+<img src="/2026/09/09/DPO/alignment-pipelines.svg" class="" title="经典 PPO-RLHF 与标准离线 DPO 的训练流程比较">
+
+<p><em>图 1：本文绘制的流程对比。上方是典型 PPO-RLHF，下方是标准离线 DPO。偏好数据准备阶段都可能涉及生成回答；区别在于后续策略更新阶段是否持续在线采样。</em></p>
+<h3 id="4-1-奖励最大化为什么要加-KL？"><a href="#4-1-奖励最大化为什么要加-KL？" class="headerlink" title="4.1 奖励最大化为什么要加 KL？"></a>4.1 奖励最大化为什么要加 KL？</h3><p>只追求奖励分数，策略可能利用奖励模型的误差，或者偏离原有能力分布。一个常用目标为：</p>
+
+$$
+\max_\pi\;\mathbb E_{x}\left[
+\mathbb E_{y\sim\pi(\cdot\mid x)}r(x,y)
+-\beta D_{\mathrm{KL}}\bigl(\pi(\cdot\mid x)\Vert\pi_{\mathrm{ref}}(\cdot\mid x)\bigr)
+\right].
+$$
+
+
+<p>KL 的方向是“当前策略到参考策略”：</p>
+
+$$
+D_{\mathrm{KL}}(\pi\Vert\pi_{\mathrm{ref}})
+=\sum_y\pi(y\mid x)\log\frac{\pi(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}.
+$$
+
+
+<p>参考模型通常是冻结的 SFT 模型。对于一个固定奖励函数，增大正数 β 会加强这一正则项，使最优解更倾向参考分布。但有限数据下训练 DPO 时，β 还会改变损失尺度和梯度，不能简单宣称某个方向调参一定更好。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2305.18290v3">DPO 原论文公式 3—7</a></p>
+<h3 id="4-2-PPO-的“近端”是什么？"><a href="#4-2-PPO-的“近端”是什么？" class="headerlink" title="4.2 PPO 的“近端”是什么？"></a>4.2 PPO 的“近端”是什么？</h3><p>PPO 常用新旧策略概率比与优势估计构造裁剪目标：</p>
+
+$$
+\rho_t=\frac{\pi_\theta(a_t\mid s_t)}{\pi_{\mathrm{old}}(a_t\mid s_t)},\qquad
+L^{\mathrm{clip}}=\mathbb E_t\left[
+\min\left(\rho_t\hat A_t,
+\operatorname{clip}(\rho_t,1-\epsilon,1+\epsilon)\hat A_t\right)
+\right].
+$$
+
+
+<p>优势估计表示某个动作相对基准有多好。裁剪限制过度改变概率比带来的目标收益，并不是对最终参数变化或实际 KL 的严格硬约束。语言生成时，状态可以是 prompt 加已生成前缀，动作是下一个 token。典型 actor-critic 实现使用价值模型帮助估计优势。<a target="_blank" rel="noopener" href="https://arxiv.org/abs/1707.06347">PPO 原论文</a></p>
+<p>这里有两个不同的参照：old policy 是采集当前一批轨迹的策略，随训练更新；reference policy 是 KL 正则使用的基准，常保持固定。把它们都叫“旧模型”容易混淆。</p>
+<h2 id="5-DPO-推导：奖励可以由策略概率表示"><a href="#5-DPO-推导：奖励可以由策略概率表示" class="headerlink" title="5. DPO 推导：奖励可以由策略概率表示"></a>5. DPO 推导：奖励可以由策略概率表示</h2><p>这一节采用 DPO 原论文的设定，逐步展开代数。为了清楚，固定一个输入 x，并假设参考分布在考虑的输出上概率为正。</p>
+<h3 id="5-1-求解带-KL-正则的最优策略"><a href="#5-1-求解带-KL-正则的最优策略" class="headerlink" title="5.1 求解带 KL 正则的最优策略"></a>5.1 求解带 KL 正则的最优策略</h3><p>将目标展开：</p>
+
+$$
+J(\pi)=\sum_y\pi(y)r(y)-\beta\sum_y\pi(y)\log\frac{\pi(y)}{\pi_{\mathrm{ref}}(y)},
+\qquad\sum_y\pi(y)=1.
+$$
+
+
+<p>加入概率归一化约束的拉格朗日乘子，对每个概率求导并令其为零，得到：</p>
+
+$$
+r(y)-\beta\left(\log\frac{\pi(y)}{\pi_{\mathrm{ref}}(y)}+1\right)+\lambda=0.
+$$
+
+
+<p>整理并归一化：</p>
+
+$$
+\pi_r(y\mid x)=\frac{1}{Z(x)}\pi_{\mathrm{ref}}(y\mid x)
+\exp\left(\frac{r(x,y)}{\beta}\right),
+$$
+$$
+Z(x)=\sum_y\pi_{\mathrm{ref}}(y\mid x)\exp\left(\frac{r(x,y)}{\beta}\right).
+$$
+
+
+<p>奖励通过指数加权改变参考分布。这个解析解描述的是理想化策略空间下的最优关系，不保证有限参数神经网络训练一定达到它。</p>
+<h3 id="5-2-反过来，把奖励写成策略的函数"><a href="#5-2-反过来，把奖励写成策略的函数" class="headerlink" title="5.2 反过来，把奖励写成策略的函数"></a>5.2 反过来，把奖励写成策略的函数</h3><p>对上式取对数：</p>
+
+$$
+r(x,y)=\beta\log\frac{\pi_r(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}+\beta\log Z(x).
+$$
+
+
+<p>同一个 prompt 的两个回答具有相同的 Z(x)，所以奖励相减后，它会消失。用可训练策略替代最优策略，定义相对对数概率间隔：</p>
+
+$$
+m_\theta=
+\log\frac{\pi_\theta(y_w\mid x)}{\pi_{\mathrm{ref}}(y_w\mid x)}
+-\log\frac{\pi_\theta(y_l\mid x)}{\pi_{\mathrm{ref}}(y_l\mid x)}.
+$$
+
+
+<p>将奖励差代入 BT 偏好概率，得到最终目标：</p>
+
+$$
+\boxed{\mathcal L_{\mathrm{DPO}}=-\mathbb E_{(x,y_w,y_l)}\log\sigma(\beta m_\theta)}.
+$$
+
+
+<p>因此，DPO 没有把奖励的概念删掉，而是使用模型与参考模型的对数概率比隐式表示奖励，直接拟合偏好。常用的隐式奖励表示为：</p>
+
+$$
+\hat r_\theta(x,y)=\beta\log\frac{\pi_\theta(y\mid x)}{\pi_{\mathrm{ref}}(y\mid x)}.
+$$
+
+
+<p>这个分数取决于参考模型和 β，不是天然可跨 prompt 比较的绝对质量分，也不是额外训练出的独立 Reward Model。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2305.18290v3">DPO 原论文 §4—5、附录 A</a></p>
+<h2 id="6-一个数值例子：比较的是相对变化"><a href="#6-一个数值例子：比较的是相对变化" class="headerlink" title="6. 一个数值例子：比较的是相对变化"></a>6. 一个数值例子：比较的是相对变化</h2><p>以下是本文设计的简化概率分布，剩余概率分配给其他回答：</p>
+<table>
+<thead>
+<tr>
+<th>模型</th>
+<th align="right">chosen 概率</th>
+<th align="right">rejected 概率</th>
+<th align="right">chosen&#x2F;rejected</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>参考模型</td>
+<td align="right">0.10</td>
+<td align="right">0.20</td>
+<td align="right">0.5</td>
+</tr>
+<tr>
+<td>当前模型</td>
+<td align="right">0.15</td>
+<td align="right">0.15</td>
+<td align="right">1.0</td>
+</tr>
+</tbody></table>
+<p>当前模型相对参考模型，把 chosen&#x2F;rejected 的比值提高了 2 倍。因此 m&#x3D;log 2≈0.693。取 β&#x3D;0.5，偏好 logit z&#x3D;βm≈0.347，损失为 −log σ(z)≈0.535。</p>
+<p>如果当前模型与参考模型完全相同，m&#x3D;0，损失就是 log 2≈0.693。模型不必一开始就给 chosen 更高的绝对概率，DPO 衡量的是相对参考基线的变化。</p>
+<p>再看一个容易误解的情形：如果当前 chosen 概率变成 0.08、rejected 变成 0.04，比值提高到 2，DPO 间隔继续增大，尽管 chosen 的绝对概率比参考值还低。因此不能只看偏好损失，就断言优选回答的绝对生成概率上升。</p>
+<h3 id="6-1-为什么“困难样本”的梯度更大？"><a href="#6-1-为什么“困难样本”的梯度更大？" class="headerlink" title="6.1 为什么“困难样本”的梯度更大？"></a>6.1 为什么“困难样本”的梯度更大？</h3><p>对单个样本令 z&#x3D;βm，则：</p>
+
+$$
+\ell(z)=\log(1+e^{-z}),\qquad
+\frac{\partial\ell}{\partial m}=-\beta\sigma(-\beta m).
+$$
+
+
+<p>间隔越负，梯度权重越大；已经获得较大正间隔的样本，更新权重会变小。这是逻辑损失的性质，不会自动区分“困难而正确”与“标错了”的数据。错误偏好也可能得到较大的更新权重。</p>
+<img src="/2026/09/09/DPO/dpo-loss.svg" class="" title="DPO 单样本损失与梯度权重随偏好 logit 的变化">
+
+<p><em>图 2：根据上面的解析式绘制，横轴 z&#x3D;βm。左图是损失，右图是相对于 z 的梯度绝对值；这是函数示意，不是训练实验曲线。</em></p>
+<h2 id="7-从公式到代码：一次-DPO-更新做了什么？"><a href="#7-从公式到代码：一次-DPO-更新做了什么？" class="headerlink" title="7. 从公式到代码：一次 DPO 更新做了什么？"></a>7. 从公式到代码：一次 DPO 更新做了什么？</h2><p>标准离线训练中，策略和参考模型读取同一批 prompt、chosen、rejected。参考模型冻结，通常只需要前向；策略模型需要反向传播。</p>
+<img src="/2026/09/09/DPO/dpo-computation.svg" class="" title="DPO 的四个序列对数概率如何组合成损失">
+
+<p><em>图 3：本文绘制的计算路径。四个分数是两套模型对两种回答的完整序列对数概率；梯度只流经策略分支。</em></p>
+<p>如果已经拿到四组序列分数，损失核心非常短：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> torch.nn.functional <span class="keyword">as</span> F</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">def</span> <span class="title function_">dpo_loss</span>(<span class="params">policy_chosen, policy_rejected,</span></span><br><span class="line"><span class="params">             reference_chosen, reference_rejected, beta=<span class="number">0.1</span></span>):</span><br><span class="line">    <span class="comment"># Each input has shape [batch_size].</span></span><br><span class="line">    policy_gap = policy_chosen - policy_rejected</span><br><span class="line">    reference_gap = (reference_chosen - reference_rejected).detach()</span><br><span class="line">    logits = beta * (policy_gap - reference_gap)</span><br><span class="line">    <span class="keyword">return</span> -F.logsigmoid(logits).mean()</span><br></pre></td></tr></table></figure>
+
+<p>难点往往在序列分数计算，而不是这一行 loss：</p>
+<ul>
+<li>自回归位置要正确 shift：当前位置 logits 对应下一个 token。</li>
+<li>只累计回答部分的 log probability，屏蔽 prompt 与 padding。</li>
+<li>两套模型使用一致的 tokenizer、对话模板、截断与结束符规则。</li>
+<li>使用 log-softmax 和 log-sigmoid，避免直接相乘序列概率带来的下溢。</li>
+<li>标准 DPO 对回答 token 的 log probability 求和；若改为长度平均，就改变了目标，不能当作完全等价的实现。</li>
+<li>离线数据与参考模型固定时可以预计算参考分数；任何分词、模板或截断变化都需要重新计算。</li>
+</ul>
+<p>这些是按自回归概率定义检查实现的要点，而不是完整训练器。真实训练仍需处理数据整理、注意力掩码、优化器与分布式执行。</p>
+<h2 id="8-PPO、GRPO、DPO：监督信号与更新方式不同"><a href="#8-PPO、GRPO、DPO：监督信号与更新方式不同" class="headerlink" title="8. PPO、GRPO、DPO：监督信号与更新方式不同"></a>8. PPO、GRPO、DPO：监督信号与更新方式不同</h2><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>典型 PPO-RLHF</th>
+<th>GRPO</th>
+<th>标准离线 DPO</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>策略更新时采样</td>
+<td>根据当前策略采样</td>
+<td>每个问题采样一组输出</td>
+<td>读取固定偏好对</td>
+</tr>
+<tr>
+<td>主要信号</td>
+<td>奖励与优势估计</td>
+<td>组内奖励相对值形成的优势</td>
+<td>chosen&#x2F;rejected 关系</td>
+</tr>
+<tr>
+<td>独立价值模型</td>
+<td>常见 actor-critic 实现使用</td>
+<td>用组内统计构造基准，不单独训练 critic</td>
+<td>不需要</td>
+</tr>
+<tr>
+<td>显式奖励来源</td>
+<td>环境、规则或奖励模型</td>
+<td>规则或奖励模型等</td>
+<td>不需要独立评分器参与每次更新</td>
+</tr>
+<tr>
+<td>参考模型</td>
+<td>典型 RLHF 中用于 KL</td>
+<td>原始方法中用于 KL</td>
+<td>用于相对对数概率</td>
+</tr>
+</tbody></table>
+<p>GRPO（Group Relative Policy Optimization）由 <a target="_blank" rel="noopener" href="https://arxiv.org/html/2402.03300v3">DeepSeekMath</a>提出。其基本思路是对同一问题采样多条输出，用组内奖励的相对关系形成优势，减少独立 critic 的需求。组内奖励完全相同时，简单的标准化优势不会提供区分输出的信号。</p>
+<p>“没有 critic”不等于“没有奖励”，“奖励由规则提供”也不等于“没有强化学习”。同样，DPO 没有标准在线 RL 循环，不意味着它没有策略或奖励解释。</p>
+<p>不能仅凭流程更简单判断哪种方法效果必然更好。比较应控制模型起点、数据质量、采样与训练预算，并在未参与优化的评价任务上测量输出质量。</p>
+<h2 id="9-与-DPO-相邻的概念"><a href="#9-与-DPO-相邻的概念" class="headerlink" title="9. 与 DPO 相邻的概念"></a>9. 与 DPO 相邻的概念</h2><h3 id="9-1-RLAIF、ORM-与-PRM"><a href="#9-1-RLAIF、ORM-与-PRM" class="headerlink" title="9.1 RLAIF、ORM 与 PRM"></a>9.1 RLAIF、ORM 与 PRM</h3><p>人类标注与 AI 标注描述的是反馈来源。由 AI 提供偏好或评分，通常放在 RLAIF 的讨论范围；生成出的偏好对既可以用于直接偏好训练，也可以训练奖励模型。</p>
+<p>ORM（Outcome Reward Model）评价最终结果，PRM（Process Reward Model）评价中间步骤。它们描述的是评分粒度，不是 DPO 或 PPO 的同义词。<a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.20050">过程监督研究</a>探讨了在数学推理中使用步骤级反馈。</p>
+<p>因此阅读缩写时应区分数据、评分器和优化算法。“PPM”并没有在本文引用的核心方法中被用作统一算法名称，遇到它仍应回到具体文章核对定义。</p>
+<h3 id="9-2-BPR：相似的损失外形，不同的分数定义"><a href="#9-2-BPR：相似的损失外形，不同的分数定义" class="headerlink" title="9.2 BPR：相似的损失外形，不同的分数定义"></a>9.2 BPR：相似的损失外形，不同的分数定义</h3><p>推荐系统的 BPR 也使用成对逻辑损失：</p>
+
+$$
+\mathcal L_{\mathrm{BPR}}=-\log\sigma\bigl(s(u,i^+)-s(u,i^-)\bigr).
+$$
+
+
+<p><a target="_blank" rel="noopener" href="https://arxiv.org/abs/1205.2618">BPR 原论文</a>针对隐式反馈排序。DPO 中与它外形对应的是隐式奖励差，但分数来自相对参考模型的生成概率。普通矩阵分解或图推荐的内积分数，不会仅因损失长得相似就变成 DPO。</p>
+<p>若输出是生成式推荐的物品 token 序列，可以为同一用户上下文构造两个推荐结果并计算条件生成概率，从而应用 DPO。此时偏好标签如何定义、是否受曝光偏差影响，仍是独立的数据问题。</p>
+<h3 id="9-3-IPO：给相对间隔一个有限目标"><a href="#9-3-IPO：给相对间隔一个有限目标" class="headerlink" title="9.3 IPO：给相对间隔一个有限目标"></a>9.3 IPO：给相对间隔一个有限目标</h3><p>IPO 在原论文中指 <strong>Identity Preference Optimization</strong>。它从更一般的偏好学习框架出发，提出避免直接依赖 BT 奖励建模的目标，其一种成对经验损失形式是：</p>
+
+$$
+\mathcal L_{\mathrm{IPO}}=\mathbb E\left[\left(m_\theta-\frac{1}{2\tau}\right)^2\right].
+$$
+
+
+<p>这里使用原文的正则参数 τ，m 是相对参考策略的对数概率间隔。相比逻辑损失对可分数据持续偏好更大间隔，平方目标围绕一个有限间隔优化。它针对确定性偏好下的过拟合问题提供另一种思路，不保证在所有任务上优于 DPO。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2310.12036v2">IPO 原论文</a></p>
+<h3 id="9-4-ORPO：没有参考模型，也要保留正向学习"><a href="#9-4-ORPO：没有参考模型，也要保留正向学习" class="headerlink" title="9.4 ORPO：没有参考模型，也要保留正向学习"></a>9.4 ORPO：没有参考模型，也要保留正向学习</h3><p>ORPO（Odds Ratio Preference Optimization）把 chosen 的监督学习损失与 odds-ratio 偏好项结合，不需要单独的参考模型：</p>
+
+$$
+\mathcal L_{\mathrm{ORPO}}=\mathcal L_{\mathrm{SFT}}
+-\lambda\log\sigma\left(\log\frac{\operatorname{odds}_\theta(y_w\mid x)}{\operatorname{odds}_\theta(y_l\mid x)}\right).
+$$
+
+
+<p>论文使用长度平均对数似然的指数构造 P，再定义 odds&#x3D;P&#x2F;(1−P)。这个 P 是 token 概率的几何平均，不应与标准完整序列概率混用。</p>
+<p>ORPO 同时保留对 chosen 的正向学习和对 rejected 的区分，不能简单理解为“从 DPO 公式删掉 reference”。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2403.07691v2">ORPO 原论文 §4</a></p>
+<h2 id="10-实际评估：loss-下降之后还要看什么？"><a href="#10-实际评估：loss-下降之后还要看什么？" class="headerlink" title="10. 实际评估：loss 下降之后还要看什么？"></a>10. 实际评估：loss 下降之后还要看什么？</h2><p>根据前面的概率与损失关系，至少可以设计以下检查：</p>
+<table>
+<thead>
+<tr>
+<th>检查对象</th>
+<th>为什么要看</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>按 prompt 划分的独立偏好集</td>
+<td>避免同一输入的近似样本跨训练与验证泄漏</td>
+</tr>
+<tr>
+<td>chosen 与 rejected 各自的 log probability</td>
+<td>区分提高优选概率与仅压低劣选概率</td>
+</tr>
+<tr>
+<td>输出长度与风格</td>
+<td>排查偏好判断是否主要奖励冗长或格式特征</td>
+</tr>
+<tr>
+<td>生成结果的正确性、指令遵循与多样性</td>
+<td>验证离线偏好拟合是否转化为实际输出质量</td>
+</tr>
+<tr>
+<td>基础能力回归</td>
+<td>检查偏好训练是否破坏原有任务能力</td>
+</tr>
+<tr>
+<td>不同来源与难度的数据子集</td>
+<td>发现模型是否只学会标注器或数据源的特征</td>
+</tr>
+</tbody></table>
+<p>对数概率间隔只是训练信号之一。第 6 节已经给出反例：间隔改善时，chosen 的绝对概率也可能下降。再考虑模型参数共享、有限数据和分布外输入，就更不能把训练 loss 当成生成质量的替代指标。</p>
+<p>偏好也需要明确标准。用户偏爱某个答案，不必然说明它事实正确；标注器偏爱长答案，也不必然说明长答案更有用。一个可解释的实验，应同时记录偏好来源、模型起点、参考策略、β、数据版本和独立评价标准。</p>
+<h2 id="11-回到-DPO-的核心"><a href="#11-回到-DPO-的核心" class="headerlink" title="11. 回到 DPO 的核心"></a>11. 回到 DPO 的核心</h2><p>DPO 最关键的步骤是奖励的重新参数化：在带 KL 正则的目标下，奖励与最优策略的对数概率比存在联系；同一输入的成对比较又消除了只依赖输入的归一化常数。于是，偏好学习可以直接作用于生成策略。</p>
+<p>理解它时，可以始终保留三条区分：偏好数据决定“学什么”，参考模型决定“相对谁变化”，优化目标决定“怎样更新”。PPO、DPO、IPO 和 ORPO 改变了其中不同环节，而数据质量、模型能力与评估可信度始终需要单独验证。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li>Rafailov et al. <a target="_blank" rel="noopener" href="https://arxiv.org/html/2305.18290v3">Direct Preference Optimization: Your Language Model is Secretly a Reward Model</a>, 2023。本文依据其 §3—5 与附录 A 展开推导；该版本标注 CC BY 4.0。</li>
+<li>Ouyang et al. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2203.02155">Training language models to follow instructions with human feedback</a>, 2022。</li>
+<li>Schulman et al. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1707.06347">Proximal Policy Optimization Algorithms</a>, 2017。</li>
+<li>Azar et al. <a target="_blank" rel="noopener" href="https://arxiv.org/html/2310.12036v2">A General Theoretical Paradigm to Understand Learning from Human Preferences</a>, 2023。</li>
+<li>Hong et al. <a target="_blank" rel="noopener" href="https://arxiv.org/html/2403.07691v2">ORPO: Monolithic Preference Optimization without Reference Model</a>, 2024。</li>
+<li>Shao et al. <a target="_blank" rel="noopener" href="https://arxiv.org/html/2402.03300v3">DeepSeekMath: Pushing the Limits of Mathematical Reasoning in Open Language Models</a>, 2024。</li>
+<li>Rendle et al. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/1205.2618">BPR: Bayesian Personalized Ranking from Implicit Feedback</a>, 2009（链接为 arXiv 版本）。</li>
+<li>Lightman et al. <a target="_blank" rel="noopener" href="https://arxiv.org/abs/2305.20050">Let’s Verify Step by Step</a>, 2023。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%A4%A7%E8%AF%AD%E8%A8%80%E6%A8%A1%E5%9E%8B/" rel="tag"># 大语言模型</a>
+              <a href="/tags/%E5%81%8F%E5%A5%BD%E4%BC%98%E5%8C%96/" rel="tag"># 偏好优化</a>
+              <a href="/tags/DPO/" rel="tag"># DPO</a>
+              <a href="/tags/RLHF/" rel="tag"># RLHF</a>
+              <a href="/tags/PPO/" rel="tag"># PPO</a>
+              <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/" rel="tag"># 强化学习</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/09/09/RankMixer/" rel="prev" title="RankMixer：面向工业推荐的可扩展排序模型">
+                  <i class="fa fa-angle-left"></i> RankMixer：面向工业推荐的可扩展排序模型
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">wdy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
