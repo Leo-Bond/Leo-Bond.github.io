@@ -155,7 +155,7 @@
   <nav class="site-state">
       <div class="site-state-item site-state-posts">
         <a href="/archives/">
-          <span class="site-state-item-count">23</span>
+          <span class="site-state-item-count">24</span>
           <span class="site-state-item-name">日志</span>
         </a>
       </div>
@@ -166,7 +166,7 @@
       </div>
       <div class="site-state-item site-state-tags">
           <a href="/tags/">
-        <span class="site-state-item-count">102</span>
+        <span class="site-state-item-count">104</span>
         <span class="site-state-item-name">标签</span></a>
       </div>
   </nav>
@@ -221,9 +221,15 @@
         <i class="far fa-calendar"></i>
       </span>
       <span class="post-meta-item-text">发表于</span>
-      
 
-      <time title="创建时间：2026-09-09 11:47:37 / 修改时间：11:48:26" itemprop="dateCreated datePublished" datetime="2026-09-09T11:47:37+08:00">2026-09-09</time>
+      <time title="创建时间：2026-09-09 11:47:37" itemprop="dateCreated datePublished" datetime="2026-09-09T11:47:37+08:00">2026-09-09</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-09-15 17:04:21" itemprop="dateModified" datetime="2026-09-15T17:04:21+08:00">2026-09-15</time>
     </span>
     <span class="post-meta-item">
       <span class="post-meta-item-icon">
@@ -317,7 +323,7 @@ $$
 <h3 id="2-1-“策略”为什么也是一个语言模型？"><a href="#2-1-“策略”为什么也是一个语言模型？" class="headerlink" title="2.1 “策略”为什么也是一个语言模型？"></a>2.1 “策略”为什么也是一个语言模型？</h3><p>策略 $\pi_\theta(y\mid x)$ 是给定输入后生成输出的概率分布。自回归语言模型将序列概率分解为 token 条件概率：</p>
 
 $$
-\log\pi_\theta(y\mid x)=\sum_{t=1}^{|y|}\log\pi_\theta(y_t\mid x,y_{<t}).
+\log\pi_\theta(y\mid x)=\sum_{t=1}^{|y|}\log\pi_\theta(y_t\mid x,y_{\lt t}).
 $$
 
 
@@ -637,6 +643,9 @@ $$
                 </a>
             </div>
             <div class="post-nav-item">
+                <a href="/2026/09/15/%E5%BA%8F%E5%88%97%E5%BB%BA%E6%A8%A1-SASRec-BERTRec/" rel="next" title="序列建模-SASRec &amp; BERTRec">
+                  序列建模-SASRec & BERTRec <i class="fa fa-angle-right"></i>
+                </a>
             </div>
           </div>
     </footer>
