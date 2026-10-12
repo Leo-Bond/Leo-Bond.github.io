@@ -1,0 +1,577 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"leo-bond.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat","show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="从 SID、NTP 和 Beam Search 理解生成式推荐，梳理 OneRecV2、反馈后训练、GPR、UniVA 及异步推理如何改变计算分配与候选形成。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="推荐模型 Scaling（四）：从 SID 生成到价值引导搜索">
+<meta property="og:url" content="https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="从 SID、NTP 和 Beam Search 理解生成式推荐，梳理 OneRecV2、反馈后训练、GPR、UniVA 及异步推理如何改变计算分配与候选形成。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-12T09:07:00.000Z">
+<meta property="article:author" content="wdy">
+<meta property="article:tag" content="OneRec">
+<meta property="article:tag" content="Scaling">
+<meta property="article:tag" content="强化学习">
+<meta property="article:tag" content="推荐系统">
+<meta property="article:tag" content="生成式推荐">
+<meta property="article:tag" content="语义 ID">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90/","path":"2026/10/12/推荐模型Scaling-生成式推荐/","title":"推荐模型 Scaling（四）：从 SID 生成到价值引导搜索"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>推荐模型 Scaling（四）：从 SID 生成到价值引导搜索 | wdy's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","display_overflow":"scroll","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js","integrity":"sha256-ihPtDDm7pTmSF9ViEsItlvsrBTsNkz0MOXMchzOwCQw="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">wdy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-resume"><a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>resume</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E5%88%97%E5%AF%BC%E8%88%AA"><span class="nav-number">1.</span> <span class="nav-text">系列导航</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%8E%92%E5%BA%8F%E8%83%BD%E5%8A%9B%E4%B8%8E%E5%80%99%E9%80%89%E5%BD%A2%E6%88%90%E8%83%BD%E5%8A%9B%E6%98%AF%E4%B8%A4%E4%B8%AA%E9%97%AE%E9%A2%98"><span class="nav-number">2.</span> <span class="nav-text">1. 排序能力与候选形成能力是两个问题</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-SID%EF%BC%9A%E6%8A%8A%E4%B8%80%E4%B8%AA%E7%89%A9%E5%93%81%E5%8F%98%E6%88%90%E5%A4%9A%E4%B8%AA%E7%A6%BB%E6%95%A3-Token"><span class="nav-number">3.</span> <span class="nav-text">2. SID：把一个物品变成多个离散 Token</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%AE%A9%E6%AF%8F%E4%B8%AA-Item-ID-%E9%83%BD%E6%98%AF%E4%B8%80%E4%B8%AA%E8%BE%93%E5%87%BA%E7%B1%BB%E5%88%AB%EF%BC%9F"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 为什么不让每个 Item ID 都是一个输出类别？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-TIGER-%E4%B8%8E-OneRec-%E4%BD%BF%E7%94%A8%E4%BB%80%E4%B9%88%E4%BF%A1%E6%81%AF%E6%9E%84%E5%BB%BA%E7%BC%96%E7%A0%81%EF%BC%9F"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 TIGER 与 OneRec 使用什么信息构建编码？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-NTP-%E4%B8%8E-Beam-Search%EF%BC%9A%E5%A6%82%E4%BD%95%E4%BB%8E%E6%A6%82%E7%8E%87%E4%BA%A7%E7%94%9F%E5%80%99%E9%80%89"><span class="nav-number">4.</span> <span class="nav-text">3. NTP 与 Beam Search：如何从概率产生候选</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E8%AE%AD%E7%BB%83%E6%97%B6%E5%AD%A6%E4%B9%A0%E5%AE%8C%E6%95%B4-SID-%E7%9A%84%E6%A6%82%E7%8E%87"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 训练时学习完整 SID 的概率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E6%8E%A8%E7%90%86%E6%97%B6%E4%B8%8D%E8%83%BD%E7%A9%B7%E4%B8%BE%E6%89%80%E6%9C%89%E7%BB%84%E5%90%88"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 推理时不能穷举所有组合</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E5%90%88%E6%B3%95%E7%BC%96%E7%A0%81%E4%B8%8E%E4%B8%9A%E5%8A%A1%E5%90%88%E6%B3%95%E6%80%A7"><span class="nav-number">4.3.</span> <span class="nav-text">3.3 合法编码与业务合法性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-OneRecV2%EF%BC%9A%E6%8A%8A%E6%9B%B4%E5%A4%9A%E8%AE%A1%E7%AE%97%E6%94%BE%E5%88%B0%E8%BE%83%E7%9F%AD%E7%9A%84%E7%9B%AE%E6%A0%87%E4%BE%A7"><span class="nav-number">5.</span> <span class="nav-text">4. OneRecV2：把更多计算放到较短的目标侧</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E7%94%A8%E6%88%B7%E4%B8%8A%E4%B8%8B%E6%96%87%E4%B8%8E%E7%9B%AE%E6%A0%87-SID-%E7%9A%84%E9%95%BF%E5%BA%A6%E5%B7%AE%E8%B7%9D"><span class="nav-number">5.1.</span> <span class="nav-text">4.1 用户上下文与目标 SID 的长度差距</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-Context-Processor-%E7%9B%B4%E6%8E%A5%E6%8F%90%E4%BE%9B%E5%90%84%E5%B1%82-K-V"><span class="nav-number">5.2.</span> <span class="nav-text">4.2 Context Processor 直接提供各层 K&#x2F;V</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E7%94%9F%E6%88%90%E6%A6%82%E7%8E%87%E8%83%BD%E5%A4%9F%E6%8E%92%E5%BA%8F%EF%BC%8C%E5%8D%B4%E4%B8%8D%E7%AD%89%E4%BA%8E%E6%8E%A8%E8%8D%90%E4%BB%B7%E5%80%BC"><span class="nav-number">6.</span> <span class="nav-text">5. 生成概率能够排序，却不等于推荐价值</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-OneRec-%E4%B8%8E-OneRecV2%EF%BC%9A%E5%8F%8D%E9%A6%88%E5%85%88%E6%94%B9%E5%8F%98%E6%9C%AA%E6%9D%A5%E7%9A%84%E7%94%9F%E6%88%90%E5%88%86%E5%B8%83"><span class="nav-number">7.</span> <span class="nav-text">6. OneRec 与 OneRecV2：反馈先改变未来的生成分布</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-RSFT-%E6%94%B9%E5%8F%98%E7%BB%A7%E7%BB%AD%E8%AE%AD%E7%BB%83%E7%9A%84%E6%95%B0%E6%8D%AE"><span class="nav-number">7.1.</span> <span class="nav-text">6.1 RSFT 改变继续训练的数据</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-RL-%E7%94%A8-Reward-%E6%9B%B4%E6%96%B0%E7%94%9F%E6%88%90-Policy"><span class="nav-number">7.2.</span> <span class="nav-text">6.2 RL 用 Reward 更新生成 Policy</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-OneRecV2-%E4%BD%BF%E7%94%A8%E7%9C%9F%E5%AE%9E%E5%8F%8D%E9%A6%88%EF%BC%8C%E4%BD%86%E4%B8%8D%E7%9B%B4%E6%8E%A5%E7%AD%89%E5%90%8C%E4%BA%8E%E5%8E%9F%E5%A7%8B%E6%92%AD%E6%94%BE%E6%97%B6%E9%95%BF"><span class="nav-number">7.3.</span> <span class="nav-text">6.3 OneRecV2 使用真实反馈，但不直接等同于原始播放时长</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-GPR-%E4%B8%8E-UniVA%EF%BC%9A%E4%BB%B7%E5%80%BC%E7%9B%B4%E6%8E%A5%E5%BD%B1%E5%93%8D%E5%BD%93%E5%89%8D%E8%AF%B7%E6%B1%82%E7%9A%84%E6%90%9C%E7%B4%A2"><span class="nav-number">8.</span> <span class="nav-text">7. GPR 与 UniVA：价值直接影响当前请求的搜索</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-GPR%EF%BC%9A%E7%94%A8-Prefix-Value-%E5%88%86%E9%85%8D%E5%B1%95%E5%BC%80%E6%9C%BA%E4%BC%9A"><span class="nav-number">8.1.</span> <span class="nav-text">7.1 GPR：用 Prefix Value 分配展开机会</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-UniVA%EF%BC%9A%E4%BB%B7%E5%80%BC%E4%B8%8E%E7%94%9F%E6%88%90%E5%88%86%E6%95%B0%E5%85%B1%E5%90%8C%E5%8F%82%E4%B8%8E%E8%B7%AF%E5%BE%84%E7%AB%9E%E4%BA%89"><span class="nav-number">8.2.</span> <span class="nav-text">7.2 UniVA：价值与生成分数共同参与路径竞争</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E5%AF%B9%E7%85%A7%E7%9C%8B%E4%B8%A4%E7%A7%8D%E5%9C%A8%E7%BA%BF%E4%BB%B7%E5%80%BC%E5%BC%95%E5%AF%BC"><span class="nav-number">8.3.</span> <span class="nav-text">7.3 对照看两种在线价值引导</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-OneRecThink-%E4%B8%8E-OneReason%EF%BC%9A%E6%8A%8A%E8%BE%83%E6%85%A2%E8%AE%A1%E7%AE%97%E7%A7%BB%E5%87%BA%E5%AE%9E%E6%97%B6%E8%AF%B7%E6%B1%82"><span class="nav-number">9.</span> <span class="nav-text">8. OneRecThink 与 OneReason：把较慢计算移出实时请求</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-OneRecThink%EF%BC%9A%E7%BC%93%E5%AD%98%E5%90%8C%E4%B8%80%E6%9D%A1-SID-%E7%9A%84%E5%89%8D%E5%8D%8A%E6%AE%B5"><span class="nav-number">9.1.</span> <span class="nav-text">8.1 OneRecThink：缓存同一条 SID 的前半段</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-OneReason%EF%BC%9A%E7%8B%AC%E7%AB%8B%E4%BA%A7%E7%94%9F%E5%80%99%E9%80%89%EF%BC%8C%E6%88%96%E5%90%91%E5%BF%AB%E6%A8%A1%E5%9E%8B%E6%8F%90%E4%BE%9B%E7%9B%91%E7%9D%A3"><span class="nav-number">9.2.</span> <span class="nav-text">8.2 OneReason：独立产生候选，或向快模型提供监督</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-Generative-Scaling-%E7%9A%84%E5%9B%9B%E4%BB%BD%E8%AE%A1%E7%AE%97%E8%B4%A6%E5%8D%95"><span class="nav-number">10.</span> <span class="nav-text">9. Generative Scaling 的四份计算账单</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E7%94%9F%E6%88%90%E3%80%81%E4%BB%B7%E5%80%BC%E4%B8%8E%E7%B3%BB%E7%BB%9F%E8%BE%B9%E7%95%8C"><span class="nav-number">11.</span> <span class="nav-text">10. 生成、价值与系统边界</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E4%B8%8E%E6%9D%A5%E6%BA%90"><span class="nav-number">12.</span> <span class="nav-text">参考与来源</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">112</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="推荐模型 Scaling（四）：从 SID 生成到价值引导搜索 | wdy's blog">
+      <meta itemprop="description" content="从 SID、NTP 和 Beam Search 理解生成式推荐，梳理 OneRecV2、反馈后训练、GPR、UniVA 及异步推理如何改变计算分配与候选形成。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          推荐模型 Scaling（四）：从 SID 生成到价值引导搜索
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-12 17:07:00 / 修改时间：17:18:14" itemprop="dateCreated datePublished" datetime="2026-10-12T17:07:00+08:00">2026-10-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">推荐系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">从 SID、NTP 和 Beam Search 理解生成式推荐，梳理 OneRecV2、反馈后训练、GPR、UniVA 及异步推理如何改变计算分配与候选形成。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>再强的 Ranker，也无法把没有进入候选集的物品排到前面。继续加深排序网络，改善的是既有候选之间的比较，却不会自动扩大候选搜索范围。</p>
+<p>Generative Scaling 改变的是候选如何形成：模型根据用户信息逐步生成物品编码，再通过搜索得到候选。在这条链路上，计算不仅可以用于更大的模型，还可以用于反馈后训练、实时价值估计，以及请求之前的异步推理。</p>
+<span id="more"></span>
+
+<blockquote>
+<p><strong>来源与公式说明</strong>：本文依据《<a target="_blank" rel="noopener" href="https://docs.corp.kuaishou.com/d/home/fcAB45z9rbioaaOQjjuC0C9jy">推荐模型 Scaling：为什么必须依赖 Model–System Co-design</a>》第四章整理。各方法和实验口径均为该综述的转述，未逐篇重新核验。公式按原文明确的文字关系重建，属于解释性表示；不补写缺失的 PPO、Reward 或模型专用损失公式。文中的 OneRec 指原文相应工业方案，不将不同版本与早期 Session 级方案混成同一套实现。</p>
+</blockquote>
+<h2 id="系列导航"><a href="#系列导航" class="headerlink" title="系列导航"></a>系列导航</h2><ol>
+<li><a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/" title="推荐模型 Scaling（一）：从参数规模到模型与系统协同设计">总览：参数、计算与系统约束</a></li>
+<li><a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%89%B9%E5%BE%81%E4%BA%A4%E4%BA%92/" title="推荐模型 Scaling（二）：从显式特征交互到 TokenMixer">特征交互：DHEN、Wukong 与 TokenMixer</a></li>
+<li><a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E9%95%BF%E5%BA%8F%E5%88%97/" title="推荐模型 Scaling（三）：长序列建模与多候选计算复用">长序列：历史读取与候选复用</a></li>
+<li><strong>生成式推荐：从 SID 生成到价值引导搜索（本文）</strong></li>
+</ol>
+<h2 id="1-排序能力与候选形成能力是两个问题"><a href="#1-排序能力与候选形成能力是两个问题" class="headerlink" title="1. 排序能力与候选形成能力是两个问题"></a>1. 排序能力与候选形成能力是两个问题</h2><p>设完整物品库为 V，召回阶段为用户 u 产生候选集合 C_u，Ranker 对其中的候选打分。根据原文关系，可简写为：</p>
+
+\[
+\mathcal{C}_u\subseteq\mathcal{V},\qquad
+\operatorname{Result}_u=
+\operatorname{TopK}_{v\in\mathcal{C}_u}f(u,v).
+\]
+
+
+<p>从函数定义上，Ranker 也许能对任意物品计算分数。但复杂的 Target Attention 与交互网络无法在线逐个处理百万乃至更大的物品库，所以实际求解范围仍受召回限制。</p>
+<p>生成式推荐不再只接收一个候选并输出反馈分数，而是生成物品的离散编码，再映射回物品。它同样没有穷举整个物品库，只是把搜索变成了编码空间中的逐步选择。</p>
+<p>这种改变扩大了模型参与候选形成的范围，但不能直接证明它优于 ANN 召回或所有多阶段系统。</p>
+<h2 id="2-SID：把一个物品变成多个离散-Token"><a href="#2-SID：把一个物品变成多个离散-Token" class="headerlink" title="2. SID：把一个物品变成多个离散 Token"></a>2. SID：把一个物品变成多个离散 Token</h2><h3 id="2-1-为什么不让每个-Item-ID-都是一个输出类别？"><a href="#2-1-为什么不让每个-Item-ID-都是一个输出类别？" class="headerlink" title="2.1 为什么不让每个 Item ID 都是一个输出类别？"></a>2.1 为什么不让每个 Item ID 都是一个输出类别？</h3><p>若每个物品对应独立 Token，输出词表接近物品库大小，编号本身也不表达内容或协同相似性。</p>
+<p>Semantic ID（SID）将一个物品表示为多个离散 Token 的组合。令编码长度为 m，每层 Token 来自对应 Codebook：</p>
+
+\[
+\operatorname{SID}(v)=(c_1,\ldots,c_m),\qquad
+c_j\in\mathcal{K}_j.
+\]
+
+
+<p>模型依次预测各层 Token，完整编码再通过映射返回物品。组合编码是否具有有用的相似性，取决于 Tokenizer 的输入信息、表示空间和训练目标，而不是“拆成多个数字”自动带来的性质。</p>
+<h3 id="2-2-TIGER-与-OneRec-使用什么信息构建编码？"><a href="#2-2-TIGER-与-OneRec-使用什么信息构建编码？" class="headerlink" title="2.2 TIGER 与 OneRec 使用什么信息构建编码？"></a>2.2 TIGER 与 OneRec 使用什么信息构建编码？</h3><p>按原文介绍：</p>
+<ul>
+<li>TIGER 从内容模型得到物品向量，再用 RQ-VAE 逐层量化；内容相近的物品可能共享部分编码。</li>
+<li>OneRec 进一步引入协同关系，通过相似物品对对齐多模态表示，使消费关系相近的物品更容易获得相近编码。</li>
+</ul>
+<p>Tokenizer 决定物品对应哪个 SID，推荐模型学习如何根据用户上下文预测 SID。两者的更新周期可以分开，但不能忽略版本一致性。</p>
+<p>如果 Tokenizer 或 Codebook 改变，训练目标、在线模型、item–SID mapping 与合法编码集合都可能需要同步切换。另一个工程前提是明确完整编码的映射规则：若有碰撞，需要消歧或定义后续候选展开，不能默认量化天然产生唯一编码。</p>
+<h2 id="3-NTP-与-Beam-Search：如何从概率产生候选"><a href="#3-NTP-与-Beam-Search：如何从概率产生候选" class="headerlink" title="3. NTP 与 Beam Search：如何从概率产生候选"></a>3. NTP 与 Beam Search：如何从概率产生候选</h2><h3 id="3-1-训练时学习完整-SID-的概率"><a href="#3-1-训练时学习完整-SID-的概率" class="headerlink" title="3.1 训练时学习完整 SID 的概率"></a>3.1 训练时学习完整 SID 的概率</h3><p>设用户历史及上下文为 H。按条件概率链式分解：</p>
+
+\[
+p_\theta(c_1,\ldots,c_m\mid H)
+=\prod_{j=1}^{m}p_\theta(c_j\mid H,c_{<j}).
+\]
+
+
+<p>相应的单个目标 SID 的 NTP 解释性损失为：</p>
+
+\[
+\mathcal{L}_{\mathrm{NTP}}
+=-\sum_{j=1}^{m}\log p_\theta(c_j\mid H,c_{<j}).
+\]
+
+
+<p>训练从 BOS 开始，Teacher Forcing 使用真实前缀预测下一个 Token。这个公式只表达单个 SID 的自回归训练，不替代各版本的 Session 组织、辅助损失或后训练目标。</p>
+<h3 id="3-2-推理时不能穷举所有组合"><a href="#3-2-推理时不能穷举所有组合" class="headerlink" title="3.2 推理时不能穷举所有组合"></a>3.2 推理时不能穷举所有组合</h3><p>若每层有很多可选 Token，完整组合数迅速增长。Beam Search 每一步扩展现有 Prefix，只保留一定数量的高分路径。</p>
+<p>对长度为 j 的前缀，累计分数可写为：</p>
+
+\[
+s(c_{1:j})=\sum_{k=1}^{j}
+\log p_\theta(c_k\mid H,c_{<k}).
+\]
+
+
+<p>Beam Width 为 B 时，每层保留 B 条前缀。到最后一层，将合法完整 SID 映射为物品：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">用户上下文 → BOS</span><br><span class="line">              ↓</span><br><span class="line">         第一层 Prefix</span><br><span class="line">              ↓ 剪枝</span><br><span class="line">         第二层 Prefix</span><br><span class="line">              ↓ 剪枝</span><br><span class="line">           完整 SID</span><br><span class="line">              ↓ 映射、过滤</span><br><span class="line">           物品候选</span><br></pre></td></tr></table></figure>
+
+<p>更大的 Beam 增加搜索机会，也增加解码、缓存和路径维护成本。它不等于更大的模型，更不保证业务价值单调改善。</p>
+<h3 id="3-3-合法编码与业务合法性"><a href="#3-3-合法编码与业务合法性" class="headerlink" title="3.3 合法编码与业务合法性"></a>3.3 合法编码与业务合法性</h3><p>并非所有 Token 组合都对应物品。一种做法是生成后过滤；另一种是把已注册 SID 放进 Trie，只允许扩展合法后继。</p>
+<p>还要区分两层约束：</p>
+<ul>
+<li>编码是否合法、是否能映射到物品；</li>
+<li>物品在当前请求中是否可推荐，例如库存、定向和素材状态是否满足要求。</li>
+</ul>
+<p>全局合法不代表请求级合法。业务约束可以参与请求级 Trie 构建或其他确定性过滤，而不是全部交给概率模型学习。</p>
+<h2 id="4-OneRecV2：把更多计算放到较短的目标侧"><a href="#4-OneRecV2：把更多计算放到较短的目标侧" class="headerlink" title="4. OneRecV2：把更多计算放到较短的目标侧"></a>4. OneRecV2：把更多计算放到较短的目标侧</h2><h3 id="4-1-用户上下文与目标-SID-的长度差距"><a href="#4-1-用户上下文与目标-SID-的长度差距" class="headerlink" title="4.1 用户上下文与目标 SID 的长度差距"></a>4.1 用户上下文与目标 SID 的长度差距</h3><p>TIGER 展示了内容 SID、NTP 与 Beam Search 的基础链路。工业 OneRec 还需要处理用户画像、近期行为、强正反馈和压缩后的长期历史。</p>
+<p>用户画像和行为属性并非全部变成 SID，仍可通过各自的 Embedding 与 Projection 输入 Encoder；SID 主要表示历史物品与目标物品。</p>
+<p>原文介绍的 OneRecV2 计算分析配置包含 512 个 Context Token，但目标只有 3 个 SID Token。在所引 1B 配置中，OneRecV1 的 Context Encoding 约 338 GFLOPs，目标侧 Decoder 计算约 8.1 GFLOPs。</p>
+<p>这里 Context Encoding 包括 Encoder 变换，以及 Decoder Cross-Attention 对上下文的 K&#x2F;V Projection；这些数字不是任意 OneRec 模型的每请求通用成本。</p>
+<p>关键问题是：如果两侧都继续加深，大量新增计算会落在几百个 Context Token 的反复变换上，而目标侧只有少量 Token。</p>
+<h3 id="4-2-Context-Processor-直接提供各层-K-V"><a href="#4-2-Context-Processor-直接提供各层-K-V" class="headerlink" title="4.2 Context Processor 直接提供各层 K&#x2F;V"></a>4.2 Context Processor 直接提供各层 K&#x2F;V</h3><p>OneRecV2 先处理用户上下文，再直接产生各 Decoder 层读取的 K&#x2F;V：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br></pre></td><td class="code"><pre><span class="line">用户画像与行为历史</span><br><span class="line">        ↓</span><br><span class="line">Context Processor</span><br><span class="line">        ├── 第 1 层 K/V → Decoder 第 1 层</span><br><span class="line">        ├── 第 2 层 K/V → Decoder 第 2 层</span><br><span class="line">        └── 第 N 层 K/V → Decoder 第 N 层</span><br><span class="line">                              ↓</span><br><span class="line">                          生成目标 SID</span><br></pre></td></tr></table></figure>
+
+<p>这样减少 Context Token 的多层 Transformer 变换与重复 K&#x2F;V Projection，将较多 Block、FFN 和 MoE 容量放到较短的目标侧。</p>
+<p>但上下文仍然被各层 Cross-Attention 读取，其存储与读取成本没有消失。原文称其为 <strong>Lazy Decoder-only</strong>，却不是通常把所有上下文拼进单一自回归序列的 Decoder-only Transformer。</p>
+<p>这是一种计算分配：减少上下文的重复变换，不等于上下文不重要。</p>
+<h2 id="5-生成概率能够排序，却不等于推荐价值"><a href="#5-生成概率能够排序，却不等于推荐价值" class="headerlink" title="5. 生成概率能够排序，却不等于推荐价值"></a>5. 生成概率能够排序，却不等于推荐价值</h2><p>Beam Search 的累计 Log-Probability 既决定 Prefix 去留，也给完整 SID 一个初始顺序。原文将这种关系称为 Generation-as-Ranking。</p>
+<p>统一的是候选生成与基于生成概率的早期排序，不能由此断言点击、转化、长期满意度和商业价值也被统一。</p>
+<p>NTP 学习的行为日志已经经过旧系统的曝光与分发策略。高生成概率可能部分反映热门度、曝光机会或旧策略偏好，而不完全是当前用户的最优价值。</p>
+<p>在合法候选集合中，用 V(u,v) 表示经过定义与校准的价值分数，二者可能给出不同答案：</p>
+
+\[
+\arg\max_{v\in\mathcal{V}_{\mathrm{valid}}(u)}
+\log p_\theta(\operatorname{SID}(v)\mid H)
+\neq
+\arg\max_{v\in\mathcal{V}_{\mathrm{valid}}(u)}V(u,v).
+\]
+
+
+<p>这不是说它们必然不同，而是没有天然相等的保证。V 也不表示多种业务目标天然具有相同量纲，实际需要明确组合规则。</p>
+<p>生成后再交给 Ranker 是一种可行方案，但后置模型无法挽回已在早期被剪掉的路径。若希望价值改变候选形成，就需要让它进入训练或搜索。</p>
+<h2 id="6-OneRec-与-OneRecV2：反馈先改变未来的生成分布"><a href="#6-OneRec-与-OneRecV2：反馈先改变未来的生成分布" class="headerlink" title="6. OneRec 与 OneRecV2：反馈先改变未来的生成分布"></a>6. OneRec 与 OneRecV2：反馈先改变未来的生成分布</h2><h3 id="6-1-RSFT-改变继续训练的数据"><a href="#6-1-RSFT-改变继续训练的数据" class="headerlink" title="6.1 RSFT 改变继续训练的数据"></a>6.1 RSFT 改变继续训练的数据</h3><p>原文所述的 OneRec 使用 Reject Sampling Fine-Tuning，按播放时长过滤后 50% 的曝光 Session，再对保留数据进行 NTP。</p>
+<p>它首先改变的是训练分布：更符合筛选标准的样本获得后续学习机会。它不是在线搜索时给每条路径即时加分。</p>
+<h3 id="6-2-RL-用-Reward-更新生成-Policy"><a href="#6-2-RL-用-Reward-更新生成-Policy" class="headerlink" title="6.2 RL 用 Reward 更新生成 Policy"></a>6.2 RL 用 Reward 更新生成 Policy</h3><p>模型采样完整 SID，Reward System 评价生成结果，再更新 Policy。原文列出的 Reward 包括个性化点击、观看与互动目标，合法 SID，以及业务和生态目标。</p>
+<p>这会增加 Rollout、Reward 计算与参数更新的成本。Reward 改变未来请求中的生成概率，并不意味着每个在线请求都重新运行 Reward Model。</p>
+<h3 id="6-3-OneRecV2-使用真实反馈，但不直接等同于原始播放时长"><a href="#6-3-OneRecV2-使用真实反馈，但不直接等同于原始播放时长" class="headerlink" title="6.3 OneRecV2 使用真实反馈，但不直接等同于原始播放时长"></a>6.3 OneRecV2 使用真实反馈，但不直接等同于原始播放时长</h3><p>长视频天然更容易积累较长观看时间，所以原文描述的真实反馈构造包括：</p>
+<ol>
+<li>按视频自身时长分桶；</li>
+<li>在同一用户、相近视频时长的行为中计算播放时长分位数；</li>
+<li>取高分位样本作为正反馈；</li>
+<li>将显式 Dislike 作为负反馈；</li>
+<li>过滤其余未进入正负集合的样本。</li>
+</ol>
+<p>Reward Model 与这类真实反馈覆盖的目标不同，因此后者是补充来源，不是天然替代。真实反馈也来自实际曝光结果，不能自动消除曝光选择偏差。</p>
+<p>三者共同点是：<strong>先更新模型参数，再影响后续请求的搜索分布。</strong></p>
+<h2 id="7-GPR-与-UniVA：价值直接影响当前请求的搜索"><a href="#7-GPR-与-UniVA：价值直接影响当前请求的搜索" class="headerlink" title="7. GPR 与 UniVA：价值直接影响当前请求的搜索"></a>7. GPR 与 UniVA：价值直接影响当前请求的搜索</h2><p>这两类广告生成方案把 Value 放到 SID 尚未生成完成的阶段，但作用方式不同。</p>
+<h3 id="7-1-GPR：用-Prefix-Value-分配展开机会"><a href="#7-1-GPR：用-Prefix-Value-分配展开机会" class="headerlink" title="7.1 GPR：用 Prefix Value 分配展开机会"></a>7.1 GPR：用 Prefix Value 分配展开机会</h3><p>GPR 在生成模型之外估计当前请求状态下，某个 Prefix 继续生成可能取得的回报。</p>
+<p>原文介绍的离线 Simulator 复现候选、特征处理、业务规则与价值模型，用 pCTR、pCVR 等模型为完整广告计算 Reward，同时训练生成 Policy 和 Prefix 估值能力。</p>
+<p>上线后实时估值，并据此调整下一层搜索宽度：</p>
+<ul>
+<li>高 Value Prefix 获得更多展开机会；</li>
+<li>低 Value Prefix 获得较少预算；</li>
+<li>不满足请求约束的路径提前剪枝。</li>
+</ul>
+<p>GPR 改变的是搜索预算流向，<strong>不是简单把 Value 与生成概率相加</strong>。额外估值本身也占用实时计算。</p>
+<h3 id="7-2-UniVA：价值与生成分数共同参与路径竞争"><a href="#7-2-UniVA：价值与生成分数共同参与路径竞争" class="headerlink" title="7.2 UniVA：价值与生成分数共同参与路径竞争"></a>7.2 UniVA：价值与生成分数共同参与路径竞争</h3><p>UniVA 在三个位置引入价值：</p>
+<ol>
+<li><strong>编码</strong>：前几层保留 Semantic SID，最后加入由行业、优化目标、ROI、Bid 等商业属性构造的 Commercial SID；</li>
+<li><strong>训练</strong>：共享 Decoder 后设置 Generation Head 与 Value Head，使用 Simulator 中的商业回报训练；</li>
+<li><strong>搜索</strong>：融合两组输出，使价值直接影响当前步骤保留的路径。</li>
+</ol>
+<p>按原文“逐元素相加”的描述，可以写出分数融合示意：</p>
+
+\[
+\boldsymbol{\ell}_{\mathrm{fused}}
+=\boldsymbol{\ell}_{\mathrm{gen}}
++\boldsymbol{\ell}_{\mathrm{value}}.
+\]
+
+
+<p>两组向量对应同一层的下一 Token。这里是该方案训练出的两类 Logit 的融合关系，不能推广成“任意概率与任意业务分数直接相加”。</p>
+<p>原文介绍其训练使用 Beam Search 和基于 MCTS 的探索产生轨迹，通过 PPO 类目标更新策略，并用逐层 Return 训练 Value Head；在线只执行 Beam Search，而不是在线运行 MCTS。</p>
+<p>请求级 Trie 限制当前合法路径。Commercial SID 组织广告属性，Value Head 估计当前请求下的回报，Trie 处理合法性，三者职责不同。</p>
+<h3 id="7-3-对照看两种在线价值引导"><a href="#7-3-对照看两种在线价值引导" class="headerlink" title="7.3 对照看两种在线价值引导"></a>7.3 对照看两种在线价值引导</h3><table>
+<thead>
+<tr>
+<th>维度</th>
+<th>GPR</th>
+<th>UniVA</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>估值对象</td>
+<td>当前请求下的 SID Prefix</td>
+<td>当前请求与 Prefix 下的下一 Token</td>
+</tr>
+<tr>
+<td>主要在线作用</td>
+<td>调整不同 Prefix 的展开预算</td>
+<td>融合 Logit，影响路径竞争</td>
+</tr>
+<tr>
+<td>训练来源</td>
+<td>Simulator Reward</td>
+<td>Simulator 中的 eCPM 等回报</td>
+</tr>
+<tr>
+<td>合法性</td>
+<td>请求相关 Trie</td>
+<td>请求级合法子树</td>
+</tr>
+</tbody></table>
+<p>它们都不能被简化为“生成以后再排序”。价值在完整候选形成之前就已经参与决策。</p>
+<h2 id="8-OneRecThink-与-OneReason：把较慢计算移出实时请求"><a href="#8-OneRecThink-与-OneReason：把较慢计算移出实时请求" class="headerlink" title="8. OneRecThink 与 OneReason：把较慢计算移出实时请求"></a>8. OneRecThink 与 OneReason：把较慢计算移出实时请求</h2><p>价值估计不是唯一扩展方向。还可以增加兴趣分析与候选探索，但把较慢部分放在离线或近线阶段。</p>
+<h3 id="8-1-OneRecThink：缓存同一条-SID-的前半段"><a href="#8-1-OneRecThink：缓存同一条-SID-的前半段" class="headerlink" title="8.1 OneRecThink：缓存同一条 SID 的前半段"></a>8.1 OneRecThink：缓存同一条 SID 的前半段</h3><p>OneRecThink 先产生文本式 Reasoning Path，再生成 SID。为了避免在线生成大量文本 Token，Think-Ahead 将计算拆开：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">离线：用户信息 → Reasoning Path → SID 前两个 Token → 缓存</span><br><span class="line">在线：最新行为 + 缓存 Prefix → 补全最后一个 SID Token → 候选</span><br></pre></td></tr></table></figure>
+
+<p>在线完成的是同一条生成路径的剩余部分，不是直接读取已经完整生成的候选。</p>
+<p>原文提醒：构造推理训练数据时已经知道目标物品，并围绕目标选择历史。因此这些文本更适合被看作目标相关的历史整理，不能当成模型真实决策过程的完整、忠实还原。</p>
+<h3 id="8-2-OneReason：独立产生候选，或向快模型提供监督"><a href="#8-2-OneReason：独立产生候选，或向快模型提供监督" class="headerlink" title="8.2 OneReason：独立产生候选，或向快模型提供监督"></a>8.2 OneReason：独立产生候选，或向快模型提供监督</h3><p>OneReason 是独立的推荐推理模型，连接自然语言与可以映射到物品的 Itemic Token。原文描述两种接入方式。</p>
+<p><strong>近线候选路线</strong>：生成完整 Itemic Token，解码成物品 ID，写入缓存；在线与实时 OneRec 候选合并，再交给后续 Ranker。</p>
+<p><strong>OneReason for OneRec</strong>：预测 Itemic Token，由量化模型得到对应 Embedding，作为对齐监督；通过 Alignment Network 对齐 OneRec Decoder 侧 BOS 的 hidden state，将知识与推理信号迁移给在线模型。实时请求仍由 OneRec 处理。</p>
+<table>
+<thead>
+<tr>
+<th>方法</th>
+<th>慢阶段交付什么</th>
+<th>在线如何使用</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>OneRecThink</td>
+<td>Reasoning 与 SID Prefix</td>
+<td>根据最新行为补全 SID</td>
+</tr>
+<tr>
+<td>OneReason 近线候选</td>
+<td>完整物品候选</td>
+<td>与实时候选合并后排序</td>
+</tr>
+<tr>
+<td>OneReason for OneRec</td>
+<td>Itemic Token 对应的监督向量</td>
+<td>通过训练迁移；线上由 OneRec 执行</td>
+</tr>
+</tbody></table>
+<p>三者不是仅仅模型大小不同，而是慢计算产生的结果及其与在线链路的连接方式不同。</p>
+<h2 id="9-Generative-Scaling-的四份计算账单"><a href="#9-Generative-Scaling-的四份计算账单" class="headerlink" title="9. Generative Scaling 的四份计算账单"></a>9. Generative Scaling 的四份计算账单</h2><table>
+<thead>
+<tr>
+<th>扩展位置</th>
+<th>改变什么</th>
+<th>需要计量的成本</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>生成模型</td>
+<td>每一步预测能力</td>
+<td>活跃参数、解码 FLOPs、显存与延迟</td>
+</tr>
+<tr>
+<td>后训练</td>
+<td>后续请求的生成分布</td>
+<td>样本筛选、训练更新、Rollout 和 Reward</td>
+</tr>
+<tr>
+<td>在线搜索</td>
+<td>当前候选路径的展开与保留</td>
+<td>Beam、逐层 Value 推理、KV Cache</td>
+</tr>
+<tr>
+<td>异步推理</td>
+<td>提前准备兴趣、Prefix、候选或监督</td>
+<td>推理资源、缓存、更新频率和新鲜度</td>
+</tr>
+</tbody></table>
+<p>把这四份账单全部写成“参数增加”，会遗漏大部分系统事实。相同模型可能通过更宽 Beam 增加实时成本，也可能通过更频繁的近线更新增加总资源消耗。</p>
+<p>异步计算也不是免费：用户兴趣改变后要多久更新？缓存失效时如何降级？已经生成的候选是否仍满足库存与定向约束？这些问题必须跟模型方案一起设计。</p>
+<h2 id="10-生成、价值与系统边界"><a href="#10-生成、价值与系统边界" class="headerlink" title="10. 生成、价值与系统边界"></a>10. 生成、价值与系统边界</h2><p>生成式推荐确实把更多职责放进同一条 SID 链路：候选形成、基于概率的初始顺序，以及部分价值筛选。</p>
+<p>但它不意味着一个物理模型替代了全部系统：Reward 可能来自独立模型，Simulator 可能复用已有 pCTR&#x2F;pCVR，Prefix Value 可能单独估计，近线模型通过缓存或蒸馏连接，最终 Ranker 和确定性策略仍可保留。</p>
+<p>判断一项 Generative Scaling 是否成立，需要分别回答：</p>
+<ul>
+<li>新增计算发生在训练、实时搜索还是异步阶段？</li>
+<li>收益来自模型扩容、反馈更新，还是更广的路径探索？</li>
+<li>SID、映射与业务约束能否保持一致？</li>
+<li>效果是否足以抵偿延迟、缓存和更新成本？</li>
+</ul>
+<p>回到 <a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/" title="推荐模型 Scaling（一）：从参数规模到模型与系统协同设计">系列总览</a> 的判断：Interaction、Sequence 与 Generative 是可以组合的方向，但不应不加区分地同时扩大所有模块。新增计算能否改善决策，需要实验验证；新增决策能否稳定上线，则取决于 Model–System Co-design。</p>
+<h2 id="参考与来源"><a href="#参考与来源" class="headerlink" title="参考与来源"></a>参考与来源</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.corp.kuaishou.com/d/home/fcAB45z9rbioaaOQjjuC0C9jy">原始综述</a>，第四章 §4.1—§4.13；整理于 2026-10-12。</li>
+<li>SID 表示、NTP 链式分解、Prefix 分数及 Logit 融合均为依据该章节文字关系的解释性重建。没有把缺失的公式、论文链接或实验细节补写成已核验事实。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E5%BC%BA%E5%8C%96%E5%AD%A6%E4%B9%A0/" rel="tag"># 强化学习</a>
+              <a href="/tags/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" rel="tag"># 推荐系统</a>
+              <a href="/tags/Scaling/" rel="tag"># Scaling</a>
+              <a href="/tags/%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90/" rel="tag"># 生成式推荐</a>
+              <a href="/tags/%E8%AF%AD%E4%B9%89-ID/" rel="tag"># 语义 ID</a>
+              <a href="/tags/OneRec/" rel="tag"># OneRec</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/09/15/%E5%BA%8F%E5%88%97%E5%BB%BA%E6%A8%A1-SASRec-BERTRec/" rel="prev" title="序列建模-SASRec &amp; BERTRec">
+                  <i class="fa fa-angle-left"></i> 序列建模-SASRec & BERTRec
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E9%95%BF%E5%BA%8F%E5%88%97/" rel="next" title="推荐模型 Scaling（三）：长序列建模与多候选计算复用">
+                  推荐模型 Scaling（三）：长序列建模与多候选计算复用 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">wdy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

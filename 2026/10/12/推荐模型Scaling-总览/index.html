@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"leo-bond.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat","show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="区分推荐模型的总参数、活跃计算、历史长度与搜索预算，从 GPU 执行效率出发建立 Interaction、Sequence、Generative 三条 Scaling 路线的分析框架。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="推荐模型 Scaling（一）：从参数规模到模型与系统协同设计">
+<meta property="og:url" content="https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="区分推荐模型的总参数、活跃计算、历史长度与搜索预算，从 GPU 执行效率出发建立 Interaction、Sequence、Generative 三条 Scaling 路线的分析框架。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-12T09:10:00.000Z">
+<meta property="article:author" content="wdy">
+<meta property="article:tag" content="GPU">
+<meta property="article:tag" content="Model-System Co-design">
+<meta property="article:tag" content="Scaling">
+<meta property="article:tag" content="推荐系统">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/","path":"2026/10/12/推荐模型Scaling-总览/","title":"推荐模型 Scaling（一）：从参数规模到模型与系统协同设计"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>推荐模型 Scaling（一）：从参数规模到模型与系统协同设计 | wdy's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","display_overflow":"scroll","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js","integrity":"sha256-ihPtDDm7pTmSF9ViEsItlvsrBTsNkz0MOXMchzOwCQw="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">wdy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-resume"><a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>resume</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E5%88%97%E5%AF%BC%E8%88%AA"><span class="nav-number">1.</span> <span class="nav-text">系列导航</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E6%A8%A1%E5%9E%8B%E5%BE%88%E5%A4%A7%EF%BC%8C%E4%B8%8D%E7%AD%89%E4%BA%8E%E6%AF%8F%E6%AC%A1%E8%AF%B7%E6%B1%82%E8%AE%A1%E7%AE%97%E5%BE%88%E5%A4%9A"><span class="nav-number">2.</span> <span class="nav-text">1. 模型很大，不等于每次请求计算很多</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E7%90%86%E8%AE%BA-FLOPs-%E4%B8%8E-GPU-%E7%9C%9F%E6%AD%A3%E6%89%A7%E8%A1%8C%E7%9A%84%E5%B7%A5%E4%BD%9C"><span class="nav-number">3.</span> <span class="nav-text">2. 理论 FLOPs 与 GPU 真正执行的工作</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-GPU-%E5%96%9C%E6%AC%A2%E4%BB%80%E4%B9%88%E6%A0%B7%E7%9A%84%E8%AE%A1%E7%AE%97%EF%BC%9F"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 GPU 喜欢什么样的计算？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E7%AE%97%E6%9C%AF%E5%BC%BA%E5%BA%A6%E8%A7%A3%E9%87%8A%E4%BA%86%E4%B8%BA%E4%BB%80%E4%B9%88-FLOPs-%E4%B8%8D%E6%98%AF%E5%85%A8%E9%83%A8"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 算术强度解释了为什么 FLOPs 不是全部</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-MFU-%E5%8F%AA%E8%A1%A1%E9%87%8F%E6%89%A7%E8%A1%8C%E6%95%88%E7%8E%87%EF%BC%8C%E4%B8%8D%E8%A1%A1%E9%87%8F%E6%8E%A8%E8%8D%90%E4%BB%B7%E5%80%BC"><span class="nav-number">3.3.</span> <span class="nav-text">2.3 MFU 只衡量执行效率，不衡量推荐价值</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E4%B8%89%E6%9D%A1%E8%B7%AF%E7%BA%BF%E5%88%86%E5%88%AB%E6%8A%8A%E8%AE%A1%E7%AE%97%E6%94%BE%E5%9C%A8%E5%93%AA%E9%87%8C%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">3. 三条路线分别把计算放在哪里？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E7%89%B9%E5%BE%81%E4%BA%A4%E4%BA%92%EF%BC%9A%E8%AE%A9%E5%B7%B2%E7%BB%8F%E8%AF%BB%E5%88%B0%E7%9A%84%E4%BF%A1%E6%81%AF%E7%AE%97%E5%BE%97%E6%9B%B4%E5%85%85%E5%88%86"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 特征交互：让已经读到的信息算得更充分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E9%95%BF%E5%BA%8F%E5%88%97%EF%BC%9A%E5%8E%86%E5%8F%B2%E6%9B%B4%E9%95%BF%E4%B8%8D%E7%AD%89%E4%BA%8E%E6%89%80%E6%9C%89%E8%A1%8C%E4%B8%BA%E9%83%BD%E7%BB%8F%E8%BF%87%E6%B7%B1%E5%B1%82%E7%BD%91%E7%BB%9C"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 长序列：历史更长不等于所有行为都经过深层网络</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90%EF%BC%9A%E8%AE%A1%E7%AE%97%E4%BB%8E%E5%80%99%E9%80%89%E6%89%93%E5%88%86%E5%BB%B6%E4%BC%B8%E5%88%B0%E5%80%99%E9%80%89%E5%BD%A2%E6%88%90"><span class="nav-number">4.3.</span> <span class="nav-text">3.3 生成式推荐：计算从候选打分延伸到候选形成</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Model%E2%80%93System-Co-design-%E4%B8%8D%E6%98%AF%E6%9C%80%E5%90%8E%E4%B8%80%E6%AD%A5%E8%B0%83%E4%BC%98"><span class="nav-number">5.</span> <span class="nav-text">4. Model–System Co-design 不是最后一步调优</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-Scaling-%E7%9A%84%E8%AF%81%E6%8D%AE%E6%9C%89%E5%A4%9A%E5%BC%BA%EF%BC%9F"><span class="nav-number">6.</span> <span class="nav-text">5. Scaling 的证据有多强？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E5%A6%82%E4%BD%95%E8%AE%BE%E8%AE%A1%E4%B8%80%E6%AC%A1%E6%9C%89%E8%A7%A3%E9%87%8A%E5%8A%9B%E7%9A%84%E8%A7%84%E6%A8%A1%E5%AE%9E%E9%AA%8C%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">6. 如何设计一次有解释力的规模实验？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E5%85%88%E5%AE%9A%E4%B9%89%E6%89%A9%E5%A4%A7%E4%BA%86%E4%BB%80%E4%B9%88"><span class="nav-number">7.1.</span> <span class="nav-text">6.1 先定义扩大了什么</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E5%88%86%E5%88%AB%E5%9B%BA%E5%AE%9A%E8%AE%AD%E7%BB%83%E9%A2%84%E7%AE%97%E4%B8%8E%E7%BA%BF%E4%B8%8A%E9%A2%84%E7%AE%97"><span class="nav-number">7.2.</span> <span class="nav-text">6.2 分别固定训练预算与线上预算</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E5%90%8C%E6%97%B6%E6%8A%A5%E6%95%88%E6%9E%9C%E3%80%81%E6%95%88%E7%8E%87%E5%92%8C%E7%A8%B3%E5%AE%9A%E6%80%A7"><span class="nav-number">7.3.</span> <span class="nav-text">6.3 同时报效果、效率和稳定性</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E7%BB%93%E8%AF%AD%EF%BC%9A%E5%A2%9E%E5%8A%A0%E8%AE%A1%E7%AE%97%E5%8F%AA%E6%98%AF%E8%B5%B7%E7%82%B9"><span class="nav-number">8.</span> <span class="nav-text">7. 结语：增加计算只是起点</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E4%B8%8E%E6%9D%A5%E6%BA%90"><span class="nav-number">9.</span> <span class="nav-text">参考与来源</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">112</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="推荐模型 Scaling（一）：从参数规模到模型与系统协同设计 | wdy's blog">
+      <meta itemprop="description" content="区分推荐模型的总参数、活跃计算、历史长度与搜索预算，从 GPU 执行效率出发建立 Interaction、Sequence、Generative 三条 Scaling 路线的分析框架。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          推荐模型 Scaling（一）：从参数规模到模型与系统协同设计
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-12 17:10:00 / 修改时间：17:18:14" itemprop="dateCreated datePublished" datetime="2026-10-12T17:10:00+08:00">2026-10-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">推荐系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">区分推荐模型的总参数、活跃计算、历史长度与搜索预算，从 GPU 执行效率出发建立 Interaction、Sequence、Generative 三条 Scaling 路线的分析框架。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>推荐模型很早就拥有百亿乃至更大规模的 Embedding 参数，但这并不意味着一次请求已经执行了与总参数量相称的计算。把表做大、把交互网络加深、读取更长历史、展开更多生成路径，增加的是不同的成本，也不一定产生相同的收益。</p>
+<p>这组文章围绕一个问题展开：<strong>新增计算究竟放在哪里，是否改善推荐效果，又能否被训练与线上服务系统以可接受的成本执行？</strong> 本篇先建立分析框架，后三篇分别讨论特征交互、长序列与生成式推荐。</p>
+<span id="more"></span>
+
+<blockquote>
+<p><strong>来源与阅读边界</strong>：本系列依据《<a target="_blank" rel="noopener" href="https://docs.corp.kuaishou.com/d/home/fcAB45z9rbioaaOQjjuC0C9jy">推荐模型 Scaling：为什么必须依赖 Model–System Co-design</a>》整理，本文对应原文第一章、第五章。原文公式未随正文完整导出；下文公式仅根据文字中明确给出的变量关系重建，用于解释，不是原始公式的逐字还原。涉及研究结果的表述来自该综述，未逐篇重新核验论文，也不代表独立复现实验。源文档需要相应访问权限。</p>
+</blockquote>
+<h2 id="系列导航"><a href="#系列导航" class="headerlink" title="系列导航"></a>系列导航</h2><ol>
+<li><strong>总览：从参数规模到模型与系统协同设计（本文）</strong></li>
+<li><a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%89%B9%E5%BE%81%E4%BA%A4%E4%BA%92/" title="推荐模型 Scaling（二）：从显式特征交互到 TokenMixer">特征交互：从 DHEN、Wukong 到 TokenMixer</a></li>
+<li><a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E9%95%BF%E5%BA%8F%E5%88%97/" title="推荐模型 Scaling（三）：长序列建模与多候选计算复用">长序列：从历史检索到多候选计算复用</a></li>
+<li><a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90/" title="推荐模型 Scaling（四）：从 SID 生成到价值引导搜索">生成式推荐：从 SID 生成到价值引导搜索</a></li>
+</ol>
+<h2 id="1-模型很大，不等于每次请求计算很多"><a href="#1-模型很大，不等于每次请求计算很多" class="headerlink" title="1. 模型很大，不等于每次请求计算很多"></a>1. 模型很大，不等于每次请求计算很多</h2><p>推荐模型通常包含用户、物品、作者、类目等高基数类别特征。它们通过 Embedding Table 转换为向量，再进入后续网络。</p>
+<p>设一张表有 N 行，每行 d 维；一次请求读取的行索引集合为 I。根据这三个定义，可以写出：</p>
+
+\[
+E\in\mathbb{R}^{N\times d},\qquad
+P_{\mathrm{table}}=Nd,\qquad
+E_I\in\mathbb{R}^{|I|\times d}.
+\]
+
+
+<p>通常，一次请求涉及的行数远小于总行数。因此，下面三种扩展不能混在一起：</p>
+<table>
+<thead>
+<tr>
+<th>扩展对象</th>
+<th>首先增加什么</th>
+<th>不一定增加什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>表的行数 N</td>
+<td>可保存的 ID 数量、参数存储</td>
+<td>单次请求的 Lookup 数量和后续计算</td>
+</tr>
+<tr>
+<td>每行维度 d</td>
+<td>每次 Lookup 的数据量、输入向量宽度</td>
+<td>若立即投影回固定维度，后续主干宽度未必增加</td>
+</tr>
+<tr>
+<td>一次请求读取的行数</td>
+<td>输入读取量，可能还有序列或交互计算</td>
+<td>整张表的总参数量</td>
+</tr>
+</tbody></table>
+<p>如果只增加表的行数，但请求仍读取原来的少量 ID，那么模型总参数可能显著增长，单次前向计算却基本不变。</p>
+<p>Dense Network 也不能只看总参数。普通 MLP 的权重通常每次前向都会使用；MoE 保存多个 Expert，但只执行路由选中的部分。于是，“模型有多少参数”至少应该拆成：</p>
+<ul>
+<li>Embedding 与稠密网络分别存储多少参数；</li>
+<li>单次请求读取多少行、每行多宽；</li>
+<li>单次前向激活多少 Expert；</li>
+<li>最终执行多少 FLOPs。</li>
+</ul>
+<p>Tokenizer、Reward Model 和近线推理模型还可能不在在线请求中运行。把所有模型的参数相加，更不能直接推出在线成本。</p>
+<h2 id="2-理论-FLOPs-与-GPU-真正执行的工作"><a href="#2-理论-FLOPs-与-GPU-真正执行的工作" class="headerlink" title="2. 理论 FLOPs 与 GPU 真正执行的工作"></a>2. 理论 FLOPs 与 GPU 真正执行的工作</h2><h3 id="2-1-GPU-喜欢什么样的计算？"><a href="#2-1-GPU-喜欢什么样的计算？" class="headerlink" title="2.1 GPU 喜欢什么样的计算？"></a>2.1 GPU 喜欢什么样的计算？</h3><p>对这里讨论的主干计算而言，GPU 擅长较大、规整的矩阵乘法。用一层线性变换表示：</p>
+
+\[
+Y=XW,\qquad
+X\in\mathbb{R}^{B\times d_{\mathrm{in}}},\quad
+W\in\mathbb{R}^{d_{\mathrm{in}}\times d_{\mathrm{out}}}.
+\]
+
+
+<p>B 表示共同计算的样本数，两个 d 分别表示输入与输出维度。足够的并行度和数据复用，有助于摊薄权重读取、Kernel 启动等成本。但不存在脱离硬件、精度和 Batch Size 的统一“大矩阵阈值”。</p>
+<p>传统推荐链路经常同时包含：</p>
+<ol>
+<li>从大规模表中零散读取 Embedding；</li>
+<li>在 CPU、参数服务器和 GPU 之间传输数据；</li>
+<li>处理长度差别很大的用户历史；</li>
+<li>执行多个小型 MLP、Cross Layer、Gate 和任务塔；</li>
+<li>对多个候选重复执行候选相关 Attention。</li>
+</ol>
+<p>这些模块可能使 GPU 等待数据、启动小 Kernel、反复读写中间结果，而不是持续执行大规模矩阵计算。更多峰值算力并不会自动消除这些等待。</p>
+<h3 id="2-2-算术强度解释了为什么-FLOPs-不是全部"><a href="#2-2-算术强度解释了为什么-FLOPs-不是全部" class="headerlink" title="2.2 算术强度解释了为什么 FLOPs 不是全部"></a>2.2 算术强度解释了为什么 FLOPs 不是全部</h3><p>按原文对算术强度和 Roofline 的定义，令 F 为浮点运算量，Q 为指定存储层级之间的数据搬运字节数，则：</p>
+
+\[
+AI=\frac{F}{Q},\qquad
+P_{\mathrm{attainable}}\leq
+\min\left(P_{\mathrm{peak}},\;BW\cdot AI\right).
+\]
+
+
+<p>其中，P 表示计算吞吐，BW 是相应存储层级的带宽。比较时必须使用一致的硬件与精度口径。</p>
+<ul>
+<li>算术强度较低时，即使计算单元空闲，也可能受数据搬运限制。</li>
+<li>算术强度较高时，更容易接近计算吞吐限制。</li>
+<li>通信、同步、负载不均和调度开销还可能进一步压低实际性能。</li>
+</ul>
+<p>因此，这个模型用于理解瓶颈，而不是把任意推荐链路的延迟精确换算成一个公式。LLM 也有显存和通信瓶颈，尤其小 Batch 自回归生成时，不能把它简单看成“永远计算密集”。</p>
+<h3 id="2-3-MFU-只衡量执行效率，不衡量推荐价值"><a href="#2-3-MFU-只衡量执行效率，不衡量推荐价值" class="headerlink" title="2.3 MFU 只衡量执行效率，不衡量推荐价值"></a>2.3 MFU 只衡量执行效率，不衡量推荐价值</h3><p>令一个训练 Step 的模型理论计算量为 F_step，耗时为 t_step，全部参与设备在相应精度下的峰值吞吐之和为 P_peak，可写出解释性的 MFU 定义：</p>
+
+\[
+\mathrm{MFU}=\frac{F_{\mathrm{step}}}
+{t_{\mathrm{step}}P_{\mathrm{peak}}}.
+\]
+
+
+<p>低 MFU 可能意味着访存、通信、小矩阵、变长数据负载不均等问题。但高 MFU 不代表推荐效果一定好：反复对同一组特征执行大型 GEMM，可能很高效，却未必增加有效信息。</p>
+<p>反过来，Target Attention 可能改善效果，但随着候选数增加，其计算仍可能超出线上预算。</p>
+<p><strong>FLOPs 回答算了多少，MFU 回答执行得怎样，推荐指标回答是否值得算。</strong> 三者不能互相替代。</p>
+<h2 id="3-三条路线分别把计算放在哪里？"><a href="#3-三条路线分别把计算放在哪里？" class="headerlink" title="3. 三条路线分别把计算放在哪里？"></a>3. 三条路线分别把计算放在哪里？</h2><table>
+<thead>
+<tr>
+<th>路线</th>
+<th>主要问题</th>
+<th>可扩展变量</th>
+<th>典型系统约束</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Interaction Scaling</td>
+<td>已读取的特征如何继续交换信息</td>
+<td>交互层数、宽度、向量数、Expert</td>
+<td>GEMM 形状、参数分片、中间结果和通信</td>
+</tr>
+<tr>
+<td>Sequence Scaling</td>
+<td>如何利用更多历史行为</td>
+<td>读取长度、筛选规模、Query 数、网络深度</td>
+<td>变长输入、Attention 范围、缓存、多候选复用</td>
+</tr>
+<tr>
+<td>Generative Scaling</td>
+<td>如何直接形成候选并引入价值</td>
+<td>生成模型、后训练、Beam、价值估计、异步推理</td>
+<td>自回归延迟、合法性约束、缓存更新与新鲜度</td>
+</tr>
+</tbody></table>
+<h3 id="3-1-特征交互：让已经读到的信息算得更充分"><a href="#3-1-特征交互：让已经读到的信息算得更充分" class="headerlink" title="3.1 特征交互：让已经读到的信息算得更充分"></a>3.1 特征交互：让已经读到的信息算得更充分</h3><p>这一方向从 Embedding Lookup 之后开始。DHEN 组合异构交互模块，Wukong 逐层重新计算两两交互，RankMixer 和 TokenMixer-Large 则通过固定重排交换向量片段，把主要非线性计算放在 Per-token 网络中。</p>
+<p>问题不只是“能否继续加深”，还包括新增计算能否形成规整矩阵、参数怎样分片，以及存储中间结果需要多少显存。</p>
+<h3 id="3-2-长序列：历史更长不等于所有行为都经过深层网络"><a href="#3-2-长序列：历史更长不等于所有行为都经过深层网络" class="headerlink" title="3.2 长序列：历史更长不等于所有行为都经过深层网络"></a>3.2 长序列：历史更长不等于所有行为都经过深层网络</h3><p>一个系统保存十万条历史，可能只筛选一百条进入精细建模；另一个模型可能让单个候选直接读取一万条历史，但不逐层更新全部历史向量。</p>
+<p>所以必须分别报告：<strong>保存多少、读取多少、哪些参与计算、哪些结果能复用。</strong> “支持十万长度”不能替代这些信息。</p>
+<h3 id="3-3-生成式推荐：计算从候选打分延伸到候选形成"><a href="#3-3-生成式推荐：计算从候选打分延伸到候选形成" class="headerlink" title="3.3 生成式推荐：计算从候选打分延伸到候选形成"></a>3.3 生成式推荐：计算从候选打分延伸到候选形成</h3><p>Ranker 只比较召回阶段已经给出的候选。生成模型则逐 Token 输出物品的离散编码，通过搜索形成候选。</p>
+<p>扩展不仅是增加模型参数，也可能是更多后训练、更多搜索分支、实时 Prefix Value，或更重的近线模型。这些计算发生在不同阶段，应该分别计量。</p>
+<p>三条路线不是互相替代的年代顺序。生成模型也需要特征交互和长历史；OneTrans 联合建模序列与非序列特征，却仍然是给定候选后的排序模型。</p>
+<h2 id="4-Model–System-Co-design-不是最后一步调优"><a href="#4-Model–System-Co-design-不是最后一步调优" class="headerlink" title="4. Model–System Co-design 不是最后一步调优"></a>4. Model–System Co-design 不是最后一步调优</h2><p>小模型阶段，先确定结构，再优化执行，有时仍可接受。当显存、带宽和线上延迟接近上限，这种顺序就可能失效。</p>
+<p>模型能读取多长历史、堆叠多少层、一次处理多少候选，以及保留多少 SID Prefix，都会受到系统约束。这意味着模型结构与执行方式需要一起确定：</p>
+<table>
+<thead>
+<tr>
+<th>想增加的能力</th>
+<th>设计时就要回答的问题</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>更深的稠密主干</td>
+<td>权重和优化器状态怎样分片？中间结果保存还是重算？</td>
+</tr>
+<tr>
+<td>更长的历史</td>
+<td>是否需要 Padding？Kernel 能否真正跳过无效区域？</td>
+</tr>
+<tr>
+<td>更多候选</td>
+<td>用户侧结果能否共享？Microbatch 如何影响显存和总耗时？</td>
+</tr>
+<tr>
+<td>更大的生成搜索</td>
+<td>路径如何批处理？KV Cache 怎样复用？合法性如何检查？</td>
+</tr>
+<tr>
+<td>更重的近线推理</td>
+<td>多久更新？过期结果怎么处理？缓存失败怎么降级？</td>
+</tr>
+</tbody></table>
+<p>这里的“协同”并不是要求所有计算都变成 GEMM，而是知道每类计算的目的、瓶颈和资源预算。</p>
+<h2 id="5-Scaling-的证据有多强？"><a href="#5-Scaling-的证据有多强？" class="headerlink" title="5. Scaling 的证据有多强？"></a>5. Scaling 的证据有多强？</h2><p>原文区分了四个层次：</p>
+<table>
+<thead>
+<tr>
+<th>证据类型</th>
+<th>能说明什么</th>
+<th>还不能自动说明什么</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Scaling Trend</td>
+<td>已测试规模点中，效果随变量扩大继续改善</td>
+<td>任意更大规模仍然改善</td>
+</tr>
+<tr>
+<td>Empirical Scaling Curve</td>
+<td>特定模型与数据条件下，存在可拟合关系</td>
+<td>跨业务仍服从同一曲线</td>
+</tr>
+<tr>
+<td>Scaling Law</td>
+<td>经验证的关系能够预测未参与拟合的规模点</td>
+<td>所有架构共享一个普遍规律</td>
+</tr>
+<tr>
+<td>Compute-Optimal Scaling</td>
+<td>固定预算下，变量如何配比更有效</td>
+<td>训练与线上预算可以混成同一问题</td>
+</tr>
+</tbody></table>
+<p>这些不是简单的论文质量排名。对于工程团队，知道下一个规模点仍可能带来收益，本身就有价值；但需要避免把几张趋势图写成跨模型、跨数据的统一定律。</p>
+<p>检验外推能力时，应使用较小配置拟合，再用未参与拟合的更大配置验证。若同时改变数据、结构、精度、候选数和 Kernel，结果可以证明整套方案有效，却不能独立证明某个变量的 Scaling 规律。</p>
+<h2 id="6-如何设计一次有解释力的规模实验？"><a href="#6-如何设计一次有解释力的规模实验？" class="headerlink" title="6. 如何设计一次有解释力的规模实验？"></a>6. 如何设计一次有解释力的规模实验？</h2><p>以下检查清单根据原文的评价框架整理，适合放在实验报告开头。</p>
+<h3 id="6-1-先定义扩大了什么"><a href="#6-1-先定义扩大了什么" class="headerlink" title="6.1 先定义扩大了什么"></a>6.1 先定义扩大了什么</h3><p>不要只写“从 1B 扩到 10B”。说明增加的是表行数、Dense 参数还是 Expert 总数，同时报告活跃参数和实际 FLOPs。</p>
+<p>序列实验需要写清计数单位：行为、Item–Action Token、Cluster 或 Query。训练数据则区分 Session、交互记录、预测目标数、训练轮数，以及 RL 额外采样的轨迹。</p>
+<h3 id="6-2-分别固定训练预算与线上预算"><a href="#6-2-分别固定训练预算与线上预算" class="headerlink" title="6.2 分别固定训练预算与线上预算"></a>6.2 分别固定训练预算与线上预算</h3><p>固定训练资源时，选择可能是更大模型、更多数据、更长历史或更多 Rollout。</p>
+<p>固定线上延迟时，选择则可能是更长历史、更多候选、更宽 Beam 或实时价值估计。这两组选择不是同一个优化问题。</p>
+<p>推荐先明确一个预算口径，逐项变化，再观察质量与成本曲线；最后通过组合实验判断收益是否互补。</p>
+<h3 id="6-3-同时报效果、效率和稳定性"><a href="#6-3-同时报效果、效率和稳定性" class="headerlink" title="6.3 同时报效果、效率和稳定性"></a>6.3 同时报效果、效率和稳定性</h3><p>至少包含：</p>
+<ul>
+<li>离线 Loss、AUC、Recall 等与任务匹配的指标；</li>
+<li>GPU 型号、数量、精度、训练时间与 MFU；</li>
+<li>线上延迟、吞吐、显存和通信成本；</li>
+<li>线上整体方案的收益，以及模型更新、降级和恢复能力。</li>
+</ul>
+<p>还要说明复用条件。某份历史 KV 可以跨候选复用，不等于它能在任意后续请求中无限期复用；新行为、模型版本和特征变化都可能使缓存失效。</p>
+<h2 id="7-结语：增加计算只是起点"><a href="#7-结语：增加计算只是起点" class="headerlink" title="7. 结语：增加计算只是起点"></a>7. 结语：增加计算只是起点</h2><p>推荐 Scaling 最有价值的变化，不是模型名称旁边出现了更大的参数数字，而是模型开始在特征交互、历史利用和候选形成上承担更多有效计算。</p>
+<p>这些方向已经在各自测试范围内显示出继续扩展的空间，但计算能否持续带来收益，仍需要模型与系统共同回答：</p>
+<blockquote>
+<p>模型决定计算增加在哪里；系统决定这些计算能否以可接受的成本运行；实验决定这些计算是否值得保留。</p>
+</blockquote>
+<p>下一篇进入 <a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%89%B9%E5%BE%81%E4%BA%A4%E4%BA%92/" title="推荐模型 Scaling（二）：从显式特征交互到 TokenMixer">Interaction Scaling</a>：为什么逐层显式交互、异构模块组合和固定 Token Mixing，是三种不同的扩容方式？</p>
+<h2 id="参考与来源"><a href="#参考与来源" class="headerlink" title="参考与来源"></a>参考与来源</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.corp.kuaishou.com/d/home/fcAB45z9rbioaaOQjjuC0C9jy">原始综述：推荐模型 Scaling：为什么必须依赖 Model–System Co-design</a>，第一章、第五章；本系列整理于 2026-10-12。</li>
+<li>本文的 Embedding、矩阵乘法、Roofline 与 MFU 公式均为依据上述章节文字定义的解释性重建；没有补写原文缺失的实验数据或论文版本信息。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" rel="tag"># 推荐系统</a>
+              <a href="/tags/Scaling/" rel="tag"># Scaling</a>
+              <a href="/tags/Model-System-Co-design/" rel="tag"># Model-System Co-design</a>
+              <a href="/tags/GPU/" rel="tag"># GPU</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%89%B9%E5%BE%81%E4%BA%A4%E4%BA%92/" rel="prev" title="推荐模型 Scaling（二）：从显式特征交互到 TokenMixer">
+                  <i class="fa fa-angle-left"></i> 推荐模型 Scaling（二）：从显式特征交互到 TokenMixer
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">wdy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>

@@ -1,0 +1,520 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"leo-bond.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat","show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="对比 DHEN、Wukong、RankMixer 与 TokenMixer-Large 的交互机制，解释逐层内积、固定 Token Mixing、Mixing–Reverting 与 GPU 执行优化的不同作用。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="推荐模型 Scaling（二）：从显式特征交互到 TokenMixer">
+<meta property="og:url" content="https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%89%B9%E5%BE%81%E4%BA%A4%E4%BA%92/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="对比 DHEN、Wukong、RankMixer 与 TokenMixer-Large 的交互机制，解释逐层内积、固定 Token Mixing、Mixing–Reverting 与 GPU 执行优化的不同作用。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-12T09:09:00.000Z">
+<meta property="article:author" content="wdy">
+<meta property="article:tag" content="MoE">
+<meta property="article:tag" content="RankMixer">
+<meta property="article:tag" content="Scaling">
+<meta property="article:tag" content="推荐系统">
+<meta property="article:tag" content="特征交互">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%89%B9%E5%BE%81%E4%BA%A4%E4%BA%92/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%89%B9%E5%BE%81%E4%BA%A4%E4%BA%92/","path":"2026/10/12/推荐模型Scaling-特征交互/","title":"推荐模型 Scaling（二）：从显式特征交互到 TokenMixer"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>推荐模型 Scaling（二）：从显式特征交互到 TokenMixer | wdy's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","display_overflow":"scroll","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js","integrity":"sha256-ihPtDDm7pTmSF9ViEsItlvsrBTsNkz0MOXMchzOwCQw="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">wdy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-resume"><a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>resume</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#%E7%B3%BB%E5%88%97%E5%AF%BC%E8%88%AA"><span class="nav-number">1.</span> <span class="nav-text">系列导航</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E5%85%88%E5%8C%BA%E5%88%86%E8%BE%93%E5%85%A5%E5%AD%97%E6%AE%B5%E4%B8%8E-Feature-Token"><span class="nav-number">2.</span> <span class="nav-text">1. 先区分输入字段与 Feature Token</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-DHEN%EF%BC%9A%E6%AF%8F%E5%B1%82%E7%BB%84%E5%90%88%E4%B8%8D%E5%90%8C%E7%9A%84%E4%BA%A4%E4%BA%92%E6%A8%A1%E5%9D%97"><span class="nav-number">3.</span> <span class="nav-text">2. DHEN：每层组合不同的交互模块</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E4%BB%8E%E9%80%89%E6%8B%A9%E4%B8%80%E4%B8%AA%E6%A8%A1%E5%9D%97%EF%BC%8C%E5%88%B0%E7%BB%84%E5%90%88%E5%A4%9A%E4%B8%AA%E6%A8%A1%E5%9D%97"><span class="nav-number">3.1.</span> <span class="nav-text">2.1 从选择一个模块，到组合多个模块</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-%E6%89%A9%E5%A4%A7%E7%9A%84%E6%98%AF%E4%BA%A4%E4%BA%92%E7%BB%84%E5%90%88%EF%BC%8C%E8%80%8C%E4%B8%8D%E5%8F%AA%E6%98%AF-MLP"><span class="nav-number">3.2.</span> <span class="nav-text">2.2 扩大的是交互组合，而不只是 MLP</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E6%A8%A1%E5%9E%8B%E5%8F%98%E6%B7%B1%E4%BB%A5%E5%90%8E%EF%BC%8C%E5%8F%82%E6%95%B0%E6%80%8E%E4%B9%88%E6%94%BE%EF%BC%9F"><span class="nav-number">3.3.</span> <span class="nav-text">2.3 模型变深以后，参数怎么放？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-Wukong%EF%BC%9A%E6%AF%8F%E5%B1%82%E9%87%8D%E6%96%B0%E8%AE%A1%E7%AE%97%E6%98%BE%E5%BC%8F%E4%BA%A4%E4%BA%92"><span class="nav-number">4.</span> <span class="nav-text">3. Wukong：每层重新计算显式交互</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E4%B8%80%E6%AC%A1%E4%BA%A4%E4%BA%92%E4%B8%8E%E5%A4%9A%E8%BD%AE%E4%BA%A4%E4%BA%92%E6%9C%89%E4%BB%80%E4%B9%88%E4%B8%8D%E5%90%8C%EF%BC%9F"><span class="nav-number">4.1.</span> <span class="nav-text">3.1 一次交互与多轮交互有什么不同？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E9%81%BF%E5%85%8D%E6%98%BE%E5%BC%8F%E4%BF%9D%E5%AD%98%E5%AE%8C%E6%95%B4%E5%86%85%E7%A7%AF%E7%9F%A9%E9%98%B5"><span class="nav-number">4.2.</span> <span class="nav-text">3.2 避免显式保存完整内积矩阵</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-RankMixer%EF%BC%9A%E5%9B%BA%E5%AE%9A%E9%87%8D%E6%8E%92%E5%8A%A0%E7%8B%AC%E7%AB%8B-FFN"><span class="nav-number">5.</span> <span class="nav-text">4. RankMixer：固定重排加独立 FFN</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E7%BB%A7%E7%BB%AD%E5%A0%86%E6%9B%B4%E5%A4%9A%E4%BA%A4%E5%8F%89%E6%A8%A1%E5%9D%97%EF%BC%9F"><span class="nav-number">5.1.</span> <span class="nav-text">4.1 为什么不继续堆更多交叉模块？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E4%B8%80%E4%B8%AA%E4%B8%89-Token-%E7%9A%84%E4%BE%8B%E5%AD%90"><span class="nav-number">5.2.</span> <span class="nav-text">4.2 一个三 Token 的例子</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E4%B8%BA%E4%BB%80%E4%B9%88-Per-token-FFN-%E6%9C%89%E5%88%A9%E4%BA%8E%E6%89%A9%E5%AE%B9%EF%BC%9F"><span class="nav-number">5.3.</span> <span class="nav-text">4.3 为什么 Per-token FFN 有利于扩容？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-TokenMixer-Large%EF%BC%9A%E6%81%A2%E5%A4%8D%E5%B8%83%E5%B1%80%EF%BC%8C%E5%86%8D%E5%81%9A%E8%B7%A8-Block-%E6%AE%8B%E5%B7%AE"><span class="nav-number">6.</span> <span class="nav-text">5. TokenMixer-Large：恢复布局，再做跨 Block 残差</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E5%BD%A2%E7%8A%B6%E7%9B%B8%E5%90%8C%E4%B8%8D%E6%84%8F%E5%91%B3%E7%9D%80-Token-%E8%AF%AD%E4%B9%89%E5%AF%B9%E9%BD%90"><span class="nav-number">6.1.</span> <span class="nav-text">5.1 形状相同不意味着 Token 语义对齐</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-Mixing%E2%80%93Reverting-%E5%A6%82%E4%BD%95%E8%A7%A3%E5%BC%80%E7%BB%91%E5%AE%9A%EF%BC%9F"><span class="nav-number">6.2.</span> <span class="nav-text">5.2 Mixing–Reverting 如何解开绑定？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E6%89%A9%E5%A4%A7%E6%A8%A1%E5%9E%8B%EF%BC%8C%E8%BF%98%E8%A6%81%E8%A7%A3%E5%86%B3%E6%B7%B1%E5%B1%82%E8%AE%AD%E7%BB%83%E4%B8%8E%E9%80%9A%E4%BF%A1"><span class="nav-number">6.3.</span> <span class="nav-text">5.3 扩大模型，还要解决深层训练与通信</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E5%9B%9B%E7%B1%BB%E6%96%B9%E6%B3%95%E5%B9%B6%E4%B8%8D%E6%98%AF%E4%B8%80%E6%9D%A1%E6%9B%BF%E4%BB%A3%E9%93%BE"><span class="nav-number">7.</span> <span class="nav-text">6. 四类方法并不是一条替代链</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%A6%82%E4%BD%95%E5%88%A4%E6%96%AD%E8%AF%A5%E6%8A%8A%E4%BA%A4%E4%BA%92%E7%BD%91%E7%BB%9C%E6%89%A9%E5%A4%A7%E5%88%B0%E5%93%AA%E9%87%8C%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">7. 如何判断该把交互网络扩大到哪里？</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E4%B8%8E%E6%9D%A5%E6%BA%90"><span class="nav-number">9.</span> <span class="nav-text">参考与来源</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">28</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">112</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%89%B9%E5%BE%81%E4%BA%A4%E4%BA%92/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="推荐模型 Scaling（二）：从显式特征交互到 TokenMixer | wdy's blog">
+      <meta itemprop="description" content="对比 DHEN、Wukong、RankMixer 与 TokenMixer-Large 的交互机制，解释逐层内积、固定 Token Mixing、Mixing–Reverting 与 GPU 执行优化的不同作用。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          推荐模型 Scaling（二）：从显式特征交互到 TokenMixer
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-12 17:09:00 / 修改时间：17:18:14" itemprop="dateCreated datePublished" datetime="2026-10-12T17:09:00+08:00">2026-10-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">推荐系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">对比 DHEN、Wukong、RankMixer 与 TokenMixer-Large 的交互机制，解释逐层内积、固定 Token Mixing、Mixing–Reverting 与 GPU 执行优化的不同作用。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>把推荐排序网络做大，可以增加 MLP 宽度，也可以增加交互轮数，或者为每个 Token 配置独立网络。这些方案都会增加参数，却不一定增加同一种建模能力。</p>
+<p>Interaction Scaling 关注的是：<strong>Embedding 已经查出来以后，用户、候选和上下文特征如何持续交换信息，并让新增计算在 GPU 上高效执行？</strong> 本篇用 DHEN、Wukong、RankMixer 和 TokenMixer-Large 说明四种不同取舍。</p>
+<span id="more"></span>
+
+<blockquote>
+<p><strong>来源与公式说明</strong>：本文依据《<a target="_blank" rel="noopener" href="https://docs.corp.kuaishou.com/d/home/fcAB45z9rbioaaOQjjuC0C9jy">推荐模型 Scaling：为什么必须依赖 Model–System Co-design</a>》第二章整理。公式仅按原文明确的文字关系重建，省略归一化等未完整导出的细节，不是论文原式或可直接复现的实现。论文结果均为综述转述，未逐篇重新核验。</p>
+</blockquote>
+<h2 id="系列导航"><a href="#系列导航" class="headerlink" title="系列导航"></a>系列导航</h2><ol>
+<li><a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/" title="推荐模型 Scaling（一）：从参数规模到模型与系统协同设计">总览：参数、计算与系统约束</a></li>
+<li><strong>特征交互：从显式特征交互到 TokenMixer（本文）</strong></li>
+<li><a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E9%95%BF%E5%BA%8F%E5%88%97/" title="推荐模型 Scaling（三）：长序列建模与多候选计算复用">长序列：历史读取与候选复用</a></li>
+<li><a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E7%94%9F%E6%88%90%E5%BC%8F%E6%8E%A8%E8%8D%90/" title="推荐模型 Scaling（四）：从 SID 生成到价值引导搜索">生成式推荐：候选生成与价值搜索</a></li>
+</ol>
+<h2 id="1-先区分输入字段与-Feature-Token"><a href="#1-先区分输入字段与-Feature-Token" class="headerlink" title="1. 先区分输入字段与 Feature Token"></a>1. 先区分输入字段与 Feature Token</h2><p>User ID、Item ID、Category、Context 等输入项，可以看作语义固定的特征字段。一条样本为每个字段填入具体取值，经 Lookup 或投影得到向量。</p>
+<p>在解释交互主干时，可以把输入简化为 n 个 d 维向量：</p>
+
+\[
+X\in\mathbb{R}^{n\times d}.
+\]
+
+
+<p>这里省略 Batch 维。需要注意，<strong>一个 Feature Token 不一定等于一个原始字段</strong>。有的模型先将数百个字段按语义组织，再投影成较少的 Token。</p>
+<p>扩展不同模块，含义也不同：</p>
+<table>
+<thead>
+<tr>
+<th>操作</th>
+<th>主要增加的计算或容量</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>加宽 MLP</td>
+<td>对输入表示进行更宽的非线性变换</td>
+</tr>
+<tr>
+<td>增加 Cross Layer</td>
+<td>增加显式交叉的轮数</td>
+</tr>
+<tr>
+<td>增加 Attention 层</td>
+<td>增加输入相关的 Token 间信息聚合</td>
+</tr>
+<tr>
+<td>增加 Expert 总数</td>
+<td>增加存储容量；活跃计算还取决于路由</td>
+</tr>
+<tr>
+<td>增加重复交互 Block</td>
+<td>取决于 Block 内部究竟执行什么</td>
+</tr>
+</tbody></table>
+<p>所以，对比模型时应先看“每一层如何更新表示”，再看参数和 FLOPs。</p>
+<h2 id="2-DHEN：每层组合不同的交互模块"><a href="#2-DHEN：每层组合不同的交互模块" class="headerlink" title="2. DHEN：每层组合不同的交互模块"></a>2. DHEN：每层组合不同的交互模块</h2><h3 id="2-1-从选择一个模块，到组合多个模块"><a href="#2-1-从选择一个模块，到组合多个模块" class="headerlink" title="2.1 从选择一个模块，到组合多个模块"></a>2.1 从选择一个模块，到组合多个模块</h3><p>传统方案往往先选择 DCN、Attention 或 FM 等某一种主要结构，再增加宽度和深度。DHEN 采用另一种思路：不同模块各有侧重，不必把所有交互都交给同一种结构。</p>
+<p>原文列举的模块包括 AdvancedDLRM、Self-Attention、Convolution、Linear Module 和 DCN。其中 AdvancedDLRM 是论文对一类采用 DLRM 式交互的工业模块的称呼，不应误解为统一的软件接口。</p>
+<p>根据原文的模块聚合与 Shortcut 描述，可将一层抽象为：</p>
+
+\[
+Z_l^{(m)}=f_l^{(m)}(X_l),\qquad
+X_{l+1}=\operatorname{Aggregate}_l
+\left(\{Z_l^{(m)}\}_{m\in\mathcal{M}_l}\right)
++\operatorname{Shortcut}_l(X_l).
+\]
+
+
+<p>这里 Aggregate 仅表示经形状对齐后的聚合操作，不指定原文未导出的具体实现。各分支读取同一层输入；下一层处理的是本层聚合后的结果，而不是所有模块永远只处理最初特征。</p>
+<h3 id="2-2-扩大的是交互组合，而不只是-MLP"><a href="#2-2-扩大的是交互组合，而不只是-MLP" class="headerlink" title="2.2 扩大的是交互组合，而不只是 MLP"></a>2.2 扩大的是交互组合，而不只是 MLP</h3><p>原文转述的一组比较中，DHEN 每层组合 AdvancedDLRM 和 Linear Module，在相近训练 FLOPs 下优于仅通过 MoE 扩大 AdvancedDLRM 内部 MLP 的方案。</p>
+<p>合理结论是：<strong>在该测试配置中，反复组合异构交互比只扩大基线内部 MLP 更有效。</strong> 这不能推出所有场景都应该使用全部交互模块。</p>
+<h3 id="2-3-模型变深以后，参数怎么放？"><a href="#2-3-模型变深以后，参数怎么放？" class="headerlink" title="2.3 模型变深以后，参数怎么放？"></a>2.3 模型变深以后，参数怎么放？</h3><p>Dense 参数和反向传播需要的中间结果可能超过单卡显存。原文介绍的分层参数分片，使一台服务器内的参数聚合与梯度切分主要使用 NVLink，不同服务器再同步对应分片的梯度。</p>
+<p>它解决的是训练可执行性，并没有把 Self-Attention、DCN 和卷积自动变成同一种算子。模块异构性仍然存在，系统需要承担相应调度与中间数据成本。</p>
+<h2 id="3-Wukong：每层重新计算显式交互"><a href="#3-Wukong：每层重新计算显式交互" class="headerlink" title="3. Wukong：每层重新计算显式交互"></a>3. Wukong：每层重新计算显式交互</h2><h3 id="3-1-一次交互与多轮交互有什么不同？"><a href="#3-1-一次交互与多轮交互有什么不同？" class="headerlink" title="3.1 一次交互与多轮交互有什么不同？"></a>3.1 一次交互与多轮交互有什么不同？</h3><p>如果模型只在入口计算一次两两内积，随后一直堆叠 MLP，那么增加的主要是对已有交互结果的非线性变换。</p>
+<p>Wukong 的 Factorization Machine Block（FMB）则在每层重新计算当前向量之间的内积，再把结果编码为新向量，交给下一层继续交互。</p>
+<p>设第 l 层输入为 n_l 个 d 维向量，根据原文定义：</p>
+
+\[
+X_l\in\mathbb{R}^{n_l\times d},\qquad
+G_l=X_lX_l^\top\in\mathbb{R}^{n_l\times n_l}.
+\]
+
+
+<p>G 中每个元素都是当前两个向量的内积。FMB 将内积结果编码为一组新向量；另一条 Linear Compression Block（LCB）沿向量数量维度做线性重组，不经过两两内积。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">当前层向量 X</span><br><span class="line">    ├── FMB：两两内积 → 编码成新向量 ──┐</span><br><span class="line">    ├── LCB：沿向量维度做线性重组 ─────┤→ 拼接 → 加 Shortcut → 下一层</span><br><span class="line">    └── Shortcut：必要时做形状投影 ────┘</span><br></pre></td></tr></table></figure>
+
+<p>下一层基于更新后的向量重新计算交互。因此，加深 Wukong 不只是多加几层 MLP，还增加了显式交互轮数。</p>
+<p>这里的 FMB 也不同于把二阶交互直接求和作为预测项的经典 FM：它保留交互结构，再学习输出表示。</p>
+<h3 id="3-2-避免显式保存完整内积矩阵"><a href="#3-2-避免显式保存完整内积矩阵" class="headerlink" title="3.2 避免显式保存完整内积矩阵"></a>3.2 避免显式保存完整内积矩阵</h3><p>完整 G 的元素数随 n_l 的平方增长。原文介绍了压缩投影和调整矩阵乘法顺序的做法。用解释性维度约定表示，令 P 为 n_l×r 的投影矩阵：</p>
+
+\[
+\widetilde{G}_l=(X_lX_l^\top)P
+=X_l(X_l^\top P),\qquad
+P\in\mathbb{R}^{n_l\times r}.
+\]
+
+
+<p>这个等式来自矩阵乘法结合律。右侧可以先计算较小的中间结果，避免显式物化 n_l×n_l 矩阵。它解释的是原文的优化思想，不宣称完整复现 FMB 的所有实现细节。</p>
+<p>Wukong 的规模变量包括交互层数、FMB&#x2F;LCB 输出向量数、压缩维度和内部 MLP 宽度。低秩压缩降低成本，但没有取消每层的显式交互计算。</p>
+<h2 id="4-RankMixer：固定重排加独立-FFN"><a href="#4-RankMixer：固定重排加独立-FFN" class="headerlink" title="4. RankMixer：固定重排加独立 FFN"></a>4. RankMixer：固定重排加独立 FFN</h2><h3 id="4-1-为什么不继续堆更多交叉模块？"><a href="#4-1-为什么不继续堆更多交叉模块？" class="headerlink" title="4.1 为什么不继续堆更多交叉模块？"></a>4.1 为什么不继续堆更多交叉模块？</h3><p>RankMixer 更关注 GPU 执行效率。大量小型 MLP、Attention、Gate 和人工交叉模块组合后，可能使执行路径碎片化。</p>
+<p>它把交互拆成两个步骤：</p>
+<ol>
+<li><strong>Multi-head Token Mixing</strong>：用固定 Split–Concat 交换向量片段；</li>
+<li><strong>Per-token FFN</strong>：不同 Token 使用独立参数，承担主要非线性建模。</li>
+</ol>
+<p>原文介绍的 100M 与 1B 配置分别使用 16 和 32 个 Feature Token。这里的 Token 是组织后的特征块，不是每个字段单独对应一个 Token。</p>
+<h3 id="4-2-一个三-Token-的例子"><a href="#4-2-一个三-Token-的例子" class="headerlink" title="4.2 一个三 Token 的例子"></a>4.2 一个三 Token 的例子</h3><figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">原始 Token：</span><br><span class="line">x1 = [a1 | a2 | a3]</span><br><span class="line">x2 = [b1 | b2 | b3]</span><br><span class="line">x3 = [c1 | c2 | c3]</span><br><span class="line"></span><br><span class="line">固定重排：</span><br><span class="line">s1 = [a1 | b1 | c1]</span><br><span class="line">s2 = [a2 | b2 | c2]</span><br><span class="line">s3 = [a3 | b3 | c3]</span><br></pre></td></tr></table></figure>
+
+<p>每个片段具有相同维度，每个 Mixed Token 都得到所有输入 Token 的一部分信息。</p>
+<p>这个操作不计算 Attention Score，也不产生依赖当前样本的两两权重。它没有可学习参数，但重排仍可能涉及内存搬运，并不等于零成本。</p>
+<p>设输入 Token 数为 T，每个 Token 维度为 D，切为 H 份，则重排前后形状为：</p>
+
+\[
+[B,T,D]\longrightarrow[B,H,TD/H],\qquad H\mid D.
+\]
+
+
+<p>原始 RankMixer 取 H&#x3D;T，使重排结果与输入形状一致。忽略归一化后，可用下式说明两个残差步骤：</p>
+
+\[
+S=X+\operatorname{Mix}(X),\qquad
+Y=S+\operatorname{PFFN}(S).
+\]
+
+
+<p>PFFN 表示每个 Token 位置拥有独立参数的 FFN。固定重排负责交换信息，FFN 负责学习非线性关系；不能把前者“无参数”推广成整个模型不需要学习。</p>
+<h3 id="4-3-为什么-Per-token-FFN-有利于扩容？"><a href="#4-3-为什么-Per-token-FFN-有利于扩容？" class="headerlink" title="4.3 为什么 Per-token FFN 有利于扩容？"></a>4.3 为什么 Per-token FFN 有利于扩容？</h3><p>不同 Token 的 FFN 参数独立，但计算形状相同，可以用 Grouped GEMM 组织执行。网络还可以扩展为 Per-token Sparse MoE，以较大的 Expert 集合增加总容量，同时控制活跃计算。</p>
+<p>原文转述的一组生产结果中，参数从约 1600 万增加到约 11 亿，FLOPs 增加约 20 倍，MFU 从约 4.5% 升到约 44.6%，线上延迟基本持平。</p>
+<p>这不是“参数可以免费增加”的证据。它来自模型结构、矩阵运算占比、执行优化和更低精度等共同变化，不能单独归因于 Token Mixing 或稀疏 MoE。具体实验口径可结合站内 <a href="/2026/09/09/RankMixer/" title="RankMixer：面向工业推荐的可扩展排序模型">RankMixer 专题</a> 阅读。</p>
+<h2 id="5-TokenMixer-Large：恢复布局，再做跨-Block-残差"><a href="#5-TokenMixer-Large：恢复布局，再做跨-Block-残差" class="headerlink" title="5. TokenMixer-Large：恢复布局，再做跨 Block 残差"></a>5. TokenMixer-Large：恢复布局，再做跨 Block 残差</h2><h3 id="5-1-形状相同不意味着-Token-语义对齐"><a href="#5-1-形状相同不意味着-Token-语义对齐" class="headerlink" title="5.1 形状相同不意味着 Token 语义对齐"></a>5.1 形状相同不意味着 Token 语义对齐</h3><p>前面的例子里，x1 来自第一个 Feature Token，s1 却包含三个 Feature Token 的第一段。原始 RankMixer 可以直接相加，因为维度相同；但残差两侧的片段来源不再一一对应。</p>
+<p>这不是张量运算上的非法操作，而是一种结构取舍。原文将它视为 TokenMixer-Large 要改善的问题。同时，H&#x3D;T 还把两个本可以独立决定的量绑定了：输入 Token 数与内部 Mixed Token 数。</p>
+<h3 id="5-2-Mixing–Reverting-如何解开绑定？"><a href="#5-2-Mixing–Reverting-如何解开绑定？" class="headerlink" title="5.2 Mixing–Reverting 如何解开绑定？"></a>5.2 Mixing–Reverting 如何解开绑定？</h3><p>用三个输入 Token、两个内部 Token 表示：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line">输入布局：</span><br><span class="line">x1 = [a1 | a2]</span><br><span class="line">x2 = [b1 | b2]</span><br><span class="line">x3 = [c1 | c2]</span><br><span class="line"></span><br><span class="line">Mixing：</span><br><span class="line">m1 = [a1 | b1 | c1]</span><br><span class="line">m2 = [a2 | b2 | c2]</span><br><span class="line"></span><br><span class="line">内部 Per-token 网络与残差：</span><br><span class="line">m1 → u1 = [p1 | p2 | p3]</span><br><span class="line">m2 → u2 = [q1 | q2 | q3]</span><br><span class="line"></span><br><span class="line">Reverting：</span><br><span class="line">v1 = [p1 | q1]</span><br><span class="line">v2 = [p2 | q2]</span><br><span class="line">v3 = [p3 | q3]</span><br></pre></td></tr></table></figure>
+
+<p>Reverting 将两个内部 Token 重新组织为三个外部位置。这里“恢复”是恢复布局与位置对应关系，不是撤销已经发生的非线性变换，更不是恢复原始数值。</p>
+<p>根据原文描述，省略归一化等细节，一个 Block 可以概括为：</p>
+
+\[
+M=\operatorname{Mix}(X),\qquad
+U=M+\operatorname{PSwiGLU}_{\mathrm{mix}}(M),
+\]
+\[
+V=\operatorname{Revert}(U),\qquad
+Y=X+\operatorname{PSwiGLU}_{\mathrm{feature}}(V).
+\]
+
+
+<p>内部 Per-token 网络处理 Mixed Layout；Reverting 恢复 Feature Layout；最后的 Per-token 网络输出再与 Block 输入相加。</p>
+<p>因此，Feature Token 数由输入组织决定，内部 Mixed Token 数可以根据网络宽度和矩阵形状选择，只需满足切分与形状约束。</p>
+<h3 id="5-3-扩大模型，还要解决深层训练与通信"><a href="#5-3-扩大模型，还要解决深层训练与通信" class="headerlink" title="5.3 扩大模型，还要解决深层训练与通信"></a>5.3 扩大模型，还要解决深层训练与通信</h3><p>原文还介绍了三组配套设计：</p>
+<ul>
+<li><strong>Sparse Per-token MoE</strong>：扩大 Expert 总量；</li>
+<li><strong>间隔跨层残差与中间层辅助 Loss</strong>：帮助深层优化，使靠近输入的 Block 获得更直接的监督；</li>
+<li><strong>Token Parallel</strong>：沿 Token 维度切分 Per-token 参数和计算。</li>
+</ul>
+<p>Token Parallel 的重点不仅是“把 Token 分到不同 GPU”。它让 Mixing–Reverting 的数据布局与分布式执行匹配，减少每层反复在 Batch Sharding 和 Token Sharding 之间转换的通信。</p>
+<p>这说明并行方案不是模型完成后的外部包装。Token 的组织方式会影响参数如何切分，也会影响 GPU 之间需要交换什么。</p>
+<h2 id="6-四类方法并不是一条替代链"><a href="#6-四类方法并不是一条替代链" class="headerlink" title="6. 四类方法并不是一条替代链"></a>6. 四类方法并不是一条替代链</h2><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>信息如何交互</th>
+<th>主要扩展方向</th>
+<th>系统落点</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>DHEN</td>
+<td>每层并行组合异构模块</td>
+<td>交互层数与模块容量</td>
+<td>参数分片、异构执行</td>
+</tr>
+<tr>
+<td>Wukong</td>
+<td>每层重新计算显式两两内积</td>
+<td>层数、输出向量数、压缩维度、MLP</td>
+<td>避免物化完整内积矩阵</td>
+</tr>
+<tr>
+<td>RankMixer</td>
+<td>固定重排后做独立 FFN</td>
+<td>Token、宽度、层数、Expert</td>
+<td>规整 GEMM、融合、低精度</td>
+</tr>
+<tr>
+<td>TokenMixer-Large</td>
+<td>Mixing 后计算，再 Reverting</td>
+<td>内部 Token、深度、Expert</td>
+<td>深层训练、布局匹配的 Token Parallel</td>
+</tr>
+</tbody></table>
+<p>Wukong 的显式两两内积与 RankMixer 的固定片段重排不是同一类交互。前者显式构造当前向量间关系，后者通过固定信息流让后续非线性网络学习关系。</p>
+<p>同样，DHEN 不应该被描述为必然落后的阶段。它保留异构模块的建模偏置；是否适合某个业务，要看数据、效果和执行成本。</p>
+<h2 id="7-如何判断该把交互网络扩大到哪里？"><a href="#7-如何判断该把交互网络扩大到哪里？" class="headerlink" title="7. 如何判断该把交互网络扩大到哪里？"></a>7. 如何判断该把交互网络扩大到哪里？</h2><p>可以分三步进行实验：</p>
+<ol>
+<li><strong>控制输入与数据</strong>：保持特征、历史编码和训练样本一致，先比较交互机制。</li>
+<li><strong>分别扩大变量</strong>：层数、宽度、Token 数和 Expert 总量分开考察，报告活跃计算。</li>
+<li><strong>测量实际执行</strong>：不仅统计 FLOPs，还测训练吞吐、MFU、显存、通信和线上延迟。</li>
+</ol>
+<p>一个更大的 MLP 不一定比多一轮有效交互更好；一个更复杂的交互模块，也可能因访存和小算子成本而无法上线。最有价值的结果是：新增交互既改善预测，又能转化成可执行的计算。</p>
+<p>本篇处理的是一组已经读出的推荐特征。下一篇 <a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E9%95%BF%E5%BA%8F%E5%88%97/" title="推荐模型 Scaling（三）：长序列建模与多候选计算复用">Sequence Scaling</a> 将把输入扩大到用户长期历史，并讨论为什么“历史缓存了”仍不意味着多候选打分没有成本。</p>
+<h2 id="参考与来源"><a href="#参考与来源" class="headerlink" title="参考与来源"></a>参考与来源</h2><ul>
+<li><a target="_blank" rel="noopener" href="https://docs.corp.kuaishou.com/d/home/fcAB45z9rbioaaOQjjuC0C9jy">原始综述</a>，第二章 §2.1—§2.6；整理于 2026-10-12。</li>
+<li>上文矩阵维度、内积压缩等式、Token 重排和残差表达是按原文文字关系建立的解释性表示。归一化位置、路由、训练目标权重及完整 Kernel 实现不在这些简式覆盖范围内。</li>
+</ul>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" rel="tag"># 推荐系统</a>
+              <a href="/tags/RankMixer/" rel="tag"># RankMixer</a>
+              <a href="/tags/MoE/" rel="tag"># MoE</a>
+              <a href="/tags/Scaling/" rel="tag"># Scaling</a>
+              <a href="/tags/%E7%89%B9%E5%BE%81%E4%BA%A4%E4%BA%92/" rel="tag"># 特征交互</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E9%95%BF%E5%BA%8F%E5%88%97/" rel="prev" title="推荐模型 Scaling（三）：长序列建模与多候选计算复用">
+                  <i class="fa fa-angle-left"></i> 推荐模型 Scaling（三）：长序列建模与多候选计算复用
+                </a>
+            </div>
+            <div class="post-nav-item">
+                <a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/" rel="next" title="推荐模型 Scaling（一）：从参数规模到模型与系统协同设计">
+                  推荐模型 Scaling（一）：从参数规模到模型与系统协同设计 <i class="fa fa-angle-right"></i>
+                </a>
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">wdy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
