@@ -1,0 +1,689 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"leo-bond.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat","show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="解读 Cluster GOOBS 如何通过语义聚类与实时特征池增强双塔负采样，分析 Softmax 梯度、混合采样比例、哈希更新及公开实验与线上 CTR 的结论边界。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Cluster GOOBS：基于语义聚类的实时困难负采样">
+<meta property="og:url" content="https://leo-bond.github.io/2026/10/12/Cluster-GOOBS/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="解读 Cluster GOOBS 如何通过语义聚类与实时特征池增强双塔负采样，分析 Softmax 梯度、混合采样比例、哈希更新及公开实验与线上 CTR 的结论边界。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-12T09:35:00.000Z">
+<meta property="article:author" content="wdy">
+<meta property="article:tag" content="LLM">
+<meta property="article:tag" content="双塔模型">
+<meta property="article:tag" content="对比学习">
+<meta property="article:tag" content="推荐系统">
+<meta property="article:tag" content="论文阅读">
+<meta property="article:tag" content="负采样">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/10/12/Cluster-GOOBS/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://leo-bond.github.io/2026/10/12/Cluster-GOOBS/","path":"2026/10/12/Cluster-GOOBS/","title":"Cluster GOOBS：基于语义聚类的实时困难负采样"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>Cluster GOOBS：基于语义聚类的实时困难负采样 | wdy's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","display_overflow":"scroll","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js","integrity":"sha256-ihPtDDm7pTmSF9ViEsItlvsrBTsNkz0MOXMchzOwCQw="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">wdy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-resume"><a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>resume</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E8%B4%9F%E9%87%87%E6%A0%B7%E7%A9%B6%E7%AB%9F%E6%94%B9%E5%8F%98%E4%BA%86%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.</span> <span class="nav-text">1. 负采样究竟改变了什么？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E5%8F%8C%E5%A1%94%E6%8A%8A%E5%8F%AC%E5%9B%9E%E8%BD%AC%E5%8C%96%E4%B8%BA%E5%90%91%E9%87%8F%E6%A3%80%E7%B4%A2"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 双塔把召回转化为向量检索</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-In-batch-%E4%B8%8E%E9%9A%8F%E6%9C%BA-OOB-%E5%88%86%E5%88%AB%E8%A7%A3%E5%86%B3%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 In-batch 与随机 OOB 分别解决什么？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%9B%B0%E9%9A%BE%E8%B4%9F%E6%A0%B7%E6%9C%AC%E6%9B%B4%E6%9C%89%E8%AE%AD%E7%BB%83%E4%BF%A1%E5%8F%B7%EF%BC%9F"><span class="nav-number">2.</span> <span class="nav-text">2. 为什么困难负样本更有训练信号？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#2-1-%E4%BB%8E%E6%8D%9F%E5%A4%B1%E7%9C%8B%E5%8D%95%E4%B8%AA%E8%B4%9F%E6%A0%B7%E6%9C%AC%E7%9A%84%E4%BD%9C%E7%94%A8"><span class="nav-number">2.1.</span> <span class="nav-text">2.1 从损失看单个负样本的作用</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-2-Logit-%E6%A2%AF%E5%BA%A6%E4%B8%8E%E5%8F%82%E6%95%B0%E6%A2%AF%E5%BA%A6%E4%B9%9F%E8%A6%81%E5%8C%BA%E5%88%86"><span class="nav-number">2.2.</span> <span class="nav-text">2.2 Logit 梯度与参数梯度也要区分</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#2-3-%E5%9B%B0%E9%9A%BE%E4%B9%9F%E4%B8%8D%E6%98%AF%E8%B6%8A%E5%A4%9A%E8%B6%8A%E5%A5%BD"><span class="nav-number">2.3.</span> <span class="nav-text">2.3 困难也不是越多越好</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E4%B8%8E-LogQ%E3%80%81DNS%E3%80%81CBNS%E3%80%81ANCE-%E7%9A%84%E5%85%B3%E7%B3%BB"><span class="nav-number">3.</span> <span class="nav-text">3. 与 LogQ、DNS、CBNS、ANCE 的关系</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-LogQ-%E7%BA%A0%E6%AD%A3%E9%87%87%E6%A0%B7%E9%A2%91%E7%8E%87%EF%BC%8C%E4%B8%8D%E8%B4%9F%E8%B4%A3%E5%AF%BB%E6%89%BE%E5%9B%B0%E9%9A%BE%E6%A0%B7%E6%9C%AC"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 LogQ 纠正采样频率，不负责寻找困难样本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E5%87%A0%E7%A7%8D%E8%B4%9F%E9%87%87%E6%A0%B7%E6%96%B9%E5%BC%8F%E7%9A%84%E5%B7%AE%E5%88%AB"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 几种负采样方式的差别</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-Cluster-GOOBS%EF%BC%9A%E7%94%A8%E8%AF%AD%E4%B9%89%E7%BB%93%E6%9E%84%E7%BB%84%E7%BB%87%E9%87%87%E6%A0%B7%E7%A9%BA%E9%97%B4"><span class="nav-number">4.</span> <span class="nav-text">4. Cluster GOOBS：用语义结构组织采样空间</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%85%88%E5%88%86%E7%B0%87%EF%BC%8C%E5%86%8D%E6%8C%89%E6%AD%A3%E6%A0%B7%E6%9C%AC%E7%9A%84%E7%B0%87%E9%87%87%E6%A0%B7"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 先分簇，再按正样本的簇采样</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%B7%A5%E4%B8%9A%E8%81%9A%E7%B1%BB%E4%B8%8E%E5%85%AC%E5%BC%80%E6%95%B0%E6%8D%AE%E9%9B%86%E8%81%9A%E7%B1%BB%E4%B8%8D%E6%98%AF%E4%B8%80%E5%9B%9E%E4%BA%8B"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 工业聚类与公开数据集聚类不是一回事</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E6%B7%B7%E5%90%88%E6%AF%94%E4%BE%8B%EF%BC%9A%E5%B0%91%E9%87%8F%E7%B0%87%E5%86%85%E8%B4%9F%E6%A0%B7%E6%9C%AC%E9%85%8D%E5%90%88%E9%9A%8F%E6%9C%BA-OOB"><span class="nav-number">4.3.</span> <span class="nav-text">4.3 混合比例：少量簇内负样本配合随机 OOB</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-GOOBS-%E5%AE%9E%E6%97%B6%E7%89%B9%E5%BE%81%E6%B1%A0%E6%80%8E%E6%A0%B7%E5%B7%A5%E4%BD%9C%EF%BC%9F"><span class="nav-number">5.</span> <span class="nav-text">5. GOOBS 实时特征池怎样工作？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E7%BC%93%E5%AD%98%E7%9A%84%E6%98%AF-Features%EF%BC%8C%E4%B8%8D%E6%98%AF%E6%97%A7%E6%A8%A1%E5%9E%8B-Embedding"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 缓存的是 Features，不是旧模型 Embedding</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-Update-Engine%EF%BC%9A%E7%A1%AE%E5%AE%9A%E6%80%A7%E6%98%A0%E5%B0%84%EF%BC%8C%E7%A2%B0%E6%92%9E%E6%97%B6%E8%A6%86%E7%9B%96"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 Update Engine：确定性映射，碰撞时覆盖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-Sample-Engine%EF%BC%9A%E5%AE%9A%E4%BD%8D%E5%88%86%E6%AE%B5%E5%90%8E%E9%9A%8F%E6%9C%BA%E5%8F%96%E6%A7%BD"><span class="nav-number">5.3.</span> <span class="nav-text">5.3 Sample Engine：定位分段后随机取槽</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-4-Pre-loading%EF%BC%9A%E6%8F%90%E9%AB%98%E6%97%A9%E6%9C%9F%E5%91%BD%E4%B8%AD%E7%8E%87"><span class="nav-number">5.4.</span> <span class="nav-text">5.4 Pre-loading：提高早期命中率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-5-%E5%B9%B6%E8%A1%8C%E8%BF%90%E8%A1%8C%E4%B8%8D%E8%87%AA%E5%8A%A8%E6%84%8F%E5%91%B3%E7%9D%80%E6%97%A0%E5%86%B2%E7%AA%81%E6%88%96%E8%87%AA%E7%84%B6%E5%8E%BB%E9%87%8D"><span class="nav-number">5.5.</span> <span class="nav-text">5.5 并行运行不自动意味着无冲突或自然去重</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-6-O-1-%E6%8C%87%E5%AE%9A%E4%BD%8D%EF%BC%8C%E4%B8%8D%E6%98%AF%E6%95%B4%E4%B8%AA%E8%AE%AD%E7%BB%83%E6%B5%81%E7%A8%8B"><span class="nav-number">5.6.</span> <span class="nav-text">5.6 O(1) 指定位，不是整个训练流程</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E5%85%AC%E5%BC%80%E5%AE%9E%E9%AA%8C%EF%BC%9A%E6%AF%94%E8%BE%83%E7%9A%84%E6%98%AF%E5%90%8C%E4%B8%80%E8%AE%BE%E7%BD%AE%E4%B8%8B%E7%9A%84%E9%87%87%E6%A0%B7%E7%AD%96%E7%95%A5"><span class="nav-number">6.</span> <span class="nav-text">6. 公开实验：比较的是同一设置下的采样策略</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E8%AF%84%E6%B5%8B%E5%8D%8F%E8%AE%AE"><span class="nav-number">6.1.</span> <span class="nav-text">6.1 评测协议</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-HR-50-%E7%BB%93%E6%9E%9C"><span class="nav-number">6.2.</span> <span class="nav-text">6.2 HR@50 结果</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E5%9C%A8%E7%BA%BF%E5%AE%9E%E9%AA%8C%EF%BC%9A-53-%E7%A9%B6%E7%AB%9F%E6%98%AF%E4%BB%80%E4%B9%88%E6%8C%87%E6%A0%87%EF%BC%9F"><span class="nav-number">7.</span> <span class="nav-text">7. 在线实验：+53% 究竟是什么指标？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E5%9C%BA%E6%99%AF%E4%B8%8E%E5%AF%B9%E7%85%A7%E7%BB%84"><span class="nav-number">7.1.</span> <span class="nav-text">7.1 场景与对照组</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-CTR-%E5%92%8C%E6%95%88%E7%8E%87"><span class="nav-number">7.2.</span> <span class="nav-text">7.2 CTR 和效率</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E6%9B%9D%E5%85%89%E6%9B%B4%E5%88%86%E6%95%A3%EF%BC%8C%E4%BD%86%E4%B8%8D%E7%AD%89%E4%BA%8E%E6%89%80%E6%9C%89%E5%81%8F%E5%B7%AE%E9%83%BD%E5%B7%B2%E6%B6%88%E9%99%A4"><span class="nav-number">7.3.</span> <span class="nav-text">7.3 曝光更分散，但不等于所有偏差都已消除</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E5%A6%82%E6%9E%9C%E8%A6%81%E5%A4%8D%E7%8E%B0%EF%BC%8C%E4%BC%98%E5%85%88%E9%AA%8C%E8%AF%81%E5%93%AA%E4%BA%9B%E9%97%AE%E9%A2%98%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">8. 如果要复现，优先验证哪些问题？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E5%85%88%E6%8A%8A%E5%A2%9E%E9%87%8F%E6%94%B6%E7%9B%8A%E6%8B%86%E5%BC%80"><span class="nav-number">8.1.</span> <span class="nav-text">8.1 先把增量收益拆开</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E5%90%8C%E6%97%B6%E7%9C%8B%E5%9B%B0%E9%9A%BE%E5%BA%A6%E5%92%8C%E5%81%87%E8%B4%9F%E4%BE%8B"><span class="nav-number">8.2.</span> <span class="nav-text">8.2 同时看困难度和假负例</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-%E7%9B%91%E6%8E%A7%E6%B1%A0%E7%9A%84%E7%9C%9F%E5%AE%9E%E5%88%86%E5%B8%83"><span class="nav-number">8.3.</span> <span class="nav-text">8.3 监控池的真实分布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-4-%E4%B8%8D%E6%8A%8A%E2%80%9C%E5%AE%9E%E6%97%B6%E9%87%87%E6%A0%B7%E2%80%9D%E8%AF%AF%E8%AE%A4%E4%B8%BA%E2%80%9C%E5%AE%9E%E6%97%B6%E9%87%8D%E5%81%9A-LLM-%E8%81%9A%E7%B1%BB%E2%80%9D"><span class="nav-number">8.4.</span> <span class="nav-text">8.4 不把“实时采样”误认为“实时重做 LLM 聚类”</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E6%80%BB%E7%BB%93%EF%BC%9A%E8%AE%A9%E5%9B%B0%E9%9A%BE%E5%BA%A6%E9%80%89%E6%8B%A9%E8%84%B1%E7%A6%BB%E6%98%82%E8%B4%B5%E7%9A%84%E5%85%A8%E5%B1%80%E6%90%9C%E7%B4%A2"><span class="nav-number">9.</span> <span class="nav-text">9. 总结：让困难度选择脱离昂贵的全局搜索</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E5%8F%82%E8%80%83%E8%B5%84%E6%96%99"><span class="nav-number">10.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">29</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">116</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/10/12/Cluster-GOOBS/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="Cluster GOOBS：基于语义聚类的实时困难负采样 | wdy's blog">
+      <meta itemprop="description" content="解读 Cluster GOOBS 如何通过语义聚类与实时特征池增强双塔负采样，分析 Softmax 梯度、混合采样比例、哈希更新及公开实验与线上 CTR 的结论边界。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          Cluster GOOBS：基于语义聚类的实时困难负采样
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+      
+
+      <time title="创建时间：2026-10-12 17:35:00 / 修改时间：17:39:37" itemprop="dateCreated datePublished" datetime="2026-10-12T17:35:00+08:00">2026-10-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">推荐系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">解读 Cluster GOOBS 如何通过语义聚类与实时特征池增强双塔负采样，分析 Softmax 梯度、混合采样比例、哈希更新及公开实验与线上 CTR 的结论边界。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>双塔召回模型的训练效果，不仅取决于用户塔和物品塔有多复杂，也取决于模型每天需要区分什么。如果负样本始终是明显不相关的物品，训练损失可以很快下降，但模型未必学会在相似内容之间做细粒度选择。</p>
+<p><strong>Cluster GOOBS</strong> 把这个问题拆成两部分：用语义聚类缩小负样本的搜索范围，再用实时维护的物品特征池低成本地提供样本。它没有把 LLM 放到每次推荐请求中，而是用 LLM 衍生的内容表示改善双塔的训练数据组织。</p>
+<span id="more"></span>
+
+<blockquote>
+<p><strong>论文</strong>：Ivan Ji, Liuyi Hu, Harrison (Zihao) Zhao, et al. <em>Real-Time Hard Negative Sampling via LLM-based Clustering for Large-Scale Two-Tower Retrieval</em>. arXiv:2607.00448, 2026。<a target="_blank" rel="noopener" href="https://arxiv.org/html/2607.00448">HTML 正文</a> · <a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2607.00448">PDF</a></p>
+<p>本文从一份论文汇报出发，并核对了论文公开正文和实验表。论文结果与本文分析分别标注；数学符号统一整理，梯度推导用于解释，不代表额外的实验复现。内容核对日期为 2026-10-12。</p>
+</blockquote>
+<h2 id="1-负采样究竟改变了什么？"><a href="#1-负采样究竟改变了什么？" class="headerlink" title="1. 负采样究竟改变了什么？"></a>1. 负采样究竟改变了什么？</h2><h3 id="1-1-双塔把召回转化为向量检索"><a href="#1-1-双塔把召回转化为向量检索" class="headerlink" title="1.1 双塔把召回转化为向量检索"></a>1.1 双塔把召回转化为向量检索</h3><p>设用户信息为 x，物品信息为 y，用户塔和物品塔分别输出向量 u 和 v。以点积为例：</p>
+
+\[
+u=f_\theta(x),\qquad v=g_\theta(y),\qquad
+s_\theta(x,y)=u^\top v.
+\]
+
+
+<p>双塔的优势是两侧独立编码：物品向量可以提前计算并建立索引，线上计算当前用户向量，再检索高分候选，而不必逐个运行复杂的用户—物品交互网络。</p>
+<p>训练时，可以把召回写成全物品空间中的分类问题。按照论文 §3.1，令可推荐物品集合为 I：</p>
+
+\[
+P_\theta(y_i\mid x_i)
+=\frac{\exp s_\theta(x_i,y_i)}
+{\sum_{y\in\mathcal{I}}\exp s_\theta(x_i,y)}.
+\]
+
+
+<p>当物品库达到千万量级，逐样本计算完整分母通常不可接受。因此训练只使用正样本与部分负样本，<strong>采样策略实际决定了模型在训练中面对的竞争集合</strong>。</p>
+<h3 id="1-2-In-batch-与随机-OOB-分别解决什么？"><a href="#1-2-In-batch-与随机-OOB-分别解决什么？" class="headerlink" title="1.2 In-batch 与随机 OOB 分别解决什么？"></a>1.2 In-batch 与随机 OOB 分别解决什么？</h3><p>In-batch Sampling 把同一 Batch 中其他样本的正物品当作当前用户的负样本。若 Batch 包含 B 个正对，暂不考虑重复与屏蔽，每个用户得到 B−1 个负样本。</p>
+<p>它复用了已有的物品编码，但不是“零计算成本”：仍需计算用户与其他物品的相似度以及损失。并且，负样本分布来自交互日志，出现频率较高的物品更容易进入 Batch。</p>
+<p>随机 Out-of-Batch（OOB）Sampling 从更大的池中取物品，扩大了训练覆盖范围。然而，在训练已经有一定区分能力时，很多随机物品的分数很低，继续区分它们可能提供不了多少新增信号。</p>
+<p>“随机负样本容易”是常见现象，不是关于所有用户、物品与训练阶段的定理。冷启动用户、噪声数据和训练初期仍可能产生不同情况。</p>
+<h2 id="2-为什么困难负样本更有训练信号？"><a href="#2-为什么困难负样本更有训练信号？" class="headerlink" title="2. 为什么困难负样本更有训练信号？"></a>2. 为什么困难负样本更有训练信号？</h2><h3 id="2-1-从损失看单个负样本的作用"><a href="#2-1-从损失看单个负样本的作用" class="headerlink" title="2.1 从损失看单个负样本的作用"></a>2.1 从损失看单个负样本的作用</h3><p>对一个正对，令采样候选集合为 C_i，包含正物品 y_i 与负物品。为避免和采样随机数混淆，用 w_i 表示论文中的标签权重 r_i；分析一个正样本时取 w_i&#x3D;1。论文 §3.2 的采样目标可整理为：</p>
+
+\[
+\mathcal{L}_i
+=-w_i\log\frac{\exp z_{i,+}}
+{\sum_{j\in\mathcal{C}_i}\exp z_{ij}},
+\qquad z_{ij}=s_\theta(x_i,y_j).
+\]
+
+
+<p>这个式子表达采样后的交叉熵。它本身不意味着使用任意非均匀负采样都能无偏估计全库 Softmax，也没有包含所有实际训练中的 LogQ 或 Mask 细节。</p>
+<p>下面是本文基于该目标的推导。令候选的归一化概率为 p_ij，则对负样本的 logit：</p>
+
+\[
+p_{ij}=\frac{\exp z_{ij}}
+{\sum_{k\in\mathcal{C}_i}\exp z_{ik}},\qquad
+\frac{\partial\mathcal{L}_i}{\partial z_{ij}}=w_i p_{ij}
+\quad(j\ne +).
+\]
+
+
+<p>对正样本则为 w_i(p_i,+−1)。在候选集合及其他分数固定时，提高某个负样本的分数，会提高它在 Softmax 中的质量，使它受到更强的向下调整。</p>
+<p>关键是<strong>相对分数和归一化概率</strong>，而不是“相似度接近零，所以指数与梯度接近零”。例如 exp(0)&#x3D;1，并不接近零；只有当它相对分母的其他项足够小，p_ij 才会很小。</p>
+<h3 id="2-2-Logit-梯度与参数梯度也要区分"><a href="#2-2-Logit-梯度与参数梯度也要区分" class="headerlink" title="2.2 Logit 梯度与参数梯度也要区分"></a>2.2 Logit 梯度与参数梯度也要区分</h3><p>在点积模型下，用户向量的梯度为：</p>
+
+\[
+\frac{\partial\mathcal{L}_i}{\partial u_i}
+=w_i\left(\sum_{j\in\mathcal{C}_i}p_{ij}v_j-v_+\right).
+\]
+
+
+<p>每个负物品通过 p_ij v_j 参与更新。参数梯度还要乘上网络的 Jacobian，因此不能把“参数梯度大小”简单等同于 exp(score)。</p>
+<p>论文 §3.3 的直觉是：与正样本语义接近的物品，更有机会成为有竞争力的负样本，促使模型学习簇内差别。<strong>语义接近只是困难度的代理，不保证同簇物品一定是当前用户的高分近邻。</strong></p>
+<h3 id="2-3-困难也不是越多越好"><a href="#2-3-困难也不是越多越好" class="headerlink" title="2.3 困难也不是越多越好"></a>2.3 困难也不是越多越好</h3><p>相似内容可能确实符合用户兴趣，只是没有被曝光或点击。将它当作负样本，会产生 False Negative。</p>
+<p>论文报告将每个正样本的簇内负样本数从 1 扩到 64 时，较少数量效果更好，更多困难负样本反而使表现下降。正文没有给出完整消融表，因此这里保留定性结论，不补写最优数量或具体降幅。</p>
+<p>困难采样需要在区分能力、覆盖度和假负例风险之间取舍，而不是追求“所有负样本都最难”。</p>
+<h2 id="3-与-LogQ、DNS、CBNS、ANCE-的关系"><a href="#3-与-LogQ、DNS、CBNS、ANCE-的关系" class="headerlink" title="3. 与 LogQ、DNS、CBNS、ANCE 的关系"></a>3. 与 LogQ、DNS、CBNS、ANCE 的关系</h2><h3 id="3-1-LogQ-纠正采样频率，不负责寻找困难样本"><a href="#3-1-LogQ-纠正采样频率，不负责寻找困难样本" class="headerlink" title="3.1 LogQ 纠正采样频率，不负责寻找困难样本"></a>3.1 LogQ 纠正采样频率，不负责寻找困难样本</h3><p>论文 Baseline 是 In-batch + LogQ，并对已知正例使用 False-Negative Mask。LogQ 的典型形式是：</p>
+
+\[
+\widetilde z_{ij}=z_{ij}-\log q(y_j).
+\]
+
+
+<p>q 表示相应采样机制中的出现概率。更完整的采样 Softmax 实现可能使用期望采样次数，并需要区分强制加入的正样本、重复项与不同采样来源。</p>
+<p>由于 q≤1，减去 log q 通常会提高 logit；低频项提高得更多。因此不能只把这一步解释成“把热门物品的原始 logit 减小”。它是在补偿采样频率差异，不是在线推荐阶段对热门物品直接降权。</p>
+<p>Cluster GOOBS 又引入依赖正样本簇的采样分布。不能不加分析地把 In-batch 的边际频率用于所有 OOB 样本，也不能据一个 LogQ 式子断言已经消除了曝光偏差。</p>
+<h3 id="3-2-几种负采样方式的差别"><a href="#3-2-几种负采样方式的差别" class="headerlink" title="3.2 几种负采样方式的差别"></a>3.2 几种负采样方式的差别</h3><table>
+<thead>
+<tr>
+<th>方法</th>
+<th>负样本选择依据</th>
+<th>复用或维护什么</th>
+<th>主要取舍</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>In-batch</td>
+<td>当前 Batch 的其他物品</td>
+<td>当前已编码物品</td>
+<td>成本低，但数量和分布受 Batch 限制</td>
+</tr>
+<tr>
+<td>DNS</td>
+<td>当前模型对候选的评分</td>
+<td>动态候选评分</td>
+<td>有模型感知能力，成本取决于候选集合大小</td>
+</tr>
+<tr>
+<td>CBNS</td>
+<td>最近 Batch 中出现的物品</td>
+<td>历史物品 Embedding</td>
+<td>编码复用高，但向量随模型更新而陈旧</td>
+</tr>
+<tr>
+<td>ANCE</td>
+<td>查询在 ANN 索引中的近邻</td>
+<td>全局索引与异步刷新</td>
+<td>模型相关的困难度，但存在刷新和查询成本</td>
+</tr>
+<tr>
+<td>随机 GOOBS</td>
+<td>维护池中的随机位置</td>
+<td>物品特征</td>
+<td>覆盖更广，不主动筛选高分负例</td>
+</tr>
+<tr>
+<td>Cluster GOOBS</td>
+<td>正物品所在簇内的随机位置</td>
+<td>按簇分段的物品特征池</td>
+<td>避开逐步全局搜索，但困难度依赖聚类质量</td>
+</tr>
+</tbody></table>
+<p>需要避免三个过度概括：</p>
+<ul>
+<li><strong>DNS 不必每一步遍历全库。</strong> 它也可以先随机抽取一个候选子集，再选择模型评分高的物品；代价取决于具体实现。</li>
+<li><strong>ANN 近邻不是精确的全局最难负样本。</strong> ANCE 面向查询检索近邻，并受近似搜索、索引版本和打分定义限制。</li>
+<li><strong>无法只凭方法名称给出统一复杂度或是否“实时可用”。</strong> ANN 的复杂度依赖索引结构与查询参数，CBNS 的陈旧程度依赖缓存和模型变化速度。</li>
+</ul>
+<p>GOOBS 不需要为<strong>训练负采样</strong>维护 ANCE 式全库索引，并不意味着双塔的<strong>线上召回</strong>也不再需要向量检索索引。</p>
+<h2 id="4-Cluster-GOOBS：用语义结构组织采样空间"><a href="#4-Cluster-GOOBS：用语义结构组织采样空间" class="headerlink" title="4. Cluster GOOBS：用语义结构组织采样空间"></a>4. Cluster GOOBS：用语义结构组织采样空间</h2><h3 id="4-1-先分簇，再按正样本的簇采样"><a href="#4-1-先分簇，再按正样本的簇采样" class="headerlink" title="4.1 先分簇，再按正样本的簇采样"></a>4.1 先分簇，再按正样本的簇采样</h3><p>对每个物品预先计算 cluster_id。训练遇到正物品 y_i 时，从同簇候选中抽取负物品，而不是逐个计算当前用户与全库物品的相似度。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">物品内容 → 内容表征 → 聚类 → cluster_id</span><br><span class="line">                                  ↓</span><br><span class="line">正样本物品 → 定位所属簇 → 簇内采样 → 当前物品塔编码 → 训练</span><br></pre></td></tr></table></figure>
+
+<p>这里选择的是“正物品的语义邻域”，不是“当前用户向量的模型近邻”。它用较稳定的内容结构换取便宜的候选定位，将当前模型的计算留给采样之后的编码与训练。</p>
+<h3 id="4-2-工业聚类与公开数据集聚类不是一回事"><a href="#4-2-工业聚类与公开数据集聚类不是一回事" class="headerlink" title="4.2 工业聚类与公开数据集聚类不是一回事"></a>4.2 工业聚类与公开数据集聚类不是一回事</h3><p>论文 §3.4 介绍，工业方案使用基于 LLM 的多模态内容表示，覆盖文本、图像、音频与视频，再对表示做 k-means。新物品编码后分配给最近中心。</p>
+<p>工业配置选择了 300 个簇，98% 的簇至少包含 10,000 个物品。论文还报告，在 100 到 10,000 个簇的离线搜索范围内，250—500 个簇取得了较好的平衡。</p>
+<p>公开实验则直接使用 MovieLens 的 genre 与 Amazon 的 category，不运行这套工业 LLM 聚类。因此：</p>
+<ul>
+<li>公开实验主要检验基于簇的采样机制；</li>
+<li>线上实验检验包含 LLM 表征、聚类和特征池在内的组合方案；</li>
+<li>不能据此证明 LLM 聚类一定优于类目标签，也不能把 300 个簇当成通用超参数。</li>
+</ul>
+<h3 id="4-3-混合比例：少量簇内负样本配合随机-OOB"><a href="#4-3-混合比例：少量簇内负样本配合随机-OOB" class="headerlink" title="4.3 混合比例：少量簇内负样本配合随机 OOB"></a>4.3 混合比例：少量簇内负样本配合随机 OOB</h3><p>论文 §5.1.2 明确给出：</p>
+<table>
+<thead>
+<tr>
+<th>数据集</th>
+<th>cluster OOB : random OOB</th>
+<th>仅在 OOB 部分中的簇内占比</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MovieLens-1M</td>
+<td>1 : 15</td>
+<td>1&#x2F;16，即 6.25%</td>
+</tr>
+<tr>
+<td>Amazon Reviews</td>
+<td>1 : 31</td>
+<td>1&#x2F;32，即 3.125%</td>
+</tr>
+</tbody></table>
+<p><strong>这是“聚类 : 随机”，不是反过来。</strong> OOB 之外仍有 In-batch 负样本，所以最后一列不是全部负样本中的比例。</p>
+<p>用本文引入的混合分布表示法，可以写成：</p>
+
+\[
+q_{\mathrm{OOB}}(y\mid y_i)
+=\alpha q_{\mathrm{cluster}}(y\mid c(y_i))
++(1-\alpha)q_{\mathrm{random}}(y).
+\]
+
+
+<p>这是对混合机制的概括，不是论文新增的损失公式。簇内部分提供细粒度竞争，随机部分保持较广的覆盖；池中的实际物品分布还受更新和哈希碰撞影响。</p>
+<h2 id="5-GOOBS-实时特征池怎样工作？"><a href="#5-GOOBS-实时特征池怎样工作？" class="headerlink" title="5. GOOBS 实时特征池怎样工作？"></a>5. GOOBS 实时特征池怎样工作？</h2><h3 id="5-1-缓存的是-Features，不是旧模型-Embedding"><a href="#5-1-缓存的是-Features，不是旧模型-Embedding" class="headerlink" title="5.1 缓存的是 Features，不是旧模型 Embedding"></a>5.1 缓存的是 Features，不是旧模型 Embedding</h3><p>GOOBS 维护预分配的槽位数组，每个槽位保存物品特征张量。采样后，特征进入当前训练模型。</p>
+<p>这与 CBNS 直接复用旧版模型编码的向量不同：GOOBS 可以用当前物品塔重新编码，但需要支付编码成本，也仍可能读取过期的物品属性。<strong>模型向量陈旧与原始特征陈旧是两个不同问题。</strong></p>
+<p>设簇数为 C，每簇槽数为 S，则总槽数为 CS。不同簇拥有相同的缓存容量，不意味着不同簇中的全量物品数相同。</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">Cluster 0: [slot 0 | slot 1 | ... | slot S-1]</span><br><span class="line">Cluster 1: [slot 0 | slot 1 | ... | slot S-1]</span><br><span class="line">...</span><br><span class="line">Cluster C-1: [slot 0 | slot 1 | ... | slot S-1]</span><br></pre></td></tr></table></figure>
+
+<h3 id="5-2-Update-Engine：确定性映射，碰撞时覆盖"><a href="#5-2-Update-Engine：确定性映射，碰撞时覆盖" class="headerlink" title="5.2 Update Engine：确定性映射，碰撞时覆盖"></a>5.2 Update Engine：确定性映射，碰撞时覆盖</h3><p>按照论文 Algorithm 1，给定物品 ID x 与簇编号 c：</p>
+
+\[
+\operatorname{slot}(x,c)=cS+(x\bmod S),
+\qquad c\in\{0,\ldots,C-1\}.
+\]
+
+
+<p>例如 S&#x3D;1000、c&#x3D;7、x&#x3D;12345，对应槽位是 7345。同一物品在簇和容量不变时映射到同一槽位，不会因为反复进入 Batch 而占据多个位置；不同物品可能碰撞，后写入的覆盖先写入的。</p>
+<p>这是有界缓存，不是完整物品数据库，也不是保留所有历史物品的集合。简单取模是否均匀，取决于 ID 分布，不能由公式本身保证。</p>
+<h3 id="5-3-Sample-Engine：定位分段后随机取槽"><a href="#5-3-Sample-Engine：定位分段后随机取槽" class="headerlink" title="5.3 Sample Engine：定位分段后随机取槽"></a>5.3 Sample Engine：定位分段后随机取槽</h3><p>按照论文 Algorithm 2，对正物品所属簇 c 随机取偏移量：</p>
+
+\[
+a\sim\operatorname{Uniform}\{0,\ldots,S-1\},\qquad
+\operatorname{sampleSlot}=cS+a.
+\]
+
+
+<p>当槽位有效、簇版本一致时，返回的物品属于该簇。读取一个位置无需全局排序或 ANN 查询，但不能保证被选中的内容对当前用户一定不相关。</p>
+<p><strong>均匀抽槽也不等于在整个簇的全部物品中均匀采样。</strong> 碰撞覆盖使一些物品不在池中；反复出现的物品可能更频繁地重新写入，实际驻留分布还受流式数据顺序影响。</p>
+<h3 id="5-4-Pre-loading：提高早期命中率"><a href="#5-4-Pre-loading：提高早期命中率" class="headerlink" title="5.4 Pre-loading：提高早期命中率"></a>5.4 Pre-loading：提高早期命中率</h3><p>训练开始前，用历史物品特征预加载池，再由训练 Batch 持续更新。这样可以减轻冷启动时的空池问题。</p>
+<p>论文说的是提高早期命中率，并没有证明预加载一定填满每个槽。若一个簇的可用物品很少，或 ID 取模集中，预热后仍可能有空槽。</p>
+<p>因此，实现时仍要定义无效槽检测、重试次数与回退采样策略。这些是本文提出的工程检查项，不是论文已经公开的实现细节。</p>
+<h3 id="5-5-并行运行不自动意味着无冲突或自然去重"><a href="#5-5-并行运行不自动意味着无冲突或自然去重" class="headerlink" title="5.5 并行运行不自动意味着无冲突或自然去重"></a>5.5 并行运行不自动意味着无冲突或自然去重</h3><p>论文写到 Update 与 Sample 并行，但未公开完整的内存一致性协议。共享池中，随机读位置仍可能与当前写位置相同；一个当前正样本也可能早已存在于历史池。</p>
+<p>所以不能仅根据“更新当前 Batch、读取历史池”推导出：</p>
+<ul>
+<li>读写永远不会落到同一个槽；</li>
+<li>采样天然排除当前正样本；</li>
+<li>同一用户的已知正例无需额外 Mask。</li>
+</ul>
+<p>下面是一种<strong>便于理解的安全顺序示意，不是论文并行实现的复刻</strong>：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">读取当前 Batch</span><br><span class="line">    ↓</span><br><span class="line">从已发布的池版本采样</span><br><span class="line">    ↓</span><br><span class="line">检查槽位有效性、物品 ID、簇版本及已知正例</span><br><span class="line">    ↓</span><br><span class="line">组合 In-batch、随机 OOB 与簇内 OOB</span><br><span class="line">    ↓</span><br><span class="line">当前双塔前向、损失与反向传播</span><br><span class="line">    ↓</span><br><span class="line">写入当前物品特征，发布给后续采样</span><br></pre></td></tr></table></figure>
+
+<p>真实并行实现可以采用快照、双缓冲、版本检查或其他同步协议，但其成本与正确性需要单独验证，不能冒充论文指定方案。</p>
+<h3 id="5-6-O-1-指定位，不是整个训练流程"><a href="#5-6-O-1-指定位，不是整个训练流程" class="headerlink" title="5.6 O(1) 指定位，不是整个训练流程"></a>5.6 O(1) 指定位，不是整个训练流程</h3><p>单个槽位的索引计算和直接访问可以按 O(1) 分析。但如果 Batch 大小为 B，每个正样本需要 K 个 OOB 候选，那么仅采样请求数就按 BK 增长；特征搬运量、编码计算与用户—物品打分还要另算。</p>
+<p>如果每槽特征占 F 字节，忽略元数据，池内存约为 CSF。增大 S 可以减少碰撞压力，但也增加内存和预热成本。</p>
+<p>因此，“不依赖全库大小的直接定位”是合理优势，“O(1) 完成所有困难负采样和训练”则是不准确的说法。</p>
+<h2 id="6-公开实验：比较的是同一设置下的采样策略"><a href="#6-公开实验：比较的是同一设置下的采样策略" class="headerlink" title="6. 公开实验：比较的是同一设置下的采样策略"></a>6. 公开实验：比较的是同一设置下的采样策略</h2><h3 id="6-1-评测协议"><a href="#6-1-评测协议" class="headerlink" title="6.1 评测协议"></a>6.1 评测协议</h3><p>根据论文 §5.1：</p>
+<ul>
+<li>数据集为 MovieLens-1M 和 Amazon Reviews 的 Grocery、Electronics、Home 子集；</li>
+<li>按时间排序，前 80% 用于训练，后 20% 用于评估；</li>
+<li>评分 1—2 转为负标签，3—5 转为正标签；</li>
+<li>不使用 k-core 过滤；</li>
+<li>在全局物品库中评估，而不是只与少量随机负样本比较；</li>
+<li>同一双塔基础上比较六种采样方法，簇使用现成类别信息。</li>
+</ul>
+<p>这解释了为什么其绝对 Hit Rate 可能低于采用强过滤、采样候选的其他实验。指标数值需要连同评测协议阅读，不能跨论文直接排名。</p>
+<h3 id="6-2-HR-50-结果"><a href="#6-2-HR-50-结果" class="headerlink" title="6.2 HR@50 结果"></a>6.2 HR@50 结果</h3><p>下表整理自论文表 1，括号为论文报告的相对 In-batch Baseline 增幅：</p>
+<table>
+<thead>
+<tr>
+<th>数据集</th>
+<th>Baseline</th>
+<th>DNS</th>
+<th>CBNS</th>
+<th>ANCE</th>
+<th>随机 GOOBS</th>
+<th>Cluster GOOBS</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>MovieLens-1M</td>
+<td>0.2253</td>
+<td>0.2298（+2.0%）</td>
+<td>0.2331（+3.5%）</td>
+<td>0.2380（+5.6%）</td>
+<td>0.2346（+4.2%）</td>
+<td><strong>0.2415（+7.2%）</strong></td>
+</tr>
+<tr>
+<td>Amazon-Grocery</td>
+<td>0.0254</td>
+<td>0.0261（+2.8%）</td>
+<td>0.0271（+6.7%）</td>
+<td>0.0288（+13.4%）</td>
+<td>0.0279（+10.1%）</td>
+<td><strong>0.0301（+18.5%）</strong></td>
+</tr>
+<tr>
+<td>Amazon-Electronics</td>
+<td>0.0084</td>
+<td>0.0090（+7.1%）</td>
+<td>0.0099（+17.9%）</td>
+<td>0.0108（+28.6%）</td>
+<td>0.0110（+30.9%）</td>
+<td><strong>0.0131（+55.6%）</strong></td>
+</tr>
+<tr>
+<td>Amazon-Home</td>
+<td>0.0050</td>
+<td>0.0054（+8.0%）</td>
+<td>0.0061（+22.0%）</td>
+<td>0.0065（+30.0%）</td>
+<td>0.0067（+34.2%）</td>
+<td><strong>0.0074（+47.3%）</strong></td>
+</tr>
+</tbody></table>
+<p>表中的绝对值只有四位小数，用它们直接计算相对增幅可能与论文报告略有出入。例如 0.0050 到 0.0074 按显示值计算为 48%，论文写作 47.3%；本文同时保留原始显示值与报告值，不将二者强行改成精确一致。</p>
+<p>还有两个容易混淆的比较：</p>
+<ol>
+<li>Amazon-Electronics 的 +55.6% 是相对 In-batch Baseline，不是相对随机 GOOBS；按表中显示值，与随机 GOOBS 相比约提升 19.1%。</li>
+<li>0.0084 到 0.0131 的绝对差为 0.0047，也就是 0.47 个百分点，而不是增加 55.6 个百分点。</li>
+</ol>
+<p>在这组已测试配置中，Cluster GOOBS 的 HR@50 与 HR@100 都优于其他对照。但公开结果不能独立证明工业 LLM 聚类的增益，也不能证明它在所有负样本预算或调参条件下都优于 ANCE。</p>
+<h2 id="7-在线实验：-53-究竟是什么指标？"><a href="#7-在线实验：-53-究竟是什么指标？" class="headerlink" title="7. 在线实验：+53% 究竟是什么指标？"></a>7. 在线实验：+53% 究竟是什么指标？</h2><h3 id="7-1-场景与对照组"><a href="#7-1-场景与对照组" class="headerlink" title="7.1 场景与对照组"></a>7.1 场景与对照组</h3><p>论文 §5.2 描述的是一个大规模社交媒体应用的入口内容发现位置，包含多个召回源。两组各随机选择 3% 用户，实验持续 14 天：</p>
+<ul>
+<li>Control：双塔 + 随机 GOOBS；</li>
+<li>Test：相同双塔架构 + Cluster GOOBS。</li>
+</ul>
+<p>文中描述了亿级 MAU、千万级可推荐内容和十亿级训练交互的规模，但没有明确点名具体产品。因此不应推测它一定是 Facebook Feed、Reels 或某个特定业务。</p>
+<h3 id="7-2-CTR-和效率"><a href="#7-2-CTR-和效率" class="headerlink" title="7.2 CTR 和效率"></a>7.2 CTR 和效率</h3><table>
+<thead>
+<tr>
+<th>指标</th>
+<th>论文报告</th>
+<th>应如何理解</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>Source CTR</td>
+<td>相对 +53%，p&lt;0.01</td>
+<td>被改造召回源所服务曝光的 CTR，不是全系统 CTR</td>
+</tr>
+<tr>
+<td>Overall CTR</td>
+<td>相对 +6.5%</td>
+<td>多召回源整体系统的 CTR 收益</td>
+</tr>
+<tr>
+<td>训练 QPS</td>
+<td>−1.4%</td>
+<td>相对随机 GOOBS 的训练吞吐变化</td>
+</tr>
+<tr>
+<td>推理 QPS</td>
+<td>未观察到退化</td>
+<td>该实验中未增加相应服务吞吐负担</td>
+</tr>
+</tbody></table>
+<p>+53% 与 +6.5% 是论文分别报告的结果，后者不是由前者简单换算出来的。多召回源之间可能存在候选重叠、流量竞争和下游排序，不能只乘一个流量占比解释全系统收益。</p>
+<p>同样，−1.4% 是相对已有随机 GOOBS 的增量开销，不是“从没有 OOB 到整套系统只多花 1.4%”。内容编码、聚类维护与特征池内存也不能因为训练 QPS 接近不变就忽略。</p>
+<h3 id="7-3-曝光更分散，但不等于所有偏差都已消除"><a href="#7-3-曝光更分散，但不等于所有偏差都已消除" class="headerlink" title="7.3 曝光更分散，但不等于所有偏差都已消除"></a>7.3 曝光更分散，但不等于所有偏差都已消除</h3><p>论文表 3 报告：</p>
+<table>
+<thead>
+<tr>
+<th>指标</th>
+<th>Control</th>
+<th>Test</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>过去一天曝光至少 1,000 次的物品数量</td>
+<td>基准</td>
+<td>约增加 50%</td>
+</tr>
+<tr>
+<td>Top 100 物品的曝光贡献</td>
+<td>50%</td>
+<td>32%</td>
+</tr>
+</tbody></table>
+<p>第一个指标是达到曝光门槛的<strong>物品数量</strong>，不能直接写成物品占比或长尾召回率。第二个指标从 50% 降到 32%，是下降 18 个百分点，按相对值为下降 36%。</p>
+<p>这些结果支持“曝光覆盖扩大、头部集中度降低”，但不能独立证明长期反馈循环被永久打破，也不能证明每个用户的个性化、多样性或满意度都提升。</p>
+<h2 id="8-如果要复现，优先验证哪些问题？"><a href="#8-如果要复现，优先验证哪些问题？" class="headerlink" title="8. 如果要复现，优先验证哪些问题？"></a>8. 如果要复现，优先验证哪些问题？</h2><p>以下是根据论文机制整理的实施建议，不属于作者已经公开的生产配置。</p>
+<h3 id="8-1-先把增量收益拆开"><a href="#8-1-先把增量收益拆开" class="headerlink" title="8.1 先把增量收益拆开"></a>8.1 先把增量收益拆开</h3><p>依次对比 In-batch、随机 OOB、类别簇 OOB、内容语义簇 OOB。固定总负样本预算、模型结构、训练数据与训练步数，避免把“负样本更多”误认为“语义聚类更有效”。</p>
+<p>也可以分别在固定训练时间下比较质量，从而看清更高质量负样本是否抵偿额外编码与搬运成本。</p>
+<h3 id="8-2-同时看困难度和假负例"><a href="#8-2-同时看困难度和假负例" class="headerlink" title="8.2 同时看困难度和假负例"></a>8.2 同时看困难度和假负例</h3><p>观察正负分数间隔、负样本 Softmax 概率、梯度范数和训练稳定性；同时统计当前正例重复、用户已知正例命中与语义近重复比例。</p>
+<p>论文对簇内假负例较少给出直觉解释，但仅凭“全库很大、用户感兴趣物品较少”，不能推出条件在某个兴趣簇内的假负例率必然很低。兴趣可能恰好集中在这个簇中。</p>
+<h3 id="8-3-监控池的真实分布"><a href="#8-3-监控池的真实分布" class="headerlink" title="8.3 监控池的真实分布"></a>8.3 监控池的真实分布</h3><p>至少检查：</p>
+<ul>
+<li>各簇槽位占用率、空槽命中率和碰撞覆盖率；</li>
+<li>特征年龄与物品下架状态；</li>
+<li>不同热度物品的写入、驻留与被采样频率；</li>
+<li>跨 Batch 重复和用户级已知正例；</li>
+<li>聚类版本更新后，槽位中的物品是否仍属于标记的簇。</li>
+</ul>
+<p>只监控整体采样 QPS，可能发现不了某些簇几乎没有有效候选，或某些热门物品长期占据特定槽位。</p>
+<h3 id="8-4-不把“实时采样”误认为“实时重做-LLM-聚类”"><a href="#8-4-不把“实时采样”误认为“实时重做-LLM-聚类”" class="headerlink" title="8.4 不把“实时采样”误认为“实时重做 LLM 聚类”"></a>8.4 不把“实时采样”误认为“实时重做 LLM 聚类”</h3><p>每步训练实时发生的是槽位更新与样本读取。内容编码、中心学习和版本更新有自己的周期；即使新物品能即时分配到已有中心，也不代表整个聚类在每个 Batch 中重新训练。</p>
+<p>这一时间尺度分离，正是方案能够以较小训练增量运行的重要条件。</p>
+<h2 id="9-总结：让困难度选择脱离昂贵的全局搜索"><a href="#9-总结：让困难度选择脱离昂贵的全局搜索" class="headerlink" title="9. 总结：让困难度选择脱离昂贵的全局搜索"></a>9. 总结：让困难度选择脱离昂贵的全局搜索</h2><p>Cluster GOOBS 的价值可以概括为三个层次：</p>
+<ol>
+<li><strong>采样机制</strong>：用少量同簇负样本增强细粒度竞争，同时保留随机覆盖；</li>
+<li><strong>系统实现</strong>：保存物品特征，用按簇分段的有界池支持直接定位、更新和读取；</li>
+<li><strong>实验结果</strong>：在公开评测和一个生产系统中取得收益，但需保留聚类来源、基线与指标口径。</li>
+</ol>
+<p>它不是一个新的双塔主干，也不是每次训练都调用 LLM 寻找当前最难物品。更准确地说，它把较重的内容理解转化为可重复使用的分组信息，让训练流水线以较低成本持续看到更有竞争力的负样本。</p>
+<p>这一思想与 <a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/" title="推荐模型 Scaling（一）：从参数规模到模型与系统协同设计">模型与系统协同设计</a> 相通：效果不仅由增加多少计算决定，也由计算被用在何处、训练数据如何被组织决定。</p>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><ol>
+<li>Ji I, Hu L, Zhao H, et al. <a target="_blank" rel="noopener" href="https://arxiv.org/html/2607.00448">Real-Time Hard Negative Sampling via LLM-based Clustering for Large-Scale Two-Tower Retrieval</a>. arXiv:2607.00448, 2026。本文机制、算法与结果依据 §3—§5 及表 1—3 整理；<a target="_blank" rel="noopener" href="https://arxiv.org/pdf/2607.00448">PDF</a>。</li>
+<li><a target="_blank" rel="noopener" href="https://docs.corp.kuaishou.com/d/home/fcAAE-r_pBzSAM4C-SxntXt_7">论文汇报：Cluster GOOBS 负样本采样</a>。选题与初始解读材料，需要相应访问权限；与公开论文不一致的比例和指标说明以论文为准。</li>
+<li>Wang J, Zhu J, He X. <em>Cross-batch Negative Sampling for Training Two-Tower Recommenders</em>. SIGIR, 2021。书目信息来自上述论文参考文献，本文未独立复现其方法。</li>
+<li>Xiong L, Xiong C, Li Y, et al. <em>Approximate Nearest Neighbor Negative Contrastive Estimation for Dense Text Retrieval</em>. ICLR, 2021。书目信息来自上述论文参考文献，本文未独立复现其方法。</li>
+</ol>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" rel="tag"># 推荐系统</a>
+              <a href="/tags/%E8%AE%BA%E6%96%87%E9%98%85%E8%AF%BB/" rel="tag"># 论文阅读</a>
+              <a href="/tags/%E5%8F%8C%E5%A1%94%E6%A8%A1%E5%9E%8B/" rel="tag"># 双塔模型</a>
+              <a href="/tags/%E8%B4%9F%E9%87%87%E6%A0%B7/" rel="tag"># 负采样</a>
+              <a href="/tags/%E5%AF%B9%E6%AF%94%E5%AD%A6%E4%B9%A0/" rel="tag"># 对比学习</a>
+              <a href="/tags/LLM/" rel="tag"># LLM</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/" rel="prev" title="推荐模型 Scaling（一）：从参数规模到模型与系统协同设计">
+                  <i class="fa fa-angle-left"></i> 推荐模型 Scaling（一）：从参数规模到模型与系统协同设计
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">wdy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
