@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width">
+<meta name="theme-color" content="#222"><meta name="generator" content="Hexo 8.1.2">
+
+  <link rel="apple-touch-icon" sizes="180x180" href="/images/apple-touch-icon-next.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon-32x32-next.png">
+  <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon-16x16-next.png">
+  <link rel="mask-icon" href="/images/logo.svg" color="#222">
+
+<link rel="stylesheet" href="/css/main.css">
+
+
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@7.0.0/css/all.min.css" integrity="sha256-VHqXKFhhMxcpubYf9xiWdCiojEbY9NexQ4jh8AxbvcM=" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/animate.css@3.1.1/animate.min.css" integrity="sha256-PR7ttpcvz8qrF57fur/yAx1qXMFJeJFiA6pSzWi0OIE=" crossorigin="anonymous">
+
+<script class="next-config" data-name="main" type="application/json">{"hostname":"leo-bond.github.io","root":"/","images":"/images","scheme":"Muse","darkmode":false,"version":"8.29.0","exturl":false,"sidebar":{"position":"left","width_expanded":320,"width_dual_column":240,"display":"post","padding":18,"offset":12},"hljswrap":true,"codeblock":{"theme":{"light":"default","dark":"stackoverflow-dark"},"prism":{"light":"prism","dark":"prism-dark"},"copy_button":{"enable":true,"style":"flat","show_result":true},"fold":{"enable":false,"height":500},"language":false},"bookmark":{"enable":false,"color":"#222","save":"auto"},"mediumzoom":false,"pangu":false,"comments":{"style":"tabs","active":null,"storage":true,"lazyload":false,"nav":null},"stickytabs":false,"motion":{"enable":true,"async":false,"duration":200,"transition":{"menu_item":"fadeInDown","post_block":"fadeIn","post_header":"fadeInDown","post_body":"fadeInDown","coll_header":"fadeInLeft","sidebar":"fadeInUp"}},"prism":false,"i18n":{"placeholder":"搜索...","empty":"没有找到任何搜索结果：${query}","hits_time":"找到 ${hits} 个搜索结果（用时 ${time} 毫秒）","hits":"找到 ${hits} 个搜索结果"}}</script><script src="/js/config.js" defer></script>
+
+    <meta name="description" content="从招聘者找人的业务出发，梳理候选人质量预测、电话与私信多任务建模、双塔匹配和候选粗排，重点讨论样本粒度、防时间穿越、模型选型及离线效果的解释边界。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="招聘推荐实践：从候选人质量建模到商家需求匹配">
+<meta property="og:url" content="https://leo-bond.github.io/2026/10/12/%E6%8B%9B%E8%81%98%E6%8E%A8%E8%8D%90-%E5%80%99%E9%80%89%E4%BA%BA%E8%B4%A8%E9%87%8F%E4%B8%8E%E4%BE%9B%E9%9C%80%E5%8C%B9%E9%85%8D/index.html">
+<meta property="og:site_name" content="wdy&#39;s blog">
+<meta property="og:description" content="从招聘者找人的业务出发，梳理候选人质量预测、电话与私信多任务建模、双塔匹配和候选粗排，重点讨论样本粒度、防时间穿越、模型选型及离线效果的解释边界。">
+<meta property="og:locale" content="zh_CN">
+<meta property="article:published_time" content="2026-10-12T12:12:00.000Z">
+<meta property="article:author" content="wdy">
+<meta property="article:tag" content="LightGBM">
+<meta property="article:tag" content="双塔模型">
+<meta property="article:tag" content="多任务学习">
+<meta property="article:tag" content="招聘推荐">
+<meta property="article:tag" content="推荐系统">
+<meta property="article:tag" content="特征工程">
+<meta name="twitter:card" content="summary">
+
+
+<link rel="canonical" href="https://leo-bond.github.io/2026/10/12/%E6%8B%9B%E8%81%98%E6%8E%A8%E8%8D%90-%E5%80%99%E9%80%89%E4%BA%BA%E8%B4%A8%E9%87%8F%E4%B8%8E%E4%BE%9B%E9%9C%80%E5%8C%B9%E9%85%8D/">
+
+
+<script class="next-config" data-name="page" type="application/json">{"sidebar":"","isHome":false,"isPost":true,"lang":"zh-CN","comments":true,"permalink":"https://leo-bond.github.io/2026/10/12/%E6%8B%9B%E8%81%98%E6%8E%A8%E8%8D%90-%E5%80%99%E9%80%89%E4%BA%BA%E8%B4%A8%E9%87%8F%E4%B8%8E%E4%BE%9B%E9%9C%80%E5%8C%B9%E9%85%8D/","path":"2026/10/12/招聘推荐-候选人质量与供需匹配/","title":"招聘推荐实践：从候选人质量建模到商家需求匹配"}</script>
+
+<script class="next-config" data-name="calendar" type="application/json">""</script>
+<title>招聘推荐实践：从候选人质量建模到商家需求匹配 | wdy's blog</title>
+  
+
+
+
+
+
+
+
+
+  
+<script src="/js/utils.js" defer></script><script src="/js/motion.js" defer></script><script src="/js/sidebar.js" defer></script><script src="/js/next-boot.js" defer></script>
+
+  
+
+
+
+
+
+
+  
+
+
+
+
+  
+
+  <script class="next-config" data-name="enableMath" type="application/json">true</script><script class="next-config" data-name="mathjax" type="application/json">{"enable":true,"tags":"none","display_overflow":"scroll","js":{"url":"https://cdn.jsdelivr.net/npm/mathjax@4.1.3/tex-mml-chtml.js","integrity":"sha256-ihPtDDm7pTmSF9ViEsItlvsrBTsNkz0MOXMchzOwCQw="}}</script>
+<script src="/js/third-party/math/mathjax.js" defer></script>
+
+
+
+  <noscript>
+    <link rel="stylesheet" href="/css/noscript.css">
+  </noscript>
+</head>
+
+<body itemscope itemtype="http://schema.org/WebPage" class="use-motion">
+  <div class="headband"></div>
+
+  <main class="main">
+    <div class="column">
+      <header class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="site-brand-container">
+  <div class="site-nav-toggle">
+    <div class="toggle" aria-label="切换导航栏" role="button">
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+        <span class="toggle-line"></span>
+    </div>
+  </div>
+
+  <div class="site-meta">
+
+    <a href="/" class="brand" rel="start">
+      <i class="logo-line"></i>
+      <p class="site-title">wdy's blog</p>
+      <i class="logo-line"></i>
+    </a>
+      <p class="site-subtitle" itemprop="description">技术学习与实践笔记</p>
+  </div>
+
+  <div class="site-nav-right">
+    <div class="toggle popup-trigger" aria-label="搜索" role="button">
+    </div>
+  </div>
+</div>
+
+
+
+<nav class="site-nav">
+  <ul class="main-menu menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="fa fa-home fa-fw"></i>首页</a></li><li class="menu-item menu-item-archives"><a href="/archives/" rel="section"><i class="fa fa-archive fa-fw"></i>归档</a></li><li class="menu-item menu-item-categories"><a href="/categories/" rel="section"><i class="fa fa-th fa-fw"></i>分类</a></li><li class="menu-item menu-item-tags"><a href="/tags/" rel="section"><i class="fa fa-tags fa-fw"></i>标签</a></li><li class="menu-item menu-item-resume"><a href="/resume/" rel="section"><i class="fa fa-file-pdf fa-fw"></i>resume</a></li>
+  </ul>
+</nav>
+
+
+
+
+</header>
+        
+  
+  <aside class="sidebar">
+
+    <div class="sidebar-inner sidebar-nav-active sidebar-toc-active">
+      <ul class="sidebar-nav">
+        <li class="sidebar-nav-toc">
+          文章目录
+        </li>
+        <li class="sidebar-nav-overview">
+          站点概览
+        </li>
+      </ul>
+
+      <div class="sidebar-panel-container">
+        <!--noindex-->
+        <div class="post-toc-wrap sidebar-panel">
+            <div class="post-toc animated"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#1-%E4%B8%9A%E5%8A%A1%E8%83%8C%E6%99%AF%EF%BC%9A%E6%8B%9B%E8%81%98%E8%80%85%E4%B8%8D%E6%98%AF%E5%9C%A8%E5%AF%BB%E6%89%BE%E2%80%9C%E5%B9%B3%E5%9D%87%E6%84%8F%E4%B9%89%E4%B8%8A%E6%9C%80%E5%A5%BD%E2%80%9D%E7%9A%84%E4%BA%BA"><span class="nav-number">1.</span> <span class="nav-text">1. 业务背景：招聘者不是在寻找“平均意义上最好”的人</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#1-1-%E4%B8%9A%E5%8A%A1%E5%8F%8C%E6%96%B9%E4%B8%8E%E8%BD%AC%E5%8C%96%E9%93%BE%E8%B7%AF"><span class="nav-number">1.1.</span> <span class="nav-text">1.1 业务双方与转化链路</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#1-2-%E4%B8%A4%E4%B8%AA%E7%9B%B8%E4%BA%92%E5%85%B3%E8%81%94%E3%80%81%E4%B8%8D%E8%83%BD%E4%BA%92%E7%9B%B8%E6%9B%BF%E4%BB%A3%E7%9A%84%E9%97%AE%E9%A2%98"><span class="nav-number">1.2.</span> <span class="nav-text">1.2 两个相互关联、不能互相替代的问题</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#2-%E6%95%B4%E4%BD%93%E8%AE%BE%E8%AE%A1%EF%BC%9A%E8%B4%A8%E9%87%8F%E5%85%88%E9%AA%8C%E3%80%81%E4%B8%AA%E6%80%A7%E5%8C%96%E5%8F%AC%E5%9B%9E%E4%B8%8E%E5%80%99%E9%80%89%E7%B2%97%E6%8E%92"><span class="nav-number">2.</span> <span class="nav-text">2. 整体设计：质量先验、个性化召回与候选粗排</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#3-%E6%95%B0%E6%8D%AE%E4%B8%8E%E6%A0%87%E7%AD%BE%EF%BC%9A%E5%85%88%E5%AE%9A%E4%B9%89%E4%B8%80%E8%A1%8C%E6%A0%B7%E6%9C%AC%E4%BB%A3%E8%A1%A8%E4%BB%80%E4%B9%88"><span class="nav-number">3.</span> <span class="nav-text">3. 数据与标签：先定义一行样本代表什么</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#3-1-%E5%80%99%E9%80%89%E4%BA%BA%E8%81%9A%E5%90%88%E6%A0%B7%E6%9C%AC%E4%B8%8E%E8%AF%B7%E6%B1%82%E2%80%94%E5%80%99%E9%80%89%E4%BA%BA%E6%A0%B7%E6%9C%AC"><span class="nav-number">3.1.</span> <span class="nav-text">3.1 候选人聚合样本与请求—候选人样本</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-2-%E6%9C%AA%E8%A7%A3%E9%94%81%E4%B8%8D%E6%98%AF%E7%A1%AE%E5%AE%9A%E4%B8%8D%E5%90%88%E9%80%82"><span class="nav-number">3.2.</span> <span class="nav-text">3.2 未解锁不是确定不合适</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#3-3-%E7%94%A8%E6%88%B7%E7%94%BB%E5%83%8F%E4%B8%AD%E7%9A%84%E5%B9%B4%E9%BE%84%E3%80%81%E6%80%A7%E5%88%AB%E4%B8%8D%E7%AD%89%E4%BA%8E%E5%A4%A9%E7%84%B6%E5%8F%AF%E7%94%A8%E7%89%B9%E5%BE%81"><span class="nav-number">3.3.</span> <span class="nav-text">3.3 用户画像中的年龄、性别不等于天然可用特征</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#4-%E7%89%B9%E5%BE%81%E5%B7%A5%E7%A8%8B%E7%9A%84%E6%A0%B8%E5%BF%83%EF%BC%9A%E9%A2%84%E6%B5%8B%E6%97%B6%E5%88%BB%E7%9C%9F%E7%9A%84%E7%9F%A5%E9%81%93%E8%BF%99%E4%BA%9B%E4%BF%A1%E6%81%AF%E5%90%97%EF%BC%9F"><span class="nav-number">4.</span> <span class="nav-text">4. 特征工程的核心：预测时刻真的知道这些信息吗？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#4-1-%E5%85%88%E7%A1%AE%E5%AE%9A%E6%97%B6%E9%97%B4%E8%BE%B9%E7%95%8C%EF%BC%8C%E5%86%8D%E8%AE%A8%E8%AE%BA%E5%AD%97%E6%AE%B5%E4%BB%B7%E5%80%BC"><span class="nav-number">4.1.</span> <span class="nav-text">4.1 先确定时间边界，再讨论字段价值</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-2-%E5%B0%86%E7%89%B9%E5%BE%81%E7%BB%84%E7%BB%87%E6%88%90%E4%B8%9A%E5%8A%A1%E9%97%AE%E9%A2%98%EF%BC%8C%E8%80%8C%E4%B8%8D%E6%98%AF%E5%AD%97%E6%AE%B5%E6%B8%85%E5%8D%95"><span class="nav-number">4.2.</span> <span class="nav-text">4.2 将特征组织成业务问题，而不是字段清单</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-3-%E6%AF%94%E4%BE%8B%E7%89%B9%E5%BE%81%E4%BF%9D%E7%95%99%E5%88%86%E6%AF%8D%E4%BF%A1%E6%81%AF"><span class="nav-number">4.3.</span> <span class="nav-text">4.3 比例特征保留分母信息</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-4-%E5%A4%9A%E5%80%BC%E5%AD%97%E6%AE%B5%EF%BC%9A%E5%8D%95%E5%80%BC%E7%B1%BB%E5%88%AB%E4%B8%8E-multi-hot-%E6%B7%B7%E5%90%88%E7%BC%96%E7%A0%81"><span class="nav-number">4.4.</span> <span class="nav-text">4.4 多值字段：单值类别与 multi-hot 混合编码</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#4-5-%E8%AE%AD%E7%BB%83%E8%AF%8D%E8%A1%A8%E5%92%8C%E7%89%B9%E5%BE%81%E9%A1%BA%E5%BA%8F%E4%B9%9F%E6%98%AF%E6%A8%A1%E5%9E%8B%E7%9A%84%E4%B8%80%E9%83%A8%E5%88%86"><span class="nav-number">4.5.</span> <span class="nav-text">4.5 训练词表和特征顺序也是模型的一部分</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#5-%E5%80%99%E9%80%89%E4%BA%BA%E4%BE%A7%E5%BB%BA%E6%A8%A1%EF%BC%9A%E5%85%88%E5%BB%BA%E7%AB%8B%E5%BC%BA%E5%9F%BA%E7%BA%BF%EF%BC%8C%E5%86%8D%E5%BC%95%E5%85%A5%E5%A4%9A%E4%BB%BB%E5%8A%A1"><span class="nav-number">5.</span> <span class="nav-text">5. 候选人侧建模：先建立强基线，再引入多任务</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#5-1-%E4%B8%BA%E4%BB%80%E4%B9%88%E9%80%89%E6%8B%A9-LightGBM-%E4%BD%9C%E4%B8%BA%E5%9F%BA%E7%BA%BF%EF%BC%9F"><span class="nav-number">5.1.</span> <span class="nav-text">5.1 为什么选择 LightGBM 作为基线？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-2-%E7%B1%BB%E5%88%AB%E4%B8%8D%E5%B9%B3%E8%A1%A1%EF%BC%9A%E8%AE%AD%E7%BB%83%E6%9D%83%E9%87%8D%E4%B8%8E%E9%98%88%E5%80%BC%E6%98%AF%E4%B8%A4%E4%BB%B6%E4%BA%8B"><span class="nav-number">5.2.</span> <span class="nav-text">5.2 类别不平衡：训练权重与阈值是两件事</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#5-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E5%90%8C%E6%97%B6%E5%AD%A6%E4%B9%A0%E7%94%B5%E8%AF%9D%E4%B8%8E%E7%A7%81%E4%BF%A1%E8%A7%A3%E9%94%81%EF%BC%9F"><span class="nav-number">5.3.</span> <span class="nav-text">5.3 为什么同时学习电话与私信解锁？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#6-%E4%BB%8E%E8%B4%A8%E9%87%8F%E5%85%88%E9%AA%8C%E5%88%B0%E8%AF%B7%E6%B1%82%E7%BA%A7%E5%8C%B9%E9%85%8D"><span class="nav-number">6.</span> <span class="nav-text">6. 从质量先验到请求级匹配</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#6-1-%E5%8A%A0%E5%85%A5%E6%8B%9B%E8%81%98%E8%80%85%E4%BB%A5%E5%90%8E%EF%BC%8C%E9%97%AE%E9%A2%98%E5%8F%91%E7%94%9F%E4%BA%86%E5%8F%98%E5%8C%96"><span class="nav-number">6.1.</span> <span class="nav-text">6.1 加入招聘者以后，问题发生了变化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-2-%E5%8F%8C%E5%A1%94%EF%BC%9A%E8%AE%A9%E4%B8%AA%E6%80%A7%E5%8C%96%E5%8C%B9%E9%85%8D%E8%83%BD%E5%A4%9F%E6%89%A9%E5%B1%95%E5%88%B0%E5%A4%A7%E5%80%99%E9%80%89%E7%A9%BA%E9%97%B4"><span class="nav-number">6.2.</span> <span class="nav-text">6.2 双塔：让个性化匹配能够扩展到大候选空间</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E8%BF%98%E9%9C%80%E8%A6%81-LightGBM-%E7%B2%97%E6%8E%92%EF%BC%9F"><span class="nav-number">6.3.</span> <span class="nav-text">6.3 为什么还需要 LightGBM 粗排？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#6-4-%E5%90%91%E9%87%8F%E7%9B%B8%E4%BC%BC%E5%BA%A6%E4%B8%8D%E8%83%BD%E4%BB%A3%E6%9B%BF%E7%A1%AE%E5%AE%9A%E6%80%A7%E8%BF%87%E6%BB%A4"><span class="nav-number">6.4.</span> <span class="nav-text">6.4 向量相似度不能代替确定性过滤</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#7-%E9%87%87%E6%A0%B7%E4%B8%8E%E8%AF%84%E4%BC%B0%EF%BC%9A%E6%B2%A1%E6%9C%89%E7%BB%9F%E4%B8%80%E5%8F%A3%E5%BE%84%EF%BC%8C%E5%B0%B1%E6%B2%A1%E6%9C%89%E5%8F%AF%E8%A7%A3%E9%87%8A%E7%9A%84%E6%95%88%E6%9E%9C"><span class="nav-number">7.</span> <span class="nav-text">7. 采样与评估：没有统一口径，就没有可解释的效果</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#7-1-%E8%B4%9F%E6%A0%B7%E6%9C%AC%E4%B8%8B%E9%87%87%E6%A0%B7%E6%94%B9%E5%8F%98%E4%BA%86%E6%95%B0%E6%8D%AE%E5%88%86%E5%B8%83"><span class="nav-number">7.1.</span> <span class="nav-text">7.1 负样本下采样改变了数据分布</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-2-%E5%80%99%E9%80%89%E4%BA%BA%E5%88%86%E7%B1%BB%E4%B8%8E%E8%AF%B7%E6%B1%82%E5%86%85%E6%8E%92%E5%BA%8F%E5%88%86%E5%88%AB%E8%AF%84%E4%BC%B0"><span class="nav-number">7.2.</span> <span class="nav-text">7.2 候选人分类与请求内排序分别评估</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#7-3-%E5%A4%B4%E9%83%A8%E9%AB%98%E7%B2%BE%E5%BA%A6%E4%B8%8E%E6%95%B4%E4%BD%93%E9%AB%98%E5%8F%AC%E5%9B%9E%E5%8F%AF%E4%BB%A5%E5%90%8C%E6%97%B6%E4%B8%8D%E6%88%90%E7%AB%8B"><span class="nav-number">7.3.</span> <span class="nav-text">7.3 头部高精度与整体高召回可以同时不成立</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#8-%E9%98%B6%E6%AE%B5%E6%80%A7%E6%95%88%E6%9E%9C%EF%BC%9A%E5%B7%B2%E7%BB%8F%E7%9F%A5%E9%81%93%E4%BB%80%E4%B9%88%EF%BC%8C%E5%B0%9A%E6%9C%AA%E8%AF%81%E6%98%8E%E4%BB%80%E4%B9%88%EF%BC%9F"><span class="nav-number">8.</span> <span class="nav-text">8. 阶段性效果：已经知道什么，尚未证明什么？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#8-1-%E5%80%99%E9%80%89%E4%BA%BA%E4%BE%A7%E6%A8%A1%E5%9E%8B%E5%AE%9E%E9%AA%8C"><span class="nav-number">8.1.</span> <span class="nav-text">8.1 候选人侧模型实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-2-%E8%AF%B7%E6%B1%82%E7%BA%A7%E5%8C%B9%E9%85%8D%E5%AE%9E%E9%AA%8C"><span class="nav-number">8.2.</span> <span class="nav-text">8.2 请求级匹配实验</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#8-3-%E4%B8%BA%E4%BB%80%E4%B9%88%E4%B8%8D%E8%83%BD%E6%A8%AA%E5%90%91%E6%AF%94%E8%BE%83%E4%B8%A4%E7%BB%84-AUC%EF%BC%9F"><span class="nav-number">8.3.</span> <span class="nav-text">8.3 为什么不能横向比较两组 AUC？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#9-%E6%9C%80%E5%80%BC%E5%BE%97%E5%A4%8D%E7%9B%98%E7%9A%84%E6%8A%80%E6%9C%AF%E5%86%B3%E7%AD%96"><span class="nav-number">9.</span> <span class="nav-text">9. 最值得复盘的技术决策</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#9-1-%E6%8A%8A%E2%80%9C%E9%80%89%E6%A8%A1%E5%9E%8B%E2%80%9D%E5%89%8D%E7%A7%BB%E4%B8%BA%E2%80%9C%E5%AE%9A%E4%B9%89%E9%97%AE%E9%A2%98%E2%80%9D"><span class="nav-number">9.1.</span> <span class="nav-text">9.1 把“选模型”前移为“定义问题”</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-2-%E9%98%B2%E6%B3%84%E6%BC%8F%E6%AF%94%E7%A6%BB%E7%BA%BF%E9%AB%98%E5%88%86%E6%9B%B4%E9%87%8D%E8%A6%81"><span class="nav-number">9.2.</span> <span class="nav-text">9.2 防泄漏比离线高分更重要</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-3-%E7%B3%BB%E7%BB%9F%E5%8F%AF%E6%89%A9%E5%B1%95%E6%80%A7%E4%B8%8E%E6%A8%A1%E5%9E%8B%E8%A1%A8%E8%BE%BE%E8%83%BD%E5%8A%9B%E5%88%86%E5%BC%80%E4%BC%98%E5%8C%96"><span class="nav-number">9.3.</span> <span class="nav-text">9.3 系统可扩展性与模型表达能力分开优化</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#9-4-%E5%A4%9A%E4%BB%BB%E5%8A%A1%E6%96%B9%E6%A1%88%E5%BF%85%E9%A1%BB%E9%85%8D%E5%A5%97%E6%88%90%E6%9C%AC%E4%B8%8E%E8%B4%9F%E8%BF%81%E7%A7%BB%E5%88%86%E6%9E%90"><span class="nav-number">9.4.</span> <span class="nav-text">9.4 多任务方案必须配套成本与负迁移分析</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#10-%E5%A6%82%E4%BD%95%E5%9C%A8%E9%9D%A2%E8%AF%95%E4%B8%AD%E8%AE%B2%E6%B8%85%E8%BF%99%E4%B8%AA%E9%A1%B9%E7%9B%AE%EF%BC%9F"><span class="nav-number">10.</span> <span class="nav-text">10. 如何在面试中讲清这个项目？</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#10-1-%E4%B8%80%E6%AE%B5%E7%AE%80%E6%B4%81%E7%9A%84%E9%A1%B9%E7%9B%AE%E6%A6%82%E8%BF%B0"><span class="nav-number">10.1.</span> <span class="nav-text">10.1 一段简洁的项目概述</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#10-2-%E5%B8%B8%E8%A7%81%E8%BF%BD%E9%97%AE%E4%B8%8E%E5%9B%9E%E7%AD%94%E8%A6%81%E7%82%B9"><span class="nav-number">10.2.</span> <span class="nav-text">10.2 常见追问与回答要点</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#11-%E6%80%BB%E7%BB%93"><span class="nav-number">11.</span> <span class="nav-text">11. 总结</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#%E8%B5%84%E6%96%99%E4%B8%8E%E9%98%85%E8%AF%BB%E8%BE%B9%E7%95%8C"><span class="nav-number">12.</span> <span class="nav-text">资料与阅读边界</span></a></li></ol></div>
+        </div>
+        <!--/noindex-->
+
+        <div class="site-overview-wrap sidebar-panel">
+          <div class="site-author animated" itemprop="author" itemscope itemtype="http://schema.org/Person">
+  <p class="site-author-name" itemprop="name">wdy</p>
+  <div class="site-description" itemprop="description">记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。</div>
+</div>
+<div class="site-state-wrap animated">
+  <nav class="site-state">
+      <div class="site-state-item site-state-posts">
+        <a href="/archives/">
+          <span class="site-state-item-count">30</span>
+          <span class="site-state-item-name">日志</span>
+        </a>
+      </div>
+      <div class="site-state-item site-state-categories">
+          <a href="/categories/">
+        <span class="site-state-item-count">6</span>
+        <span class="site-state-item-name">分类</span></a>
+      </div>
+      <div class="site-state-item site-state-tags">
+          <a href="/tags/">
+        <span class="site-state-item-count">119</span>
+        <span class="site-state-item-name">标签</span></a>
+      </div>
+  </nav>
+</div>
+
+        </div>
+      </div>
+    </div>
+
+    
+  </aside>
+
+
+    </div>
+
+    <div class="main-inner post posts-expand">
+
+
+  
+
+
+<div class="post-block">
+  
+  
+
+  <article itemscope itemtype="http://schema.org/Article" class="post-content" lang="zh-CN">
+    <link itemprop="mainEntityOfPage" href="https://leo-bond.github.io/2026/10/12/%E6%8B%9B%E8%81%98%E6%8E%A8%E8%8D%90-%E5%80%99%E9%80%89%E4%BA%BA%E8%B4%A8%E9%87%8F%E4%B8%8E%E4%BE%9B%E9%9C%80%E5%8C%B9%E9%85%8D/">
+
+    <span hidden itemprop="author" itemscope itemtype="http://schema.org/Person">
+      <meta itemprop="image" content="/images/avatar.gif">
+      <meta itemprop="name" content="wdy">
+    </span>
+
+    <span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+      <meta itemprop="name" content="wdy's blog">
+      <meta itemprop="description" content="记录推荐系统、机器学习、自然语言处理与搜索技术的学习、论文阅读和工程实践。">
+    </span>
+
+    <span hidden itemprop="post" itemscope itemtype="http://schema.org/CreativeWork">
+      <meta itemprop="name" content="招聘推荐实践：从候选人质量建模到商家需求匹配 | wdy's blog">
+      <meta itemprop="description" content="从招聘者找人的业务出发，梳理候选人质量预测、电话与私信多任务建模、双塔匹配和候选粗排，重点讨论样本粒度、防时间穿越、模型选型及离线效果的解释边界。">
+    </span>
+      <header class="post-header">
+        <h1 class="post-title" itemprop="name headline">
+          招聘推荐实践：从候选人质量建模到商家需求匹配
+        </h1>
+
+        <div class="post-meta-container">
+          <div class="post-meta">
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar"></i>
+      </span>
+      <span class="post-meta-item-text">发表于</span>
+
+      <time title="创建时间：2026-10-12 20:12:00" itemprop="dateCreated datePublished" datetime="2026-10-12T20:12:00+08:00">2026-10-12</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-calendar-check"></i>
+      </span>
+      <span class="post-meta-item-text">更新于</span>
+      <time title="修改时间：2026-10-13 11:12:36" itemprop="dateModified" datetime="2026-10-13T11:12:36+08:00">2026-10-13</time>
+    </span>
+    <span class="post-meta-item">
+      <span class="post-meta-item-icon">
+        <i class="far fa-folder"></i>
+      </span>
+      <span class="post-meta-item-text">分类于</span>
+        <span itemprop="about" itemscope itemtype="http://schema.org/Thing">
+          <a href="/categories/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" itemprop="url" rel="index"><span itemprop="name">推荐系统</span></a>
+        </span>
+    </span>
+
+  
+</div>
+
+            <div class="post-description">从招聘者找人的业务出发，梳理候选人质量预测、电话与私信多任务建模、双塔匹配和候选粗排，重点讨论样本粒度、防时间穿越、模型选型及离线效果的解释边界。</div>
+        </div>
+      </header>
+
+    
+    
+    
+    <div class="post-body" itemprop="articleBody"><p>招聘推荐中的“好候选人”，至少包含两个不同含义：一个人当前是否有求职意愿、是否活跃，以及这个人是否适合眼前这位招聘者的需求。前者可以形成相对通用的候选人质量先验，后者必须结合招聘请求来判断。</p>
+<p>本文围绕一个招聘者找人的推荐项目，介绍从候选人侧质量预测到请求级供需匹配的建模思路。重点不是罗列模型，而是解释：<strong>为什么需要拆分任务，训练标签如何构造，怎样避免数据泄漏，以及离线指标能够支持什么结论。</strong></p>
+<span id="more"></span>
+
+<blockquote>
+<p><strong>范围与说明</strong>：本文根据部分阶段性项目记录整理，已移除内部业务标识、表名、人员信息、精确数据规模和实验数值。不同实验使用的数据粒度与评测口径并不一致，本文将它们作为两条相关的技术探索线介绍，不将其拼接为已完成的上线演进历史。文中结果均为已有记录中的离线观察，不代表线上收益或个人贡献。公式用于解释方法，示意架构与改进建议不表示已经部署。</p>
+</blockquote>
+<h2 id="1-业务背景：招聘者不是在寻找“平均意义上最好”的人"><a href="#1-业务背景：招聘者不是在寻找“平均意义上最好”的人" class="headerlink" title="1. 业务背景：招聘者不是在寻找“平均意义上最好”的人"></a>1. 业务背景：招聘者不是在寻找“平均意义上最好”的人</h2><h3 id="1-1-业务双方与转化链路"><a href="#1-1-业务双方与转化链路" class="headerlink" title="1.1 业务双方与转化链路"></a>1.1 业务双方与转化链路</h3><p>在招聘者找人的场景中，供给侧是求职者，需求侧是招聘者及其当前招聘条件。招聘者设置工作地点、职位类别等条件，系统展示候选人，招聘者再决定是否解锁电话或私信沟通能力。</p>
+<p>可以将链路概括为：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">招聘需求 → 候选人检索 → 展示与浏览 → 电话/私信解锁 → 沟通 → 后续招聘结果</span><br></pre></td></tr></table></figure>
+
+<p>“解锁”位于推荐结果与后续沟通之间，是一种可观测的招聘意愿信号。但它不等于电话接通、有效沟通，更不等于入职。</p>
+<p>因此，预测解锁有实际价值，同时也必须承认目标边界：优化中间行为不一定同步改善最终招聘质量，还需要后续业务指标验证。</p>
+<h3 id="1-2-两个相互关联、不能互相替代的问题"><a href="#1-2-两个相互关联、不能互相替代的问题" class="headerlink" title="1.2 两个相互关联、不能互相替代的问题"></a>1.2 两个相互关联、不能互相替代的问题</h3><p><strong>候选人质量问题</strong>：这个候选人近期是否活跃、求职意向是否清楚、资料是否可用、历史沟通是否顺畅？</p>
+<p><strong>请求匹配问题</strong>：面对当前职位、地点和招聘者偏好，这个候选人是否更有可能被选择？</p>
+<p>例如，两位候选人都很活跃，但一位意向是本地仓储，另一位意向是异地餐饮。不能仅凭通用质量分，就认为他们对某次仓储招聘请求同样合适。</p>
+<p>这决定了项目不能只做一个全局候选人排行榜，也不能把一个质量预测器直接称为个性化匹配模型。</p>
+<h2 id="2-整体设计：质量先验、个性化召回与候选粗排"><a href="#2-整体设计：质量先验、个性化召回与候选粗排" class="headerlink" title="2. 整体设计：质量先验、个性化召回与候选粗排"></a>2. 整体设计：质量先验、个性化召回与候选粗排</h2><p>将三类能力放在一起，可以得到一条职责清晰的设计链路：</p>
+<figure class="highlight text"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">候选人资料与历史行为</span><br><span class="line">    ├── 质量模型 → 候选人质量先验 ─────────────────┐</span><br><span class="line">    └── 候选人塔 → 可预计算的候选人向量 ──┐       │</span><br><span class="line">                                         │       │</span><br><span class="line">当前请求与招聘者历史 → 请求塔 → 向量检索 → 候选集合</span><br><span class="line">                                                 │</span><br><span class="line">请求特征 + 候选人特征 + 匹配交叉特征 + 质量先验 ──┘</span><br><span class="line">                         ↓</span><br><span class="line">                  候选集 LightGBM 粗排</span><br><span class="line">                         ↓</span><br><span class="line">                  后续策略与展示环节</span><br></pre></td></tr></table></figure>
+
+<p>这张图表达设计分工，不是已上线系统的部署图。现有材料验证了部分模块的离线表现，尚不足以确认全量向量索引、实时服务及组合链路均已部署。</p>
+<table>
+<thead>
+<tr>
+<th>模块</th>
+<th>核心问题</th>
+<th>为什么放在这里</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>候选人质量模型</td>
+<td>候选人总体被选择的倾向如何</td>
+<td>仅依赖候选人信息，可形成可复用先验</td>
+</tr>
+<tr>
+<td>双塔匹配</td>
+<td>当前请求与哪些候选人相似</td>
+<td>两侧独立编码，适合大候选空间检索</td>
+</tr>
+<tr>
+<td>候选集粗排</td>
+<td>已有候选中，当前请求更可能选择谁</td>
+<td>可以使用显式交叉特征，承担更细的比较</td>
+</tr>
+</tbody></table>
+<p>质量分与双塔分数是可供粗排使用的设计输入；材料没有完整消融结果，不能说每一项都已经被独立证明有效。</p>
+<h2 id="3-数据与标签：先定义一行样本代表什么"><a href="#3-数据与标签：先定义一行样本代表什么" class="headerlink" title="3. 数据与标签：先定义一行样本代表什么"></a>3. 数据与标签：先定义一行样本代表什么</h2><h3 id="3-1-候选人聚合样本与请求—候选人样本"><a href="#3-1-候选人聚合样本与请求—候选人样本" class="headerlink" title="3.1 候选人聚合样本与请求—候选人样本"></a>3.1 候选人聚合样本与请求—候选人样本</h3><p>项目记录中存在两种主要数据组织方式。</p>
+<p>第一种从候选人侧出发，对重复曝光中的候选人信息进行聚合、去重，并合并电话和私信解锁标签。模型不输入当前招聘者请求，学习的是候选人在给定数据窗口和既有曝光分布下被解锁的倾向。</p>
+<p>第二种以一次招聘筛选或推荐请求为组，以请求—候选人对为样本。同一请求中，重复曝光的标签按是否发生过解锁合并。例如，电话标签可以表示为：</p>
+
+\[
+y_{q,u}^{\mathrm{call}}
+=\max_{e\in\mathcal{E}(q,u)}y_e^{\mathrm{call}},\qquad
+ y_{q,u}^{\mathrm{im}}
+=\max_{e\in\mathcal{E}(q,u)}y_e^{\mathrm{im}}.
+\]
+
+
+<p>q 表示请求，u 表示候选人，E(q,u) 表示归属于该请求—候选人对的曝光记录。综合解锁标签还可以定义为两个渠道标签的逻辑或。</p>
+<p><strong>聚合不是无损操作。</strong> “在窗口内至少被解锁一次”与“每次曝光后的解锁概率”不同。曝光机会越多，至少一次成功的概率也可能越高。若未控制机会数，模型可能学到曝光倾向，而不只是候选人质量。</p>
+<p>此外，原始会话标签如何归因到候选人聚合样本、观察窗口多长、跨天如何去重，仍需结合样本构造代码确认，不能仅凭文档标题判断。</p>
+<h3 id="3-2-未解锁不是确定不合适"><a href="#3-2-未解锁不是确定不合适" class="headerlink" title="3.2 未解锁不是确定不合适"></a>3.2 未解锁不是确定不合适</h3><p>曝光但未解锁可以作为训练中的负标签，但可能有多种原因：</p>
+<ul>
+<li>候选人不符合需求；</li>
+<li>招聘者没有真正浏览到；</li>
+<li>招聘名额已满或沟通预算不足；</li>
+<li>招聘者选择了另一个相近候选人；</li>
+<li>解锁行为发生在标签观察窗口之外。</li>
+</ul>
+<p>未曝光候选人更不能直接当作“确定不相关”。在召回训练中将其采作对比负例，是一种学习假设，不是新增的真实反馈标签。</p>
+<p>因此，需要同时区分：<strong>观测到的负行为、采样得到的负例，以及业务上真正不匹配的候选人。</strong></p>
+<h3 id="3-3-用户画像中的年龄、性别不等于天然可用特征"><a href="#3-3-用户画像中的年龄、性别不等于天然可用特征" class="headerlink" title="3.3 用户画像中的年龄、性别不等于天然可用特征"></a>3.3 用户画像中的年龄、性别不等于天然可用特征</h3><p>历史材料包含人口属性、请求筛选条件与相关匹配特征。技术上能够编码，不代表业务上可以无条件使用。</p>
+<p>招聘属于影响就业机会的场景。年龄、性别等属性可能带来不公平筛选，应结合适用法律、平台规范与业务必要性审查，必要时剔除，并评估代理特征和群体间误差。下面的方法介绍不将这类字段视作推荐系统必须使用的特征。</p>
+<h2 id="4-特征工程的核心：预测时刻真的知道这些信息吗？"><a href="#4-特征工程的核心：预测时刻真的知道这些信息吗？" class="headerlink" title="4. 特征工程的核心：预测时刻真的知道这些信息吗？"></a>4. 特征工程的核心：预测时刻真的知道这些信息吗？</h2><h3 id="4-1-先确定时间边界，再讨论字段价值"><a href="#4-1-先确定时间边界，再讨论字段价值" class="headerlink" title="4.1 先确定时间边界，再讨论字段价值"></a>4.1 先确定时间边界，再讨论字段价值</h3><p>某个字段与标签高度相关，可能因为它记录了预测之后才发生的行为。</p>
+<p>例如，用“后来是否接通电话”预测“是否解锁电话”，或者把当天解锁后产生的线索统计进当天曝光前的画像，都会让离线指标虚高。</p>
+<p>对时刻 t 的样本，特征不仅需要满足事件时间早于 t，也需要满足信息在 t 时已经可获得：</p>
+
+\[
+t_{\mathrm{event}}<t,\qquad
+ t_{\mathrm{available}}\le t.
+\]
+
+
+<p>这是本文对时间安全性的概括。实际使用日级快照时，还需检查分区产出时间、聚合窗口和延迟数据回填策略。</p>
+<p>材料中已经采取的措施包括：</p>
+<ul>
+<li>使用历史快照，而不是直接关联最新状态；</li>
+<li>排除当前或后续沟通、跟进、达成等后验字段；</li>
+<li>对线索明细按快照截止时间过滤，再计算历史统计；</li>
+<li>将无法确认截止时点的后验信息排除出部分实验；</li>
+<li>使用时间切分，避免只依赖同一时段内的划分结果。</li>
+</ul>
+<p>这些措施针对不同版本出现，不能据此宣称所有历史实验都已执行同一套完整审计。</p>
+<h3 id="4-2-将特征组织成业务问题，而不是字段清单"><a href="#4-2-将特征组织成业务问题，而不是字段清单" class="headerlink" title="4.2 将特征组织成业务问题，而不是字段清单"></a>4.2 将特征组织成业务问题，而不是字段清单</h3><table>
+<thead>
+<tr>
+<th>特征组</th>
+<th>试图回答的问题</th>
+<th>典型处理</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>资料与意向</td>
+<td>意向是否明确、是否与需求相关</td>
+<td>类别编码、集合计数、匹配关系</td>
+</tr>
+<tr>
+<td>求职活跃度</td>
+<td>最近是否仍在找工作</td>
+<td>历史点击、展示、简历更新间隔</td>
+</tr>
+<tr>
+<td>内容与沟通行为</td>
+<td>活跃是否转化为招聘互动</td>
+<td>历史频次、时长与比例</td>
+</tr>
+<tr>
+<td>时间间隔</td>
+<td>信号距预测时刻有多远</td>
+<td>距事件自然日差、异常值处理</td>
+</tr>
+<tr>
+<td>历史线索</td>
+<td>已有哪些可用的求职信号</td>
+<td>截止时间过滤后的统计</td>
+</tr>
+<tr>
+<td>招聘者历史</td>
+<td>当前需求主体偏好什么</td>
+<td>请求前活跃、解锁与偏好统计</td>
+</tr>
+<tr>
+<td>请求交叉</td>
+<td>当前条件与候选人是否一致</td>
+<td>城市、职类、意向交集等</td>
+</tr>
+</tbody></table>
+<p>树模型对异构数值、缺失与类别特征较友好，但字段的业务语义和时间定义仍需要人工约束。</p>
+<h3 id="4-3-比例特征保留分母信息"><a href="#4-3-比例特征保留分母信息" class="headerlink" title="4.3 比例特征保留分母信息"></a>4.3 比例特征保留分母信息</h3><p>以历史沟通成功率为例：</p>
+
+\[
+r_{\mathrm{success}}
+=\frac{n_{\mathrm{success}}}{n_{\mathrm{attempt}}}
+\quad\text{when }n_{\mathrm{attempt}}>0.
+\]
+
+
+<p>分母为零时，需要定义缺失或默认值，并增加指示特征。“从未被联系”与“被联系很多次却没有接通”，不应被编码成同一种状态。</p>
+<p>对于小样本招聘者的历史比例，可以考虑向整体先验平滑。一个通用解释式是：</p>
+
+\[
+\widehat r=\frac{n_{\mathrm{success}}+\lambda r_0}
+{n_{\mathrm{attempt}}+\lambda}.
+\]
+
+
+<p>r_0 是历史总体先验，λ 控制平滑强度。这是对平滑机制的示意，不代表材料已提供了实际使用的参数；先验本身也必须仅由预测前的数据估计。</p>
+<h3 id="4-4-多值字段：单值类别与-multi-hot-混合编码"><a href="#4-4-多值字段：单值类别与-multi-hot-混合编码" class="headerlink" title="4.4 多值字段：单值类别与 multi-hot 混合编码"></a>4.4 多值字段：单值类别与 multi-hot 混合编码</h3><p>求职意向城市、意向职类和历史申请可能包含多个值。直接拼成一个字符串，会把大量组合变成稀疏类别；无约束展开所有值，又容易导致维度膨胀。</p>
+<p>一种处理方式是：</p>
+<ul>
+<li>恰好一个值：放入单值类别列；</li>
+<li>有多个值：进入 multi-hot 分支；</li>
+<li>同时记录去重后的值数量；</li>
+<li>记录 multi-hot 分支中不在训练词表里的值数量；</li>
+<li>对标签、短文本集合等字段始终使用 multi-hot。</li>
+</ul>
+<p>例如，下表只说明编码规则，不对应真实用户数据：</p>
+<table>
+<thead>
+<tr>
+<th>输入</th>
+<th>单值类别</th>
+<th>multi-hot</th>
+<th>集合计数</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>城市 A</td>
+<td>A</td>
+<td>全零</td>
+<td>1</td>
+</tr>
+<tr>
+<td>城市 A、B</td>
+<td>空</td>
+<td>A&#x3D;1，B&#x3D;1</td>
+<td>2</td>
+</tr>
+<tr>
+<td>空集合</td>
+<td>空</td>
+<td>全零</td>
+<td>0</td>
+</tr>
+</tbody></table>
+<p>这样保留了单值输入的类别表达，也能表达多意向。代价是两条分支的表示不连续，应检查单意向与多意向人群表现是否不同。</p>
+<h3 id="4-5-训练词表和特征顺序也是模型的一部分"><a href="#4-5-训练词表和特征顺序也是模型的一部分" class="headerlink" title="4.5 训练词表和特征顺序也是模型的一部分"></a>4.5 训练词表和特征顺序也是模型的一部分</h3><p>动态词表只在训练集上拟合，验证和测试复用；特征列名、类别语义及排列顺序写入元数据，训练和预测使用同一份契约。</p>
+<p>不仅 multi-hot 有未知值问题，原生类别列也需要明确如何处理未见类别。只统计 multi-hot 的 unknown count，不足以覆盖所有类别漂移。</p>
+<p>项目记录中，早期采用了较宽的展开方式，后续记录则出现更受约束的词表和列组织。由于数据与字段也改变了，不能把两个版本的指标差简单归因于“特征压缩”。合理解释是它们代表不同的数据工程配置，收益仍需同数据消融来验证。</p>
+<h2 id="5-候选人侧建模：先建立强基线，再引入多任务"><a href="#5-候选人侧建模：先建立强基线，再引入多任务" class="headerlink" title="5. 候选人侧建模：先建立强基线，再引入多任务"></a>5. 候选人侧建模：先建立强基线，再引入多任务</h2><h3 id="5-1-为什么选择-LightGBM-作为基线？"><a href="#5-1-为什么选择-LightGBM-作为基线？" class="headerlink" title="5.1 为什么选择 LightGBM 作为基线？"></a>5.1 为什么选择 LightGBM 作为基线？</h3><p>输入以结构化画像、历史统计和类别集合为主，包含缺失值、长尾数值和非线性交互。LightGBM 适合作为第一阶段基线：</p>
+<ul>
+<li>能直接处理大量表格特征；</li>
+<li>调参和误差分析相对方便；</li>
+<li>不依赖大规模序列预训练；</li>
+<li>有助于快速判断数据与标签是否存在可用信号。</li>
+</ul>
+<p>早期记录还比较了 DeepFM、DCNv2、FT-Transformer 和 TabM。电话解锁任务中，LightGBM 表现较强，部分表格深度模型接近它；私信任务则呈现不同的指标取舍，没有一个模型在所有指标上都占优。</p>
+<p>这支持“先保留树模型强基线”的工程决策，不能推广为深度模型不适合招聘推荐。网络宽度、编码方式、训练预算和调参充分程度都可能改变比较结果。</p>
+<h3 id="5-2-类别不平衡：训练权重与阈值是两件事"><a href="#5-2-类别不平衡：训练权重与阈值是两件事" class="headerlink" title="5.2 类别不平衡：训练权重与阈值是两件事"></a>5.2 类别不平衡：训练权重与阈值是两件事</h3><p>解锁是低频行为。如果直接优化总体准确率，全部预测为未解锁也可能得到较高数值，却没有业务价值。</p>
+<p>加权二元交叉熵可写为：</p>
+
+\[
+\mathcal{L}
+=-\sum_i\left[
+ w_+y_i\log p_i+w_-(1-y_i)\log(1-p_i)
+\right].
+\]
+
+
+<p>这是通用目标示意。权重影响模型训练，决策阈值决定如何把得分转换为正负预测，二者不能混为一谈。</p>
+<p>现有质量模型实验在验证集上选择 F1 较优的阈值，再固定到测试集。这个做法比在测试集调阈值更合理，但最大 F1 不一定等于最优业务策略。如果线上只允许处理固定数量候选人，应重点看该预算下的 Precision、Recall 和净收益。</p>
+<p>类别加权也可能改变概率校准，模型输出较高分不一定对应同样高的真实解锁率。若业务依赖概率数值，还应单独校准和检查可靠性。</p>
+<h3 id="5-3-为什么同时学习电话与私信解锁？"><a href="#5-3-为什么同时学习电话与私信解锁？" class="headerlink" title="5.3 为什么同时学习电话与私信解锁？"></a>5.3 为什么同时学习电话与私信解锁？</h3><p>电话与私信共享部分信号：求职意愿、近期活跃、资料完整度、内容偏好等。但两者的沟通门槛与选择机制不完全相同。</p>
+<p>因此，多任务建模希望同时保留：</p>
+<ul>
+<li>可共享的候选人特征关系；</li>
+<li>电话与私信各自的任务差异。</li>
+</ul>
+<p>项目中的 PEMBOT 配置使用共享树与任务专属树，并训练多个候选模型，再依据质量和多样性选出一个子集进行集成。与单纯固定损失权重的单模型方案相比，它还包含候选搜索与集成选择。</p>
+<p>为了说明共享与专属部分的分工，可以用以下结构示意：</p>
+
+\[
+F_{m,t}(x)=F_{m,t}^{\mathrm{shared}}(x)
++F_{m,t}^{\mathrm{specific}}(x),\qquad
+\widehat p_t(x)=\operatorname{Ensemble}_{m\in\mathcal{S}}
+\bigl(\sigma(F_{m,t}(x))\bigr).
+\]
+
+
+<p>这里 m 是候选模型，t 是任务，S 是选中的模型集合。该式不指定共享树的叶子参数方式、候选优化目标和集成权重，不能作为 PEMBOT 的完整实现公式。</p>
+<p>多任务的收益来源需要谨慎解释：候选搜索、模型容量和集成也一起改变了。<strong>整体方案优于单任务基线，不等于已经通过消融证明收益全部来自任务共享。</strong></p>
+<h2 id="6-从质量先验到请求级匹配"><a href="#6-从质量先验到请求级匹配" class="headerlink" title="6. 从质量先验到请求级匹配"></a>6. 从质量先验到请求级匹配</h2><h3 id="6-1-加入招聘者以后，问题发生了变化"><a href="#6-1-加入招聘者以后，问题发生了变化" class="headerlink" title="6.1 加入招聘者以后，问题发生了变化"></a>6.1 加入招聘者以后，问题发生了变化</h3><p>候选人质量模型可以记为 f(u)，请求级模型则是 f(q,u)。前者没有观察 q，无法区分同一候选人对不同请求的适合程度。</p>
+<p>请求级实验也使用了不同的样本、标签聚合和采样权重。因此，候选人模型的较高 AUC，与请求级质量先验较弱的 AUC，并不天然矛盾：它们不是同一个分类问题。</p>
+<p>更准确的项目叙述是：先探索候选人侧信号，再在另一组请求级实验中检查这些信号是否足以支持匹配；结果提示显式请求信息很重要。它不是经过严格控制的单变量演进实验。</p>
+<h3 id="6-2-双塔：让个性化匹配能够扩展到大候选空间"><a href="#6-2-双塔：让个性化匹配能够扩展到大候选空间" class="headerlink" title="6.2 双塔：让个性化匹配能够扩展到大候选空间"></a>6.2 双塔：让个性化匹配能够扩展到大候选空间</h3><p>请求塔输入当前条件和招聘者请求前的历史，候选人塔输入资料、意向与安全历史行为。各自经过编码网络，输出同维度向量，再做 L2 归一化：</p>
+
+\[
+z_q=\frac{f_\theta(x_q)}{\lVert f_\theta(x_q)\rVert_2},\qquad
+z_u=\frac{g_\phi(x_u)}{\lVert g_\phi(x_u)\rVert_2},\qquad
+s(q,u)=z_q^\top z_u.
+\]
+
+
+<p>实现需要处理零范数等数值问题。两侧独立的好处是：候选人向量可离线生成，请求到来时只计算请求向量，再进行近邻检索。</p>
+<p>训练考虑两类负例：</p>
+<ol>
+<li>同请求中已曝光但未解锁的候选人；</li>
+<li>Batch 内其他请求对应的候选人。</li>
+</ol>
+<p>对应的学习方式可用两个通用损失说明：</p>
+
+\[
+\mathcal{L}_{\mathrm{batch}}
+=-\log\frac{\exp(s(q,u^+)/\tau)}
+{\sum_{v\in\mathcal{C}_q}\exp(s(q,v)/\tau)},
+\]
+\[
+\mathcal{L}_{\mathrm{pair}}
+=\log\left(1+\exp\left(s(q,u^-)-s(q,u^+)\right)\right).
+\]
+
+
+<p>前者在候选集合中提高正例相对分数，后者鼓励同请求内正例排在负例前。这是依据材料中损失名称给出的解释性形式；实际混合权重、温度、正例屏蔽和多正例处理细节未得到完整确认。</p>
+<p>同一个候选人可能对多个请求都合适，因此 In-batch 负例仍需检查已知正例和重复候选，不能因为来自其他请求就自动视为真实负例。</p>
+<h3 id="6-3-为什么还需要-LightGBM-粗排？"><a href="#6-3-为什么还需要-LightGBM-粗排？" class="headerlink" title="6.3 为什么还需要 LightGBM 粗排？"></a>6.3 为什么还需要 LightGBM 粗排？</h3><p>双塔在最终点积之前保持两侧独立，适合快速检索，但限制了细粒度的联合交互。候选集合缩小后，可以直接计算：</p>
+<ul>
+<li>意向城市与请求地点是否一致；</li>
+<li>意向职类、申请职类与当前职类的关系；</li>
+<li>请求标签与候选人标签的交集；</li>
+<li>招聘者历史沟通偏好与候选人历史沟通表现的交互；</li>
+<li>质量先验和向量相似度等组合输入。</li>
+</ul>
+<p>LightGBM 在有限候选集上学习这些关系，不必承担全库逐对打分成本。</p>
+<p>这不是说 LightGBM 绝对不能用于召回，而是当前这种依赖请求—候选人联合特征的使用方式，更适合候选缩小后的排序阶段。</p>
+<h3 id="6-4-向量相似度不能代替确定性过滤"><a href="#6-4-向量相似度不能代替确定性过滤" class="headerlink" title="6.4 向量相似度不能代替确定性过滤"></a>6.4 向量相似度不能代替确定性过滤</h3><p>地点、职位有效状态及其他合规的业务限制，不能只依赖向量相似度“尽量满足”。可以考虑过滤后检索、带过滤的 ANN 或检索后补足等策略，但需测量覆盖率和延迟。</p>
+<p>材料把过滤式 ANN 列为后续考虑项，而不是已有部署成果。本文同样将它留在设计建议层面。</p>
+<h2 id="7-采样与评估：没有统一口径，就没有可解释的效果"><a href="#7-采样与评估：没有统一口径，就没有可解释的效果" class="headerlink" title="7. 采样与评估：没有统一口径，就没有可解释的效果"></a>7. 采样与评估：没有统一口径，就没有可解释的效果</h2><h3 id="7-1-负样本下采样改变了数据分布"><a href="#7-1-负样本下采样改变了数据分布" class="headerlink" title="7.1 负样本下采样改变了数据分布"></a>7.1 负样本下采样改变了数据分布</h3><p>请求级实验保留正样本并抽取部分曝光未解锁样本，以控制数据量。设样本被保留的概率为 π_i，逆采样权重可以写为：</p>
+
+\[
+w_i^{\mathrm{sample}}=\frac{1}{\pi_i}.
+\]
+
+
+<p>在采样概率已知且抽样假设成立时，权重可以补偿这一步主动下采样。但它不能恢复旧系统从未曝光的候选人的真实反馈，也不等于曝光倾向校正。</p>
+<p>还要区分三个目的：</p>
+<table>
+<thead>
+<tr>
+<th>权重类型</th>
+<th>目的</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>逆采样权重</td>
+<td>补偿人为保留概率不同</td>
+</tr>
+<tr>
+<td>类别权重</td>
+<td>改变正负类别训练关注度</td>
+</tr>
+<tr>
+<td>请求或招聘者权重</td>
+<td>改变评估中不同请求主体的贡献</td>
+</tr>
+</tbody></table>
+<p>若训练中叠加正例增强、极值截断和归一化，最终权重就不再是纯粹的无偏逆采样权重。它可以是一种有效的优化策略，但解释必须准确。</p>
+<h3 id="7-2-候选人分类与请求内排序分别评估"><a href="#7-2-候选人分类与请求内排序分别评估" class="headerlink" title="7.2 候选人分类与请求内排序分别评估"></a>7.2 候选人分类与请求内排序分别评估</h3><p>候选人级任务关心 ROC-AUC、PR-AUC、Precision、Recall、F1 和 Log Loss。低正例比例下，PR-AUC 往往更能体现正例识别的实际难度。</p>
+<p>请求级匹配则需要在每个请求的候选集合中计算排名指标。设相关候选集合为 R_q：</p>
+
+\[
+\operatorname{Recall@K}(q)
+=\frac{|\operatorname{TopK}(q)\cap R_q|}{|R_q|},
+\qquad
+\operatorname{HitRate@K}(q)
+=\mathbf{1}\left[|\operatorname{TopK}(q)\cap R_q|>0\right].
+\]
+
+
+<p>Recall 关心找回了多少相关候选，HitRate 关心是否至少命中一个，NDCG 进一步考虑位置。无正例请求的处理方式、是否只统计正请求、按请求还是按曝光量平均，都需要明确。</p>
+<p>全局 AUC 也不等于请求内排序质量。模型可能仅凭“某类招聘者更容易解锁”取得较高全局 AUC，却没有很好地区分同一请求内的候选人。</p>
+<h3 id="7-3-头部高精度与整体高召回可以同时不成立"><a href="#7-3-头部高精度与整体高召回可以同时不成立" class="headerlink" title="7.3 头部高精度与整体高召回可以同时不成立"></a>7.3 头部高精度与整体高召回可以同时不成立</h3><p>按分数取很少量的候选人，Precision 可能很高，但 Recall 仍然很低。相反，扩大候选集可以提高召回，却增加人工筛选与计算成本。</p>
+<p>因此，模型比较最好固定实际预算：相同 K、相同误报量、相同延迟或相同候选处理成本，而不只比较各自在最佳阈值下的 F1。</p>
+<h2 id="8-阶段性效果：已经知道什么，尚未证明什么？"><a href="#8-阶段性效果：已经知道什么，尚未证明什么？" class="headerlink" title="8. 阶段性效果：已经知道什么，尚未证明什么？"></a>8. 阶段性效果：已经知道什么，尚未证明什么？</h2><p>本文不披露内部精确指标。下面保留效果方向、比较条件与证据边界，避免用脱敏后的叙述夸大成果。</p>
+<h3 id="8-1-候选人侧模型实验"><a href="#8-1-候选人侧模型实验" class="headerlink" title="8.1 候选人侧模型实验"></a>8.1 候选人侧模型实验</h3><table>
+<thead>
+<tr>
+<th>实验观察</th>
+<th>可以支持的判断</th>
+<th>不能直接推出的结论</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>早期表格模型比较中，LightGBM 在电话任务上较强</td>
+<td>树模型是值得保留的基线</td>
+<td>深度模型普遍无效</td>
+</tr>
+<tr>
+<td>部分表格深度模型接近树模型，私信任务存在不同取舍</td>
+<td>模型选择应按任务和指标判断</td>
+<td>一个架构同时最优于所有目标</td>
+</tr>
+<tr>
+<td>后续独立时间切分实验中，PEMBOT 的电话任务主要指标优于单任务 LightGBM</td>
+<td>多任务候选集成方案具有离线增益</td>
+<td>增益完全由任务共享造成</td>
+</tr>
+<tr>
+<td>固定验证集所选阈值后，测试集真阳性增加、假阳性减少</td>
+<td>在该测试切片和阈值下，识别取舍改善</td>
+<td>所有时间段、所有人群均稳定改善</td>
+</tr>
+<tr>
+<td>Log Loss 也改善</td>
+<td>概率预测误差在该评测中下降</td>
+<td>概率已经充分校准或可以直接按概率定价</td>
+</tr>
+</tbody></table>
+<p>混淆矩阵比单一 F1 更容易解释业务含义：真阳性增加意味着识别到更多真实解锁候选，假阳性减少意味着更少候选被错误判断为会解锁。但不同模型使用各自验证集选定的阈值，并不等价于固定线上工作量的对照。</p>
+<p>现有证据来自有限时间切片，没有展示多随机种子、跨周期置信区间或完整消融，因此不使用“已经证明稳定收益”的表述。</p>
+<h3 id="8-2-请求级匹配实验"><a href="#8-2-请求级匹配实验" class="headerlink" title="8.2 请求级匹配实验"></a>8.2 请求级匹配实验</h3><table>
+<thead>
+<tr>
+<th>模型</th>
+<th>已曝光候选集内的离线观察</th>
+<th>模型定位</th>
+</tr>
+</thead>
+<tbody><tr>
+<td>仅候选人信息的质量模型</td>
+<td>区分能力有限</td>
+<td>可用作质量先验，不能替代匹配</td>
+</tr>
+<tr>
+<td>双塔</td>
+<td>部分 Recall、NDCG 相对随机排序有改善，并非所有头部指标都改善</td>
+<td>初步验证匹配信号，尚不能证明正式全库召回价值</td>
+</tr>
+<tr>
+<td>请求—候选人 LightGBM</td>
+<td>多项请求内排序指标优于随机和双塔</td>
+<td>在这组已曝光候选内具有粗排优势</td>
+</tr>
+</tbody></table>
+<p>这个实验的请求和招聘者覆盖有限。尤其需要强调，<strong>在已经曝光的候选集内排序，不等于从全量候选库中召回</strong>。</p>
+<p>要证明全库召回价值，还需要更完整的候选池、合理的离线检索协议、ANN 近似损失评估，以及上线实验。历史曝光集合由旧系统筛选过，直接在其中评测会受到选择偏差影响。</p>
+<h3 id="8-3-为什么不能横向比较两组-AUC？"><a href="#8-3-为什么不能横向比较两组-AUC？" class="headerlink" title="8.3 为什么不能横向比较两组 AUC？"></a>8.3 为什么不能横向比较两组 AUC？</h3><p>两条探索线的差异包括：</p>
+<ul>
+<li>候选人聚合标签与请求—候选人标签不同；</li>
+<li>使用日期、样本规模和正例比例不同；</li>
+<li>是否进行负例下采样及加权不同；</li>
+<li>模型输入是否包含请求和招聘者信息不同；</li>
+<li>指标按什么单位统计也不同。</li>
+</ul>
+<p>因此，不能写成“质量模型 AUC 很高，加入请求后下降，所以请求特征无效”，也不能把请求加权 AUC 与另一组非加权 AUC 当作直接提升。</p>
+<p>“请求抽样加权 AUC”的具体实现还需要回到评估代码核验：全局加权 AUC、按请求计算后再平均，以及按招聘者等权，都可能得到不同结果。</p>
+<h2 id="9-最值得复盘的技术决策"><a href="#9-最值得复盘的技术决策" class="headerlink" title="9. 最值得复盘的技术决策"></a>9. 最值得复盘的技术决策</h2><h3 id="9-1-把“选模型”前移为“定义问题”"><a href="#9-1-把“选模型”前移为“定义问题”" class="headerlink" title="9.1 把“选模型”前移为“定义问题”"></a>9.1 把“选模型”前移为“定义问题”</h3><p>从候选人模型转向请求匹配，最重要的变化不是多加一个 Tower，而是承认质量先验不足以表达供需关系。</p>
+<p>招聘者曝光更频繁，也可能主导候选人的总体解锁统计。如果目标是跨招聘者的平均适合度，就需要明确平均方式，而不是直接用所有曝光的总解锁率代替。</p>
+<h3 id="9-2-防泄漏比离线高分更重要"><a href="#9-2-防泄漏比离线高分更重要" class="headerlink" title="9.2 防泄漏比离线高分更重要"></a>9.2 防泄漏比离线高分更重要</h3><p>时间切分只能解决部分问题。若输入快照本身包含标签后的信息，即使训练日期早于测试日期，仍然会泄漏。</p>
+<p>实际应同时审查样本时间、标签归因窗口、事件时间、快照可用时间和词表拟合范围。</p>
+<h3 id="9-3-系统可扩展性与模型表达能力分开优化"><a href="#9-3-系统可扩展性与模型表达能力分开优化" class="headerlink" title="9.3 系统可扩展性与模型表达能力分开优化"></a>9.3 系统可扩展性与模型表达能力分开优化</h3><p>双塔在独立编码约束下换取检索效率，粗排在有限候选上增加交互能力。把计算放在合适的候选规模上，比试图让一个复杂模型直接处理全库更可行。</p>
+<p>但这仍是一项待工程验证的设计：离线向量更新、特征同步、版本切换、过滤逻辑和降级路径，都需要真实服务测试。</p>
+<h3 id="9-4-多任务方案必须配套成本与负迁移分析"><a href="#9-4-多任务方案必须配套成本与负迁移分析" class="headerlink" title="9.4 多任务方案必须配套成本与负迁移分析"></a>9.4 多任务方案必须配套成本与负迁移分析</h3><p>集成更多候选模型可能改善精度，也可能增加训练、存储与预测成本。下一步应分别比较共享树、任务专属树、候选搜索和集成的增量，并观察两个任务是否存在负迁移。</p>
+<p>在同等时间或推理预算下比较单模型与集成，才有助于决定哪种方案适合实际部署。</p>
+<h2 id="10-如何在面试中讲清这个项目？"><a href="#10-如何在面试中讲清这个项目？" class="headerlink" title="10. 如何在面试中讲清这个项目？"></a>10. 如何在面试中讲清这个项目？</h2><h3 id="10-1-一段简洁的项目概述"><a href="#10-1-一段简洁的项目概述" class="headerlink" title="10.1 一段简洁的项目概述"></a>10.1 一段简洁的项目概述</h3><blockquote>
+<p>这是一个招聘者找人的推荐建模项目，核心是区分候选人质量与当前请求匹配。候选人侧使用资料、意向和预测前历史行为建立质量模型，先比较树模型与表格深度模型，再探索电话、私信解锁的多任务树集成。请求侧则用双塔承担可扩展的个性化检索，并用显式交叉特征的 LightGBM 比较有限候选。阶段性离线实验显示，多任务集成改善了电话解锁识别，请求级粗排也有优势；双塔仍处于小样本验证，尚未证明全库召回或线上业务收益。项目中最关键的是标签粒度、防时间穿越和评估口径，而不只是模型架构。</p>
+</blockquote>
+<p>这段话介绍的是项目，不声明个人负责范围。真实面试中，应再补充有事实依据的职责、决策和交付，不能把整套方案全部归为个人成果。</p>
+<h3 id="10-2-常见追问与回答要点"><a href="#10-2-常见追问与回答要点" class="headerlink" title="10.2 常见追问与回答要点"></a>10.2 常见追问与回答要点</h3><p><strong>问：为什么不是直接上双塔？</strong></p>
+<p>答：先用候选人侧表格模型验证数据与标签信号，更容易检查字段和泄漏；双塔解决的是请求匹配与检索效率，不能代替前面的数据验证。两者问题不同，不是简单的复杂模型替换简单模型。</p>
+<p><strong>问：为什么电话和私信一起学？</strong></p>
+<p>答：它们共享求职意愿、活跃度等因素，也存在渠道差异，所以需要共享与专属部分。不过当前增益来自整个多任务集成方案，还需要消融区分共享与集成的贡献。</p>
+<p><strong>问：未解锁样本为什么可以当负例？</strong></p>
+<p>答：它是日志中的观测负标签，并不等于真实不相关。要明确观察窗口、曝光机会和采样策略，不能把未曝光用户的偏好也当成已知。</p>
+<p><strong>问：如何防止模型偷看未来？</strong></p>
+<p>答：不仅按日期划分数据，还约束每个字段的事件与可用时间；后验结果不用作当前预测输入，统计只读安全窗口，词表与预处理参数只在训练集拟合。</p>
+<p><strong>问：为什么粗排比双塔好，还要保留双塔？</strong></p>
+<p>答：候选粗排能够直接看请求与候选的交叉信息，但不适合以同样方式遍历巨大候选库。双塔换取预计算和检索效率。已有对照只发生在已曝光候选中，还不能据此决定实际全库检索方案。</p>
+<p><strong>问：有什么真实效果？</strong></p>
+<p>答：已确认的是两个独立离线实验中的方向性改善：候选人多任务集成改善电话识别，请求级交叉模型改善有限候选排序。没有证据支持线上解锁率或招聘转化提升；具体数值只能在允许披露且解释清楚对应口径时使用。</p>
+<p><strong>问：下一步最应该做什么？</strong></p>
+<p>答：优先确认标签归因与评估代码，扩大请求和时间覆盖，补充同预算消融、分群误差及公平性检查，再验证全库检索、延迟与线上业务指标，而不是立即扩大网络。</p>
+<h2 id="11-总结"><a href="#11-总结" class="headerlink" title="11. 总结"></a>11. 总结</h2><p>这个项目最重要的不是从 LightGBM 换成了更复杂的模型，而是逐步把三个问题分开：</p>
+<ol>
+<li><strong>候选人本身是否具有可用的质量信号；</strong></li>
+<li><strong>当前请求与候选人是否匹配；</strong></li>
+<li><strong>这些信号能否以可接受的成本进入检索与排序链路。</strong></li>
+</ol>
+<p>已有离线记录支持部分建模方向，但不能替代完整的上线证据。一个可信的项目介绍，既要说明做了什么、为什么这样做，也要说明指标来自哪里，以及还有哪些问题没有验证。</p>
+<h2 id="资料与阅读边界"><a href="#资料与阅读边界" class="headerlink" title="资料与阅读边界"></a>资料与阅读边界</h2><p>本文依据阶段性项目记录整理，而非公开论文复现；内部原始资料链接与精确实验数据不在公开版本中披露。方法公式为明确标注的通用解释或结构示意，不是从未提供的实现代码反推出的精确算法。本文不构成对相关内部细节已获对外披露许可的证明，正式发布前仍应完成必要审核。</p>
+<p>相关方法可结合站内 <a href="/2026/04/10/%E5%A4%9A%E7%9B%AE%E6%A0%87%E5%BB%BA%E6%A8%A1/" title="多目标建模">多目标建模</a> 与 <a href="/2026/10/12/%E6%8E%A8%E8%8D%90%E6%A8%A1%E5%9E%8BScaling-%E6%80%BB%E8%A7%88/" title="推荐模型 Scaling（一）：从参数规模到模型与系统协同设计">模型与系统协同设计</a> 阅读；这些通用技术资料不是本项目实验结果的来源。</p>
+
+    </div>
+
+    
+    
+    
+
+    <footer class="post-footer">
+          <div class="post-tags">
+              <a href="/tags/%E6%8E%A8%E8%8D%90%E7%B3%BB%E7%BB%9F/" rel="tag"># 推荐系统</a>
+              <a href="/tags/%E5%8F%8C%E5%A1%94%E6%A8%A1%E5%9E%8B/" rel="tag"># 双塔模型</a>
+              <a href="/tags/%E5%A4%9A%E4%BB%BB%E5%8A%A1%E5%AD%A6%E4%B9%A0/" rel="tag"># 多任务学习</a>
+              <a href="/tags/%E6%8B%9B%E8%81%98%E6%8E%A8%E8%8D%90/" rel="tag"># 招聘推荐</a>
+              <a href="/tags/%E7%89%B9%E5%BE%81%E5%B7%A5%E7%A8%8B/" rel="tag"># 特征工程</a>
+              <a href="/tags/LightGBM/" rel="tag"># LightGBM</a>
+          </div>
+
+        
+
+          <div class="post-nav">
+            <div class="post-nav-item">
+                <a href="/2026/10/12/Cluster-GOOBS/" rel="prev" title="Cluster GOOBS：基于语义聚类的实时困难负采样">
+                  <i class="fa fa-angle-left"></i> Cluster GOOBS：基于语义聚类的实时困难负采样
+                </a>
+            </div>
+            <div class="post-nav-item">
+            </div>
+          </div>
+    </footer>
+  </article>
+</div>
+
+
+
+
+
+
+</div>
+  </main>
+
+  <footer class="footer">
+    <div class="footer-inner">
+
+  <div class="copyright">
+    &copy; 
+    <span itemprop="copyrightYear">2026</span>
+    <span class="with-love">
+      <i class="fa fa-heart"></i>
+    </span>
+    <span class="author" itemprop="copyrightHolder">wdy</span>
+  </div>
+  <div class="powered-by">由 <a href="https://hexo.io/" rel="noopener" target="_blank">Hexo</a> & <a href="https://theme-next.js.org/muse/" rel="noopener" target="_blank">NexT.Muse</a> 强力驱动
+  </div>
+
+    </div>
+  </footer>
+
+  
+  <div class="toggle sidebar-toggle" role="button">
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+    <span class="toggle-line"></span>
+  </div>
+  <div class="sidebar-dimmer"></div>
+  <div class="back-to-top" role="button" aria-label="返回顶部">
+    <i class="fa fa-arrow-up fa-lg"></i>
+    <span>0%</span>
+  </div>
+
+<noscript>
+  <div class="noscript-warning">Theme NexT works best with JavaScript enabled</div>
+</noscript>
+
+</body>
+</html>
